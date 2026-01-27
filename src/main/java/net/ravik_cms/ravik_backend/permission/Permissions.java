@@ -20,6 +20,4 @@ public class Permissions {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String name;
-    @ManyToMany(mappedBy = "permissions")
-    Set<Roles> roles = new HashSet<>();
 }

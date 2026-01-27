@@ -31,9 +31,17 @@ public class RolesService {
                 orElseThrow(()-> new ResourceNotFoundException("Role not found"));
         return rolesMapper.toRoleDto(role);
     }
-
+    public RoleInfoDto getRoleByName(String name){
+        Roles role = rolesRepository.findByName(name).
+                orElseThrow(()-> new ResourceNotFoundException("Role not Found"));
+        return rolesMapper.toRoleDto(role);
+    }
     public List<RoleInfoDto> getAllRoles(){
         List<Roles> allRoles = rolesRepository.findAll();
         return rolesMapper.toRoleDtoList(allRoles);
+    }
+    public RoleInfoDto createRole(CreateRoleDto role){
+        Roles newRole = rolesMapper.fromCreateRole(role);
+        return rolesMapper.toRoleDto(rolesRepository.save(newRole));
     }
 }

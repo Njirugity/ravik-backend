@@ -22,4 +22,12 @@ public class RolesController {
     public List<RoleInfoDto> getAllRoles(){
         return rolesService.getAllRoles();
     }
+    @GetMapping("/name/{name}")
+    public RoleInfoDto getRoleByName(@PathVariable String name){
+        return rolesService.getRoleByName(name);
+    }
+    @PostMapping
+    public RoleInfoDto createRole(@RequestBody CreateRoleDto role){
+        return rolesService.createRole(role);
+    }
 }

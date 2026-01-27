@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.permission.Permissions;
+import net.ravik_cms.ravik_backend.users.Users;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,11 +21,11 @@ public class Roles {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String name;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "roles_permission",
             joinColumns = @JoinColumn(name = "roles_id"),
             inverseJoinColumns = @JoinColumn(name = "permissions_id")
     )
-    Set<Permissions> permissions = new HashSet<>();
+    private Set<Permissions> permissions = new HashSet<>();
 }

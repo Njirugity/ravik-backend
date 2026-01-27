@@ -1,9 +1,6 @@
 package net.ravik_cms.ravik_backend.users;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -11,9 +8,10 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LabourerDto {
+public class StaffDto {
     private UUID id;
     private String userName;
-    private String phoneNumber;
+    private String email;
     private String idNumber;
+    private String phoneNumber;
 }

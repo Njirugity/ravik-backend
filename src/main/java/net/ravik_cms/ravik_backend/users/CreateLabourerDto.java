@@ -15,5 +15,7 @@ public class CreateLabourerDto {
     private String userName;
     @NotBlank(message = "Phone number required")
     private String phoneNumber;
+    @NotBlank(message = "Identification required")
     private String idNumber;
+    private String roleKey;
 }

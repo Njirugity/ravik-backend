@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.roles.RoleInfoDto;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -22,5 +25,7 @@ public class CreateClientDto {
     private String password;
     @NotBlank(message = "Phone number required")
     private String phoneNumber;
+    @NotBlank(message = "Identification required")
     private String idNumber;
+    private Set<RoleInfoDto> roles;
 }

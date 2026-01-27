@@ -2,6 +2,9 @@ package net.ravik_cms.ravik_backend.projects;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -18,35 +21,35 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
+    @PreAuthorize("hasAuthority('CREATE_PROJECT')")
     @PostMapping
-    public ResponseEntity<ProjectInfoDto> createProject(@Valid @RequestBody ProjectDto projectDto){
-        ProjectInfoDto newProject = projectService.createProject(projectDto);
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(newProject.getId())
-                .toUri();
-        return ResponseEntity.created(location).body(newProject);
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<ProjectInfoDto> getProject(@PathVariable UUID id){
-        ProjectInfoDto project = projectService.getProject(id);
-        return ResponseEntity.ok(project);
-    }
-    @GetMapping
-    public ResponseEntity<List<ProjectInfoDto>> getAllProjects(){
-        List<ProjectInfoDto> projects = projectService.getAllProjects();
-        return ResponseEntity.ok(projects);
-    }
-    @PatchMapping("/{id}")
-    public ResponseEntity<ProjectPatchDto> patchProject(@PathVariable UUID id, @RequestBody ProjectPatchDto request){
-        ProjectPatchDto patchedProject = projectService.patchProject(id, request);
-        return ResponseEntity.ok(patchedProject);
-    }
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProject(@PathVariable UUID id){
-        projectService.deleteProject(id);
-        return ResponseEntity.ok("Project successfully deleted");
+    public ProjectInfoDto createProject(@Valid @RequestBody ProjectDto project, @AuthenticationPrincipal UserDetails currentUser){
+        return projectService.createProject(project, currentUser.getUsername());
     }
 
+    @PreAuthorize("hasAuthority('READ_PROJECT')")
+    @GetMapping("/{id}")
+    public ResponseEntity<ProjectInfoDto> getProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser){
+        ProjectInfoDto project = projectService.getProject(id, currentUser.getUsername());
+        return ResponseEntity.ok(project);
+    }
+    @PreAuthorize("hasAuthority('READ_PROJECT')")
+    @GetMapping
+    public ResponseEntity<List<ProjectInfoDto>> getAllProjects(@AuthenticationPrincipal UserDetails currentUser){
+        List<ProjectInfoDto> projects = projectService.getAllProjects(currentUser.getUsername());
+        return ResponseEntity.ok(projects);
+    }
+    @PreAuthorize("hasAuthority('UPDATE_PROJECT')")
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProjectPatchDto> patchProject(@PathVariable UUID id, @RequestBody ProjectPatchDto request,
+                                                        @AuthenticationPrincipal UserDetails currentUser){
+        ProjectPatchDto patchedProject = projectService.patchProject(id, currentUser.getUsername(),request);
+        return ResponseEntity.ok(patchedProject);
+    }
+    @PreAuthorize("hasAuthority('DELETE_PROJECT')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser){
+        projectService.deleteProject(id, currentUser.getUsername());
+        return ResponseEntity.ok("Project successfully deleted");
+    }
 }

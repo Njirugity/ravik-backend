@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.users.SupervisorDto;
 
 import java.util.UUID;
 
@@ -16,4 +17,5 @@ public class ProjectInfoDto {
     private String title;
     private String location;
     private String plotNo;
+    private SupervisorDto client;
 }

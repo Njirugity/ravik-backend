@@ -1,14 +1,13 @@
 package net.ravik_cms.ravik_backend.projects;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.users.Users;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -27,4 +26,14 @@ public class Projects {
     private String NCAregNumber;
     private String NEMAregNumber;
     private String CountyRegNumber;
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private Users client;
+    @ManyToMany
+    @JoinTable(
+            name = "project_staff",
+            joinColumns = @JoinColumn(name ="project_id"),
+            inverseJoinColumns = @JoinColumn(name = "staff_id")
+    )
+    private Set<Users> staff;
 }

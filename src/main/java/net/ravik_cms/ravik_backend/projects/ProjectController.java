@@ -1,30 +1,25 @@
 package net.ravik_cms.ravik_backend.projects;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/project")
+@RequiredArgsConstructor
 public class ProjectController {
     private final ProjectService projectService;
+    private final ProjectOrchestrationService orchestrationService;
 
-    public ProjectController(ProjectService projectService) {
-        this.projectService = projectService;
-    }
-
-    @PreAuthorize("hasAuthority('CREATE_PROJECT')")
     @PostMapping
     public ProjectInfoDto createProject(@Valid @RequestBody ProjectDto project, @AuthenticationPrincipal UserDetails currentUser){
-        return projectService.createProject(project, currentUser.getUsername());
+        return orchestrationService.createProject(project, currentUser.getUsername());
     }
 
     @PreAuthorize("hasAuthority('READ_PROJECT')")

@@ -2,19 +2,16 @@ package net.ravik_cms.ravik_backend.projects;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
 import net.ravik_cms.ravik_backend.users.UserRepository;
 import net.ravik_cms.ravik_backend.users.Users;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,6 +21,7 @@ public class ProjectService {
     private final ProjectMapper projectMapper;
     private final UserRepository userRepository;
     private final ProjectMembershipRepository projectMembershipRepository;
+    private final RolesSeeder rolesSeeder;
 
     public Projects findProject(UUID id, String userName){
         Users users = userRepository.findByUserName(userName).
@@ -33,18 +31,16 @@ public class ProjectService {
                 orElseThrow(()-> new AccessDeniedException("Not A project Member"));
         return project;
     }
+
     @Transactional
-    public ProjectInfoDto createProject(ProjectDto projectDto, String userName){
+    public Projects createProject(ProjectDto projectDto, String userName){
         Users client = userRepository.findByUserName(userName).
                 orElseThrow(()-> new ResourceNotFoundException("User not found"));
         Projects newProject = projectMapper.toProjects(projectDto);
         newProject.setClient(client);
-        ProjectMembership membership = projectMembershipRepository.findByUser(client).orElseThrow();
-        membership.setProject(newProject);
-        projectMembershipRepository.save(membership);
-        Projects savedProject = projectsRepository.save(newProject);
-
-        return projectMapper.toInfoDto(savedProject);
+        projectsRepository.save(newProject);
+        rolesSeeder.seedDefaultRoles(newProject);
+        return newProject;
     }
     @Transactional
     public ProjectInfoDto getProject(UUID id, String userName){

@@ -6,10 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.permission.Permissions;
-import net.ravik_cms.ravik_backend.users.Users;
+import net.ravik_cms.ravik_backend.projects.Projects;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,8 +19,8 @@ import java.util.Set;
 @AllArgsConstructor
 public class Roles {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
     private String name;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -28,4 +29,8 @@ public class Roles {
             inverseJoinColumns = @JoinColumn(name = "permissions_id")
     )
     private Set<Permissions> permissions = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Projects project;
 }

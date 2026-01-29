@@ -7,13 +7,14 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.permission.PermissionInfoDto;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleInfoDto {
-    private Long id;
+    private UUID id;
     private String name;
     private Set<PermissionInfoDto> permissions;
 }

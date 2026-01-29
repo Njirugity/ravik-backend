@@ -27,20 +27,20 @@ public class CustomUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Users loadUser = userRepository.findByUserNameWithRolesAndPermissions(username).
+        Users loadUser = userRepository.findByUserName(username).
                 orElseThrow(()->new UsernameNotFoundException("User not found"));
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        for (Roles roles: loadUser.getRoles()){
-            for (Permissions permissions: roles.getPermissions()){
-                authorities.add(
-                        new SimpleGrantedAuthority(permissions.getName())
-                );
-            }
-        }
+//        Set<GrantedAuthority> authorities = new HashSet<>();
+//        for (Roles roles: loadUser.getRoles()){
+//            for (Permissions permissions: roles.getPermissions()){
+//                authorities.add(
+//                        new SimpleGrantedAuthority(permissions.getName())
+//                );
+//            }
+//        }
         return new User(
                 loadUser.getUserName(),
                 loadUser.getPassword(),
-                authorities
+                Collections.emptyList()
         );
     }
 }

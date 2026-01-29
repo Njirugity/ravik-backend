@@ -28,20 +28,7 @@ public class Users {
     private String password;
     private String phoneNumber;
     private String idNumber;
-    @ManyToMany
-    @JoinTable(
-            name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
 
-    private Set<Roles> roles = new HashSet<>();
-    public void addRole(Roles role) {
-        if (this.roles == null) {
-            this.roles = new HashSet<>();
-        }
-        this.roles.add(role);
-    }
     @OneToMany(mappedBy = "user")
     private Set<Salaries> salary;
 }

@@ -49,6 +49,7 @@ public class UserService {
     @Transactional
     public SupervisorDto addSupervisor(CreateSupervisorsDto supervisor, UUID id){
         Users newSupervisor = userMapper.fromCreateSupervisor(supervisor);
+        Double wage = supervisor.getBaseDailyWage();
         newSupervisor.setPassword(encoder.encode(newSupervisor.getPassword()));
         userRepository.save(newSupervisor);
 
@@ -56,19 +57,20 @@ public class UserService {
                 .orElseThrow(()-> new ResourceNotFoundException("Role " + supervisor.getRoleKey()+ " not found"));
         Projects project = projectsRepository.findById(id).orElseThrow();
 
-        membershipService.addToMembership(project, newSupervisor, roles);
+        membershipService.addToMembership(project, newSupervisor, roles, wage);
         return userMapper.toSupervisor(newSupervisor);
     }
     @Transactional
     public LabourerDto addLabourer(CreateLabourerDto labourer, UUID id){
         Users newLabourer = userMapper.fromCreateLabourer(labourer);
+        Double wage = labourer.getBaseDailyWage();
         userRepository.save(newLabourer);
         Projects project = projectsRepository.findById(id).
                 orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         Roles role = rolesRepository.findByName(labourer.getRoleKey()).
                 orElseThrow(()-> new ResourceNotFoundException("Role" + labourer.getRoleKey() + "not found"));
 
-        membershipService.addToMembership(project, newLabourer, role);
+        membershipService.addToMembership(project, newLabourer, role, wage);
         return userMapper.toLabourer(newLabourer);
     }
 

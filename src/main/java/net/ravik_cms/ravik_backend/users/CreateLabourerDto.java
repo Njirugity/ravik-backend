@@ -18,4 +18,5 @@ public class CreateLabourerDto {
     @NotBlank(message = "Identification required")
     private String idNumber;
     private String roleKey;
+    private Double baseDailyWage;
 }

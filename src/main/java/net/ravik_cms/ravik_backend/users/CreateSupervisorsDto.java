@@ -28,4 +28,5 @@ public class CreateSupervisorsDto {
     private String idNumber;
 
     private String roleKey;
+    private Double baseDailyWage;
 }

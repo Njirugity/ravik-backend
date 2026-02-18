@@ -28,7 +28,6 @@ public class ProjectController {
         ProjectInfoDto project = projectService.getProject(id, currentUser.getUsername());
         return ResponseEntity.ok(project);
     }
-    @PreAuthorize("hasAuthority('READ_PROJECT')")
     @GetMapping
     public ResponseEntity<List<ProjectInfoDto>> getAllProjects(@AuthenticationPrincipal UserDetails currentUser){
         List<ProjectInfoDto> projects = projectService.getAllProjects(currentUser.getUsername());

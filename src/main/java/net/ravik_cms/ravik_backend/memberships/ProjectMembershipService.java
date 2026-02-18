@@ -7,6 +7,8 @@ import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.users.Users;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectMembershipService {
@@ -23,12 +25,13 @@ public class ProjectMembershipService {
         membershipRepository.save(membership);
     }
     @Transactional
-    public void addToMembership(Projects projects, Users users, Roles roles){
+    public void addToMembership(Projects projects, Users users, Roles roles, Double wage){
         ProjectMembership membership = new ProjectMembership();
         membership.setUser(users);
         membership.setProject(projects);
         membership.setRole(roles);
         membership.setStatus("ACTIVE");
+        membership.setBaseDailyWage(wage);
 
         membershipRepository.save(membership);
     }

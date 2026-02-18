@@ -29,4 +29,5 @@ public class ProjectMembership {
     private Roles role;
     private String status;
     private boolean ownership= false;
+    private Double baseDailyWage;
 }

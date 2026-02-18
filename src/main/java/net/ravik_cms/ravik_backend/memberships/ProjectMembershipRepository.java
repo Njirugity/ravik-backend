@@ -12,9 +12,11 @@ import java.util.UUID;
 
 @Repository
 public interface ProjectMembershipRepository extends JpaRepository<ProjectMembership, Long> {
-    Optional<ProjectMembership> findByUser(Users user);
     List<ProjectMembership> findAllByUser(Users user);
     List<ProjectMembership> findAllByProject(Projects project);
     List<ProjectMembership> findAllByProjectAndRole(Projects project, Roles role);
     Optional<ProjectMembership> findByUserAndProject(Users user, Projects project);
+    List<ProjectMembership> findAllByProjectIdAndStatus(UUID projectId, String status);
+    Optional <ProjectMembership> findByProjectAndStatusAndId(Projects project, String status,Long id);
+    List<ProjectMembership> findAllByProjectId(UUID projectId);
 }

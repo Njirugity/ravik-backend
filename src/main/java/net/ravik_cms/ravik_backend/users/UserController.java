@@ -2,7 +2,6 @@ package net.ravik_cms.ravik_backend.users;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,13 +9,9 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/staff")
 public class UserController {
     private final UserService userService;
-
-    @PostMapping("/auth/register")
-    public SupervisorDto addClient(@Valid @RequestBody CreateClientDto client){
-        return userService.addClient(client);
-    }
 
     @PostMapping("/add/supervisor/{id}")
     public SupervisorDto addSupervisor(@Valid @RequestBody CreateSupervisorsDto supervisor, @PathVariable UUID id){
@@ -26,9 +21,9 @@ public class UserController {
     public LabourerDto addLabourer(@Valid @RequestBody CreateLabourerDto labourer, @PathVariable UUID id){
         return userService.addLabourer(labourer, id);
     }
-    @GetMapping("/clients")
-    public List<SupervisorDto> getAllClients(){
-        return userService.getAllClients();
+    @GetMapping("/client/{project_id}/{user_id}")
+    public SupervisorDto getAllClients(@PathVariable UUID project_id, @PathVariable UUID user_id){
+        return userService.getClients(project_id, user_id);
     }
 
     @GetMapping("/supervisor/{project_id}/{user_id}")
@@ -40,13 +35,24 @@ public class UserController {
     public LabourerDto getLabourer(@PathVariable UUID project_id, @PathVariable UUID user_id){
         return userService.getLabourer(project_id, user_id);
     }
-
-    @GetMapping("/staff/{id}")
-    public List<StaffDto> getStaff(@PathVariable UUID id, @RequestParam(required = false) String role){
+    @GetMapping("/clients/{project_id}")
+    public List<SupervisorWithRoleDto> getClients(@PathVariable UUID project_id){
+        return userService.getAllManagement(project_id);
+    }
+    @GetMapping("/supervisors/{project_id}")
+    public List<SupervisorWithRoleDto> getAllSupervisors(@PathVariable UUID project_id){
+        return userService.getAllSupervisors(project_id);
+    }
+    @GetMapping("/field_crews/{project_id}")
+    public List<LabourerWithRoleDto> getAllFieldCrews(@PathVariable UUID project_id){
+        return userService.getAllFieldCrew(project_id);
+    }
+    @GetMapping("/{projectId}")
+    public List<StaffDto> getStaff(@PathVariable UUID projectId, @RequestParam(required = false) String role){
         if(role != null && !role.isEmpty()){
-            return userService.getAllStaffByProjectAndRoles(id, role);
+            return userService.getAllStaffByProjectAndRoles(projectId, role);
         }else{
-            return userService.getAllStaffByProject(id);
+            return userService.getAllStaffByProject(projectId);
         }
     }
 

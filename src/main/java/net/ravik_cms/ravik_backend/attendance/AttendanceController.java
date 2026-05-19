@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.attendance;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -12,18 +13,20 @@ import java.util.UUID;
 @RequestMapping("/attendance")
 public class AttendanceController {
     private final AttendanceService attendanceService;
-    @PostMapping("/generate/{project_id}")
-    public AttendanceResultDto generate(@PathVariable UUID project_id, @RequestBody GenerateDatesDto dates){
-        return attendanceService.generateDates(project_id, dates);
+    @PostMapping("/generate/{project_id}/{date}")
+    public AttendanceResultDto generate(@PathVariable UUID project_id, @PathVariable LocalDate date){
+        return attendanceService.generateSingleDate(project_id, date);
     }
-    @GetMapping("/records/{project_id}")
-    public List<AttendanceInfoDto> display(@PathVariable UUID project_id,
-                                           @RequestParam LocalDate startDate, @RequestParam LocalDate endDate){
-        return attendanceService.displayAttendanceRecords(project_id, startDate, endDate);
+    @GetMapping("/punch-in/{project_id}")
+    public List<AttendanceSingleDayInfoDto> display(@PathVariable UUID project_id){
+        return attendanceService.displayRecords(project_id);
     }
-    @PatchMapping("/{member_id}/{attendance_id}")
-    public AttendanceDayDto updateAttendance(@PathVariable Long member_id,
-                                 @PathVariable Long attendance_id, @RequestBody UpdateAttendanceDto request ){
-        return attendanceService.updateAttendance(attendance_id, member_id, request);
+    @GetMapping("/summary/{project_id}")
+    public List<AttendanceSummaryDto> summary(@PathVariable UUID project_id){
+        return attendanceService.summary(project_id);
+    }
+    @PostMapping("/save")
+    public void saveAttendance(@RequestBody List<AttendanceDayDto> dtos){
+        attendanceService.updateBulkAttendance(dtos);
     }
 }

@@ -2,12 +2,24 @@ package net.ravik_cms.ravik_backend.attendance;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
+import net.ravik_cms.ravik_backend.common.enums.StaffStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
+import net.ravik_cms.ravik_backend.milestones.Milestones;
+import net.ravik_cms.ravik_backend.milestones.MilestonesMapper;
+import net.ravik_cms.ravik_backend.milestones.MilestonesService;
+import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,81 +27,98 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
-    private final AttendanceMapper attendanceMapper;
-    private final ProjectMembershipRepository membershipRepository;
+    private final ProjectsRepository projectsRepository;
+    private final MilestonesService milestonesService;
+    private final MilestonesMapper milestonesMapper;
 
-
-    public AttendanceResultDto generateDates(UUID projectId, GenerateDatesDto dates){
-        List<ProjectMembership> memberships = membershipRepository.findAllByProjectIdAndStatus(projectId, "ACTIVE");
-        List<LocalDate> attendanceDates = new ArrayList<LocalDate>();
-        for(long i = 0L; i < dates.getRange(); i++){
-            attendanceDates.add(dates.getStartDate().plusDays(i));
-        }
-        List<Attendance> attendances = new ArrayList<>();
-        int skipped = 0;
-        int generated = 0;
-        for (ProjectMembership membership : memberships) {
-            for(LocalDate attendanceDate : attendanceDates){
-                boolean exists = attendanceRepository.existsByMembershipAndDate(membership, attendanceDate);
-                if (exists){
-                    skipped++;
-                } else{
-                    Attendance attendance = new Attendance();
-                    attendance.setMembership(membership);
-                    attendance.setDate(attendanceDate);
-                    attendance.setPresent(false);
-                    attendances.add(attendance);
-                    generated++;
-                }
+    @Scheduled(cron = "0 0 0 * * *")
+    public void generateCurrentDay(){
+        LocalDate today = LocalDate.now();
+        List<Projects> projects = projectsRepository.findAll();
+        for (Projects project: projects){
+            try{
+                generateSingleDate(project.getId(), today);
+            }catch (Exception e) {
+                // Log error for specific project so the whole job doesn't fail
+                System.out.println(e);
             }
         }
-        attendanceRepository.saveAll(attendances);
-        return new AttendanceResultDto(skipped, generated);
+
+    }
+    @Transactional
+    public AttendanceResultDto generateSingleDate(UUID projectId, LocalDate date){
+        List<ProjectMembership> memberships = attendanceRepository.findMembershipsWithoutAttendance(
+                projectId, date);
+        Milestones milestone = milestonesMapper.toEntityFromInfoDto(milestonesService.getActiveMilestone(projectId));
+        milestonesService.setMilestoneActualStartDate(milestone);
+        List<Attendance> newRecords = memberships.stream()
+                .map(m-> {
+                    Attendance a = new Attendance();
+                    a.setMembership(m);
+                    a.setDate(date);
+                    a.setStatus(AttendanceStatus.ABSENT);
+                    a.setMilestone(milestone);
+                    return a;
+                }).collect(Collectors.toList());
+        attendanceRepository.saveAll(newRecords);
+        return new AttendanceResultDto(0, newRecords.size());
+    }
+
+    public List<AttendanceSingleDayInfoDto> displayRecords(UUID projectId){
+        LocalDate today = LocalDate.now();
+        List<Attendance> records = attendanceRepository.findByProjectIdAndDate(projectId, today);
+        return records.stream()
+                .map(a->{
+                    AttendanceSingleDayInfoDto dto = new AttendanceSingleDayInfoDto();
+                    dto.setMemberId(a.getMembership().getId());
+                    dto.setUserName(a.getMembership().getUser().getUserName());
+                    dto.setRole(a.getMembership().getRole().getName());
+                    dto.setAttendanceId(a.getId());
+                    dto.setDate(a.getDate());
+                    dto.setStatus(a.getStatus());
+                    dto.setMilestoneTitle(a.getMilestone().getTitle());
+                    return dto;
+                }).collect(Collectors.toList());
+    }
+
+    public List<AttendanceSummaryDto> summary (UUID projectId){
+        LocalDate today = LocalDate.now();
+        LocalDate firstDay = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate lastDay = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        Long daysOfWeek = ChronoUnit.DAYS.between(firstDay, lastDay);
+
+        List<Attendance> records = attendanceRepository.findAttendanceForSummary(projectId, firstDay, lastDay);
+        String weekRange = firstDay.getMonth().name() + " " + firstDay.getDayOfMonth() + " - " + lastDay.getDayOfMonth();
+        return records.stream()
+                .collect(Collectors.groupingBy(Attendance::getMembership)) // Group by member
+                .entrySet().stream()
+                .map(entry -> {
+                    ProjectMembership m = entry.getKey();
+                    List<Attendance> userRecords = entry.getValue();
+
+                    long presentCount = userRecords.stream()
+                            .filter(a -> a.getStatus() == AttendanceStatus.PRESENT)
+                            .count();
+
+                    AttendanceSummaryDto dto = new AttendanceSummaryDto();
+                    dto.setUserName(m.getUser().getUserName());
+                    dto.setRole(m.getRole().getName());
+                    dto.setDaysPresent(presentCount);
+                    dto.setDaysOfWeek(daysOfWeek);
+                    dto.setWeekOf(weekRange);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public List<AttendanceInfoDto> displayAttendanceRecords(UUID projectId, LocalDate startDate, LocalDate endDate){
-        List<ProjectMembership> memberships = membershipRepository.findAllByProjectIdAndStatus(projectId, "ACTIVE");
-        List<Attendance> attendanceList = attendanceRepository.findByMembershipInAndDateBetween(memberships, startDate, endDate);
-
-        Map<ProjectMembership, List<Attendance>> grouped=
-                attendanceList.stream()
-                        .collect(Collectors.groupingBy(Attendance::getMembership));
-        List<AttendanceInfoDto> rows = new ArrayList<>();
-        for (ProjectMembership membership : memberships) {
-            List<Attendance> records =
-                    grouped.getOrDefault(membership, List.of());
-            List<AttendanceDayDto> days = records.stream()
-                    .sorted(Comparator.comparing(Attendance::getDate))
-                    .map(a ->{
-                        AttendanceDayDto dto = new AttendanceDayDto();
-                        dto.setDate(a.getDate());
-                        dto.setPresent(a.isPresent());
-                        return dto;
-                    })
-                    .toList();
-            AttendanceInfoDto row = new AttendanceInfoDto();
-            row.setDays(days);
-            row.setUserName(membership.getUser().getUserName());
-            row.setRole(membership.getRole().getName());
-            row.setMemberId(membership.getId());
-            rows.add(row);
-        }
-        return rows;
-    }
-    @Transactional
-    public AttendanceDayDto updateAttendance(Long attendanceId, Long membershipId, UpdateAttendanceDto request){
-        ProjectMembership member = membershipRepository.findById(membershipId)
-                .orElseThrow(()-> new ResourceNotFoundException("Member not found"));
-        Attendance attendance = attendanceRepository.findByMembershipAndId(member, attendanceId)
-                .orElseThrow(()-> new ResourceNotFoundException("Attendance not found"));
-        if(attendance.isLocked()){
-            throw new IllegalStateException(
-                    "Attendance is locked and cannot be updated!"
-            );
-        }
-        attendance.setPresent(request.isPresent());
-        attendanceRepository.save(attendance);
-        return attendanceMapper.toAttendanceDayDto(attendance);
+    public void updateBulkAttendance(List<AttendanceDayDto> dtos){
+        List<Attendance> toUpdate = dtos.stream()
+                .map(d->{
+                    Attendance a = attendanceRepository.getReferenceById(d.getId());
+                    a.setStatus(d.getStatus());
+                    return a;
+                }).toList();
+        attendanceRepository.saveAll(toUpdate);
     }
 }

@@ -1,5 +1,7 @@
 package net.ravik_cms.ravik_backend.common.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,5 +22,17 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         errors.put("error", e.getMessage());
         return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<?> userAlreadyExistException(UserAlreadyExistsException e){
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", e.getMessage());
+        return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> accessDeniedException(AccessDeniedException e){
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errors);
     }
 }

@@ -16,5 +16,6 @@ import java.util.UUID;
 public class RoleInfoDto {
     private UUID id;
     private String name;
-    private Set<PermissionInfoDto> permissions;
+    private String roleCategory;
+    private String systemDefined;
 }

@@ -16,13 +16,25 @@ public class RolesController {
     public void assignRole(@PathVariable UUID roleId, @RequestParam("permissionKeys") Set<String> permissionKeys) {
         rolesService.setPermissions(roleId, permissionKeys);
     }
-    @GetMapping("/{id}")
-    public RoleInfoDto getRole(@PathVariable UUID id, @PathVariable UUID project_id){
+    @GetMapping("/{project_id}/{id}")
+    public RoleInfoDto getRole(@PathVariable UUID project_id,@PathVariable UUID id){
         return rolesService.getRole(id,  project_id);
     }
-    @GetMapping
+    @GetMapping("/{project_id}")
     public List<RoleInfoDto> getAllRoles(@PathVariable UUID project_id){
         return rolesService.getAllRoles(project_id);
+    }
+    @GetMapping("/management/{project_id}")
+    public List<RoleInfoDto> getManagementRoles(@PathVariable UUID project_id){
+        return rolesService.getManagementRoles(project_id);
+    }
+    @GetMapping("/supervisor/{project_id}")
+    public List<RoleInfoDto> getSupervisorRoles(@PathVariable UUID project_id){
+        return rolesService.getSupervisorRoles(project_id);
+    }
+    @GetMapping("/field_crew/{project_id}")
+    public List<RoleInfoDto> getFieldCrewRoles(@PathVariable UUID project_id){
+        return rolesService.getFieldCrewsRoles(project_id);
     }
     @PostMapping
     public RoleInfoDto createRole(@RequestBody CreateRoleDto role, @PathVariable UUID project_id){

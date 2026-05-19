@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
+import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.projects.Projects;
 
@@ -17,11 +19,14 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Roles {
+public class Roles extends BaseEntity {
     @Id
     @GeneratedValue
     private UUID id;
     private String name;
+    @Enumerated(EnumType.STRING)
+    private RoleCategory roleCategory;
+    private boolean systemDefined = false;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "roles_permission",

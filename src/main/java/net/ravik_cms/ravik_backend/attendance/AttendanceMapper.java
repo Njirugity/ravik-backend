@@ -7,7 +7,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface AttendanceMapper {
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateAttendance(UpdateAttendanceDto dto, @MappingTarget Attendance attendance);
+
     AttendanceDayDto toAttendanceDayDto(Attendance attendance);
 }

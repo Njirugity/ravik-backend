@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.projects;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
@@ -22,6 +23,7 @@ public class ProjectService {
     private final UserRepository userRepository;
     private final ProjectMembershipRepository projectMembershipRepository;
     private final RolesSeeder rolesSeeder;
+    private final AuthorizationService authorizationService;
 
     public Projects findProject(UUID id, String userName){
         Users users = userRepository.findByUserName(userName).
@@ -49,6 +51,7 @@ public class ProjectService {
     }
 
     public List<ProjectInfoDto> getAllProjects(String userName){
+
         Users user = userRepository.findByUserName(userName).
                 orElseThrow(()-> new ResourceNotFoundException("User not found"));
         List<ProjectMembership> memberships =
@@ -61,12 +64,14 @@ public class ProjectService {
     }
     @Transactional
     public ProjectPatchDto patchProject(UUID id,String userName, ProjectPatchDto request){
+        authorizationService.authorize("UPDATE_PROJECT");
         Projects project = findProject(id, userName);
         projectMapper.updateProjectFromDto(request, project);
         return projectMapper.toProjectPatchDto(projectsRepository.save(project));
     }
     @Transactional
     public void deleteProject(UUID id, String userName){
+        authorizationService.authorize("DELETE_PROJECT");
         Projects project = findProject(id, userName);
         projectsRepository.delete(project);
     }

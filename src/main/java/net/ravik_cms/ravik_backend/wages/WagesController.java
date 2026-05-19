@@ -13,11 +13,7 @@ import java.util.UUID;
 public class WagesController {
     private final WagesService wagesService;
 
-    @PostMapping("/{project_id}")
-    public WageResultDto bulkWages(@PathVariable UUID project_id,
-                                   @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return wagesService.bulkWages(project_id, startDate, endDate);
-    }
+
     @GetMapping("/{project_id}")
     public List<WageInfoDto> displayWages(@PathVariable UUID project_id,
                                           @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {

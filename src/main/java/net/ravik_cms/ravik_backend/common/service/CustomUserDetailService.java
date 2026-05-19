@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.common.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.common.security.UserPrincipal;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.users.UserRepository;
@@ -29,18 +30,11 @@ public class CustomUserDetailService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Users loadUser = userRepository.findByUserName(username).
                 orElseThrow(()->new UsernameNotFoundException("User not found"));
-//        Set<GrantedAuthority> authorities = new HashSet<>();
-//        for (Roles roles: loadUser.getRoles()){
-//            for (Permissions permissions: roles.getPermissions()){
-//                authorities.add(
-//                        new SimpleGrantedAuthority(permissions.getName())
-//                );
-//            }
-//        }
-        return new User(
+
+        return new UserPrincipal(
+                loadUser.getId(),
                 loadUser.getUserName(),
-                loadUser.getPassword(),
-                Collections.emptyList()
+                loadUser.getPassword()
         );
     }
 }

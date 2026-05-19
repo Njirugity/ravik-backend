@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.roles;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.permission.PermissionInfoDto;
 import net.ravik_cms.ravik_backend.permission.Permissions;
@@ -48,6 +49,21 @@ public class RolesService {
         Projects projects = projectsRepository.findById(project_id).orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         List<Roles> allRoles = rolesRepository.findAllByProject(projects);
         return rolesMapper.toRoleDtoList(allRoles);
+    }
+    public List<RoleInfoDto> getManagementRoles(UUID project_id){
+        Projects projects = projectsRepository.findById(project_id).orElseThrow(()-> new ResourceNotFoundException("Project not found"));
+        List<Roles> managementRoles = rolesRepository.findAllByProjectAndRoleCategory(projects, RoleCategory.MANAGEMENT);
+        return rolesMapper.toRoleDtoList(managementRoles);
+    }
+    public List<RoleInfoDto> getSupervisorRoles(UUID project_id){
+        Projects projects = projectsRepository.findById(project_id).orElseThrow(()-> new ResourceNotFoundException("Project not found"));
+        List<Roles> supervisorRoles = rolesRepository.findAllByProjectAndRoleCategory(projects, RoleCategory.SUPERVISION);
+        return rolesMapper.toRoleDtoList(supervisorRoles);
+    }
+    public List<RoleInfoDto> getFieldCrewsRoles(UUID project_id){
+        Projects projects = projectsRepository.findById(project_id).orElseThrow(()-> new ResourceNotFoundException("Project not found"));
+        List<Roles> fieldCrewRoles = rolesRepository.findAllByProjectAndRoleCategory(projects, RoleCategory.FIELD_CREW);
+        return rolesMapper.toRoleDtoList(fieldCrewRoles);
     }
     public RoleInfoDto createRole(CreateRoleDto role, UUID project_id){
         Projects projects = projectsRepository.findById(project_id).orElseThrow(()-> new ResourceNotFoundException("Project not found"));

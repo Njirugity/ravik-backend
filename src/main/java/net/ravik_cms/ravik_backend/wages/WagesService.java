@@ -23,29 +23,7 @@ public class WagesService {
     private final WagesRepository wagesRepository;
     private final ProjectMembershipRepository membershipRepository;
 
-    @Transactional
-    public WageResultDto bulkWages(UUID projectId, LocalDate startDate, LocalDate endDate) {
-        List<ProjectMembership> memberships = membershipRepository.findAllByProjectId(projectId);
 
-        int generated = 0;
-        double totalWages =0;
-        for(ProjectMembership membership : memberships){
-            List<Attendance> records = attendanceRepository.findByMembershipAndPresentTrueAndLockedFalseAndDateBetween(membership, startDate, endDate);
-
-            if(records.isEmpty()){
-                continue;
-            }
-            int daysWorked = records.size();
-            double totalAmount = membership.getBaseDailyWage()*daysWorked;
-
-            records.forEach(record -> record.setLocked(true));
-            Wages newWage = new Wages(totalAmount,startDate,endDate,daysWorked,membership);
-            wagesRepository.save(newWage);
-            generated ++;
-            totalWages += totalAmount;
-        }
-        return new WageResultDto(generated, totalWages);
-    }
 
     public List<WageInfoDto> displayWages(UUID projectId, LocalDate startDate, LocalDate endDate) {
         List<ProjectMembership> memberships = membershipRepository.findAllByProjectId(projectId);

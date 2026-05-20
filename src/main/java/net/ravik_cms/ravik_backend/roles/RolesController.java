@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.roles;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,43 +10,52 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/role")
+@RequestMapping("/api/v1/roles")
 public class RolesController {
     private final RolesService rolesService;
     @PostMapping("/assign-permission/{roleId}/{permId}")
-    public void assignRole(@PathVariable UUID roleId, @RequestParam("permissionKeys") Set<String> permissionKeys) {
+    public ResponseEntity<?> assignRole(@PathVariable UUID roleId, @RequestParam("permissionKeys") Set<String> permissionKeys) {
         rolesService.setPermissions(roleId, permissionKeys);
+        return ResponseEntity.ok().build();
     }
     @GetMapping("/{project_id}/{id}")
-    public RoleInfoDto getRole(@PathVariable UUID project_id,@PathVariable UUID id){
-        return rolesService.getRole(id,  project_id);
+    public ResponseEntity<RoleInfoDto> getRole(@PathVariable UUID project_id,@PathVariable UUID id){
+        RoleInfoDto body = rolesService.getRole(id,  project_id);
+        return ResponseEntity.ok(body);
     }
     @GetMapping("/{project_id}")
-    public List<RoleInfoDto> getAllRoles(@PathVariable UUID project_id){
-        return rolesService.getAllRoles(project_id);
+    public ResponseEntity<List<RoleInfoDto>> getAllRoles(@PathVariable UUID project_id){
+        List<RoleInfoDto> body = rolesService.getAllRoles(project_id);
+        return ResponseEntity.ok(body);
     }
     @GetMapping("/management/{project_id}")
-    public List<RoleInfoDto> getManagementRoles(@PathVariable UUID project_id){
-        return rolesService.getManagementRoles(project_id);
+    public ResponseEntity<List<RoleInfoDto>> getManagementRoles(@PathVariable UUID project_id){
+        List<RoleInfoDto> body = rolesService.getManagementRoles(project_id);
+        return ResponseEntity.ok(body);
     }
     @GetMapping("/supervisor/{project_id}")
-    public List<RoleInfoDto> getSupervisorRoles(@PathVariable UUID project_id){
-        return rolesService.getSupervisorRoles(project_id);
+    public ResponseEntity<List<RoleInfoDto>> getSupervisorRoles(@PathVariable UUID project_id){
+        List<RoleInfoDto> body = rolesService.getSupervisorRoles(project_id);
+        return ResponseEntity.ok(body);
     }
     @GetMapping("/field_crew/{project_id}")
-    public List<RoleInfoDto> getFieldCrewRoles(@PathVariable UUID project_id){
-        return rolesService.getFieldCrewsRoles(project_id);
+    public ResponseEntity<List<RoleInfoDto>> getFieldCrewRoles(@PathVariable UUID project_id){
+        List<RoleInfoDto> body = rolesService.getFieldCrewsRoles(project_id);
+        return ResponseEntity.ok(body);
     }
     @PostMapping
-    public RoleInfoDto createRole(@RequestBody CreateRoleDto role, @PathVariable UUID project_id){
-        return rolesService.createRole(role, project_id);
+    public ResponseEntity<RoleInfoDto> createRole(@RequestBody CreateRoleDto role, @PathVariable UUID project_id){
+        RoleInfoDto body = rolesService.createRole(role, project_id);
+        return ResponseEntity.ok(body);
     }
-    @PatchMapping("/edit-role/{roleId}/{projectId}")
-    public RoleInfoDto updateRole(@PathVariable UUID roleId, @PathVariable UUID projectId, RoleInfoDto request) {
-        return rolesService.updateRole(roleId, projectId, request);
+    @PatchMapping("/edit/{roleId}/{projectId}")
+    public ResponseEntity<RoleInfoDto> updateRole(@PathVariable UUID roleId, @PathVariable UUID projectId, RoleInfoDto request) {
+        RoleInfoDto body = rolesService.updateRole(roleId, projectId, request);
+        return ResponseEntity.ok(body);
     }
     @DeleteMapping
-    public void deleteRole(@PathVariable UUID roleId, @PathVariable UUID project_id){
+    public ResponseEntity<?> deleteRole(@PathVariable UUID roleId, @PathVariable UUID project_id){
         rolesService.deleteRole(roleId, project_id);
+        return ResponseEntity.noContent().build();
     }
 }

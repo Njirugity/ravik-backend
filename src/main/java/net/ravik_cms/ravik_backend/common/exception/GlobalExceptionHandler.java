@@ -6,33 +6,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<?> resourceNotFoundException(ResourceNotFoundException e){
-        Map<String, String> errors = new HashMap<>();
-        errors.put("error",e.getMessage());
+    public ResponseEntity<ApiErrors> resourceNotFoundException(ResourceNotFoundException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> argumentNotFoundException(MethodArgumentNotValidException e){
-        Map<String, String> errors = new HashMap<>();
-        errors.put("error", e.getMessage());
+    public ResponseEntity<ApiErrors> argumentNotFoundException(MethodArgumentNotValidException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
     }
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<?> userAlreadyExistException(UserAlreadyExistsException e){
-        Map<String, String> errors = new HashMap<>();
-        errors.put("error", e.getMessage());
+    public ResponseEntity<ApiErrors> userAlreadyExistException(UserAlreadyExistsException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
     }
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<?> accessDeniedException(AccessDeniedException e){
-        Map<String, String> errors = new HashMap<>();
-        errors.put("error", e.getMessage());
+    public ResponseEntity<ApiErrors> accessDeniedException(AccessDeniedException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.FORBIDDEN.value(), LocalDate.now());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errors);
     }
 }

@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.projects;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,15 +12,16 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/project")
+@RequestMapping("/api/v1/projects")
 @RequiredArgsConstructor
 public class ProjectController {
     private final ProjectService projectService;
     private final ProjectOrchestrationService orchestrationService;
 
     @PostMapping
-    public ProjectInfoDto createProject(@Valid @RequestBody ProjectDto project, @AuthenticationPrincipal UserDetails currentUser){
-        return orchestrationService.createProject(project, currentUser.getUsername());
+    public ResponseEntity <ProjectInfoDto> createProject(@Valid @RequestBody ProjectDto project, @AuthenticationPrincipal UserDetails currentUser){
+        ProjectInfoDto body = orchestrationService.createProject(project, currentUser.getUsername());
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @GetMapping("/{id}")
@@ -33,7 +35,7 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ProjectPatchDto> patchProject(@PathVariable UUID id, @RequestBody ProjectPatchDto request,
                                                         @AuthenticationPrincipal UserDetails currentUser){
         ProjectPatchDto patchedProject = projectService.patchProject(id, currentUser.getUsername(),request);
@@ -43,6 +45,6 @@ public class ProjectController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser){
         projectService.deleteProject(id, currentUser.getUsername());
-        return ResponseEntity.ok("Project successfully deleted");
+        return ResponseEntity.noContent().build();
     }
 }

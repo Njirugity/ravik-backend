@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
@@ -34,7 +34,8 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(token));
     }
     @PostMapping("/register")
-    public ClientDto registerClient (@Valid @RequestBody CreateClientDto client){
-        return userService.addClient(client);
+    public ResponseEntity<ClientDto> registerClient (@Valid @RequestBody CreateClientDto client){
+        ClientDto body = userService.addClient(client);
+        return ResponseEntity.ok(body);
     }
 }

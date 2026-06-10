@@ -32,4 +32,9 @@ public class GlobalExceptionHandler {
         ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.FORBIDDEN.value(), LocalDate.now());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errors);
     }
+    @ExceptionHandler(CircularDependencyException.class)
+    public ResponseEntity<ApiErrors> circularDependencyException(CircularDependencyException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.CONFLICT.value(), LocalDate.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
+    }
 }

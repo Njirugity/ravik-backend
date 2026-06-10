@@ -45,6 +45,7 @@ public class MilestonesService {
                 .orElseThrow(()-> new ResourceNotFoundException("Phase not found"));
         Milestones newMilestone = milestonesMapper.toEntity(milestoneDto);
         newMilestone.setPhase(phase);
+        newMilestone.setProject(phase.getProject());
         newMilestone.setStatus(ProgressStatus.PENDING);
         milestonesRepository.save(newMilestone);
         phasesService.syncPhaseBudget(phaseId);
@@ -101,22 +102,22 @@ public class MilestonesService {
                 .orElseThrow(()-> new ResourceNotFoundException("No active milestone found for date: "+ date));
     }
 
-    public List<TimeVarianceDto> getTimeVariances(UUID projectId, LocalDate currentDate){
-        List<Milestones> overdueMilestones = milestonesRepository.findOverdueMilestones(projectId, currentDate);
-
-        return overdueMilestones.stream()
-                .map(entity ->{
-                    long daysOverdue = ChronoUnit.DAYS.between(entity.getPlannedEndDate(), currentDate);
-                    TimeVarianceDto dto = new TimeVarianceDto();
-                    dto.setId(entity.getId());
-                    dto.setTitle(entity.getTitle());
-                    dto.setPlannedEndDate(entity.getPlannedEndDate());
-                    dto.setDaysOverdue(daysOverdue);
-                    dto.setSeverity(daysOverdue > 7 ? "CRITICAL":"WARNING");
-
-                    return dto;
-                }).collect(Collectors.toList());
-    }
+//    public List<TimeVarianceDto> getTimeVariances(UUID projectId, LocalDate currentDate){
+//        List<Milestones> overdueMilestones = milestonesRepository.findOverdueMilestones(projectId, currentDate);
+//
+//        return overdueMilestones.stream()
+//                .map(entity ->{
+//                    long daysOverdue = ChronoUnit.DAYS.between(entity.getPlannedEndDate(), currentDate);
+//                    TimeVarianceDto dto = new TimeVarianceDto();
+//                    dto.setId(entity.getId());
+//                    dto.setTitle(entity.getTitle());
+//                    dto.setPlannedEndDate(entity.getPlannedEndDate());
+//                    dto.setDaysOverdue(daysOverdue);
+//                    dto.setSeverity(daysOverdue > 7 ? "CRITICAL":"WARNING");
+//
+//                    return dto;
+//                }).collect(Collectors.toList());
+//    }
     @Transactional
     public void setMilestoneActualStartDate(Milestones milestone){
         if(milestone.getActualStartDate() == null){

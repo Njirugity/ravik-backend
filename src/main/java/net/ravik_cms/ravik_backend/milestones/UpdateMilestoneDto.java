@@ -15,10 +15,7 @@ import java.time.LocalDate;
 public class UpdateMilestoneDto {
     private String title;
     private String description;
-    private LocalDate plannedStartDate;
-    private LocalDate plannedEndDate;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
-    private Double budget;
     private ProgressStatus status;
 }

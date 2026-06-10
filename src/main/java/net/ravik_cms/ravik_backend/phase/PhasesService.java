@@ -92,7 +92,7 @@ public class PhasesService {
     public PhaseOverdueDto overduePhases(UUID phaseId){
         Phases phase = phasesRepository.findById(phaseId)
                 .orElseThrow(()-> new ResourceNotFoundException("Phase not found"));
-        boolean isOverdue = milestonesRepository.existsByPhaseIdAndStatusNotAndPlannedEndDateBefore(
+        boolean isOverdue = milestonesRepository.existsByPhaseIdAndStatusNotAndEarliestFinishBefore(
                 phaseId,
                 ProgressStatus.COMPLETED,
                 LocalDate.now()

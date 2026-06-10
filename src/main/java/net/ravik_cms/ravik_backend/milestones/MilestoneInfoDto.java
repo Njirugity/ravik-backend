@@ -16,8 +16,12 @@ public class MilestoneInfoDto {
     private String id;
     private String title;
     private String description;
-    private LocalDate plannedStartDate;
-    private LocalDate plannedEndDate;
+    private int duration;
+    private LocalDate earliestStart;
+    private LocalDate earliestFinish;
+    private LocalDate latestStart;
+    private LocalDate latestFinish;
+    private boolean critical;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
     private Double budget;

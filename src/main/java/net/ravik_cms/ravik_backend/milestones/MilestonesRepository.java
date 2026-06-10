@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     List<Milestones> findAllByProjectId(UUID projectId);
     List<Milestones> findAllByPhaseId(UUID phaseId);
-    boolean existsByPhaseIdAndStatusNotAndPlannedEndDateBefore(
+    boolean existsByPhaseIdAndStatusNotAndEarliestFinishBefore(
             UUID phaseId, ProgressStatus status, LocalDate currentDate);
     @Query("SELECT MIN(m.actualStartDate) FROM Milestones m WHERE m.phase.id = :phaseId")
     Optional<LocalDate> findMinActualStartDateByPhaseId(@Param("phaseId") UUID phaseId);
@@ -27,9 +27,9 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     @Query("""
         SELECT m FROM Milestones m
         WHERE m.project.id = :projectId
-        AND :currentDate BETWEEN m.plannedStartDate AND m.plannedEndDate
+        AND :currentDate BETWEEN m.earliestStart AND m.earliestFinish
         AND m.status IN ('PENDING','IN_PROGRESS')
-        ORDER BY m.plannedStartDate ASC
+        ORDER BY m.earliestFinish ASC
     """)
     List<Milestones> findActiveMilestoneByDate(
             @Param("projectId") UUID projectId,
@@ -38,7 +38,7 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     @Query("""
         SELECT m FROM Milestones m
         WHERE m.project.id = :projectId
-        AND m.plannedEndDate < :currentDate
+        AND m.earliestFinish < :currentDate
         AND m.status IN ('PENDING','IN_PROGRESS')
     """)
     List<Milestones> findOverdueMilestones(

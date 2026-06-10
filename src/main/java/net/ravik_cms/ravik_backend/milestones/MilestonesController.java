@@ -51,10 +51,10 @@ public class MilestonesController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/overdue/{project_id}")
-    public ResponseEntity<List<TimeVarianceDto>> overdueMilestones (@PathVariable UUID project_id){
-        List<TimeVarianceDto> body = milestonesService.getTimeVariances(project_id, LocalDate.now());
-        return ResponseEntity.ok(body);
-    }
+//    @GetMapping("/overdue/{project_id}")
+//    public ResponseEntity<List<TimeVarianceDto>> overdueMilestones (@PathVariable UUID project_id){
+//        List<TimeVarianceDto> body = milestonesService.getTimeVariances(project_id, LocalDate.now());
+//        return ResponseEntity.ok(body);
+//    }
 
 }

@@ -31,6 +31,7 @@ public class Milestones extends BaseEntity {
     private LocalDate latestStart;
     private LocalDate latestFinish;
     private boolean critical;
+    private Long totalFloat;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
     private Double budget;

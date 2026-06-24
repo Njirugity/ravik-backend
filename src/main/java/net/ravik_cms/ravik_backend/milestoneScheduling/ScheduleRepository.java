@@ -29,6 +29,8 @@ public interface ScheduleRepository extends JpaRepository<MilestoneDependency, U
     List<Milestones> findSuccessorByMilestoneId(@Param("milestoneId") UUID milestoneId);
 
     List<MilestoneDependency> findByMilestoneIdIn(List<UUID> milestoneId);
+
+    List<MilestoneDependency> findByProjectId(UUID projectId);
     //Check if relationship exits
     boolean existsByMilestoneIdAndPredecessorId(UUID milestoneId, UUID predecessorId);
     //delete a relationship

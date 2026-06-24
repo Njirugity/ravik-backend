@@ -8,6 +8,8 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.users.Users;
 
+import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,4 +39,7 @@ public class Projects extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "staff_id")
     )
     private Set<Users> staff;
+    private LocalDate plannedStart;
+    private LocalDate plannedEnd;
+    private boolean scheduled = false;
 }

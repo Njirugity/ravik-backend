@@ -1,14 +1,14 @@
 package net.ravik_cms.ravik_backend.common.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -18,8 +18,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrors> argumentNotFoundException(MethodArgumentNotValidException e){
-        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+    public ResponseEntity<ApiErrors> handleValidationException(MethodArgumentNotValidException e){
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining("; "));
+        if (message.isBlank()) {
+            message = "Validation failed";
+        }
+        ApiErrors errors = new ApiErrors(message, HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
     }
     @ExceptionHandler(UserAlreadyExistsException.class)

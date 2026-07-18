@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.users;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class CreateClientDto {
     @Size(min=8, message = "Password must be at least 8 characters long")
     private String password;
     @NotBlank(message = "Phone number required")
+    @Pattern(regexp = "^\\+[1-9][0-9\\s\\-]{7,17}$", message = "Use international format with country code, e.g. +254712345678")
     private String phoneNumber;
     @NotBlank(message = "Identification required")
     private String idNumber;

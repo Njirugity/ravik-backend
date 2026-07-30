@@ -4,5 +4,5 @@ public enum ProgressStatus {
     IN_PROGRESS,
     PENDING,
     COMPLETED,
-    OVERDUE
+
 }

@@ -2,8 +2,10 @@ package net.ravik_cms.ravik_backend.milestones;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.enums.DateStatus;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleRepository;
 import net.ravik_cms.ravik_backend.phase.Phases;
 import net.ravik_cms.ravik_backend.phase.PhasesRepository;
 import net.ravik_cms.ravik_backend.phase.PhasesService;
@@ -15,8 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class MilestonesService {
     private final MilestonesMapper milestonesMapper;
     private final ProjectsRepository projectsRepository;
     private final PhasesService phasesService;
-
+    private final ScheduleRepository scheduleRepository;
 //    @Scheduled(cron = "0 0 0 * * *")
 //    public void checkOverdueMilestone(){
 //        LocalDate today = LocalDate.now();
@@ -127,5 +128,71 @@ public class MilestonesService {
 
             phasesService.setPhaseActualStartDate(milestone.getPhase().getId());
         }
+    }
+    @Transactional
+    public List<PossibleActiveMilestonesDto> getEligibleMilestones(UUID projectId){
+        LocalDate today = LocalDate.now();
+        Projects project = projectsRepository.findById(projectId)
+                .orElseThrow(()->new ResourceNotFoundException("Project not found"));
+        List<Milestones> condition1 = milestonesRepository.findByActualStartDateIsNullAndDateBetweenESAnsLF(today, project.getId());
+        List<Milestones> condition2 = milestonesRepository.findByDateBetweenESAndLF(today, project.getId());
+        List<Milestones> condition3 = milestonesRepository.findWithNoPredecessorsAndNoActualStart(project.getId());
+
+        Map<UUID, Milestones> uniqueMilestones = new LinkedHashMap<>();
+
+        condition1.forEach(m -> uniqueMilestones.put(m.getId(), m));
+        condition2.forEach(m -> uniqueMilestones.put(m.getId(), m));
+        condition3.forEach(m -> uniqueMilestones.put(m.getId(), m));
+
+        return processMilestonesMatches(new ArrayList<>(uniqueMilestones.values()));
+    }
+    private boolean checkActivePredecessors(Milestones milestone){
+        List<Milestones> predecessors = scheduleRepository.findPredecessorByMilestoneId(milestone.getId());
+        for(Milestones pred: predecessors){
+            if(pred.getStatus() != ProgressStatus.COMPLETED){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String determineMatchReason(Milestones milestone){
+        LocalDate today = LocalDate.now();
+        if (milestone.getActualStartDate() != null &&
+                milestone.getActualEndDate() == null) {
+            return "Started but not completed";
+        }
+
+        if (milestone.getActualStartDate() == null &&
+                today.isAfter(milestone.getEarliestStart()) &&
+                today.isBefore(milestone.getLatestFinish())) {
+            return "Not started but within date range";
+        }
+
+        if (today.isAfter(milestone.getEarliestStart()) &&
+                today.isBefore(milestone.getLatestFinish())) {
+            return "Within date range";
+        }
+        return "other";
+    }
+    private List<PossibleActiveMilestonesDto> processMilestonesMatches(List<Milestones>milestones){
+        List<PossibleActiveMilestonesDto> result = new ArrayList<>();
+
+        for (Milestones m : milestones){
+            PossibleActiveMilestonesDto dto = new PossibleActiveMilestonesDto();
+            dto.setId(m.getId());
+            dto.setTitle(m.getTitle());
+
+            boolean hasActivePredecessor = checkActivePredecessors(m);
+            if(hasActivePredecessor){
+                dto.setWarningMessage("The milestone has active predecessors. Are you sure you want to select it" +
+                        "before completing the predecessor?");
+            }
+            String reason = determineMatchReason(m);
+            dto.setMatchReason(reason);
+
+            result.add(dto);
+        }
+        return result;
     }
 }

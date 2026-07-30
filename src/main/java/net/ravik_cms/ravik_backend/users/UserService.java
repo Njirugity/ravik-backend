@@ -101,7 +101,6 @@ public class UserService {
         userRepository.save(newSupervisor);
 
         membershipService.addToMembership(project, newSupervisor, roles, wage, RoleCategory.SUPERVISION);
-        attendanceService.generateSingleDate(id, LocalDate.now());
         return userMapper.toSupervisor(newSupervisor);
     }
 
@@ -126,7 +125,6 @@ public class UserService {
         userRepository.save(newLabourer);
 
         membershipService.addToMembership(project, newLabourer, role, wage, RoleCategory.FIELD_CREW);
-        attendanceService.generateSingleDate(id, LocalDate.now());
         return userMapper.toLabourer(newLabourer);
     }
 

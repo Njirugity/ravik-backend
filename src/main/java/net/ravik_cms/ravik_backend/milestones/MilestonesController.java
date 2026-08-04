@@ -56,5 +56,11 @@ public class MilestonesController {
 //        List<TimeVarianceDto> body = milestonesService.getTimeVariances(project_id, LocalDate.now());
 //        return ResponseEntity.ok(body);
 //    }
+    @GetMapping("/eligible/{project_id}")
+    public ResponseEntity<List<PossibleActiveMilestonesDto>> getEligibleMilestone(@PathVariable UUID project_id){
+        List<PossibleActiveMilestonesDto> body = milestonesService.getEligibleMilestones(project_id);
+        return ResponseEntity.ok(body);
+    }
+
 
 }

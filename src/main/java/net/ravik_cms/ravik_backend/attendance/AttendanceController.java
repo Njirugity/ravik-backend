@@ -2,6 +2,10 @@ package net.ravik_cms.ravik_backend.attendance;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,24 +19,53 @@ import java.util.UUID;
 public class AttendanceController {
     private final AttendanceService attendanceService;
 
-    @PostMapping("/{project_id}/{date}")
-    public ResponseEntity<AttendanceResultDto> generate(@PathVariable UUID project_id, @PathVariable LocalDate date){
-        AttendanceResultDto body = attendanceService.generateSingleDate(project_id, date);
+    @GetMapping("/{project_id}")
+    public ResponseEntity<Page<AttendanceSingleDayInfoDto>>display(
+            @PathVariable UUID project_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) AttendanceStatus status,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size =20) Pageable pageable){
+        Page<AttendanceSingleDayInfoDto> body = attendanceService.displayRecords(project_id, date, role, status,
+        search, pageable);
         return ResponseEntity.ok(body);
     }
-    @GetMapping("/{project_id}")
-    public ResponseEntity<List<AttendanceSingleDayInfoDto> >display(@PathVariable UUID project_id){
-        List<AttendanceSingleDayInfoDto> body = attendanceService.displayRecords(project_id);
+    @GetMapping("/mark/{project_id}")
+    public ResponseEntity<Page<AttendanceSelectionDto>> displayForMarking(
+            @PathVariable UUID project_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable
+    ){
+        Page<AttendanceSelectionDto> body = attendanceService.displayRecordsForMarking(project_id, date, role,
+                search, pageable);
         return ResponseEntity.ok(body);
     }
     @GetMapping("/summary/{project_id}")
-    public ResponseEntity<List<AttendanceSummaryDto>> summary(@PathVariable UUID project_id){
-        List<AttendanceSummaryDto> body = attendanceService.summary(project_id);
+    public ResponseEntity<Page<AttendanceSummaryDto>> summary(
+            @PathVariable UUID project_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable){
+        Page<AttendanceSummaryDto> body = attendanceService.summary(project_id, date, role, search, pageable);
         return ResponseEntity.ok(body);
     }
     @PostMapping
-    public ResponseEntity<?> saveAttendance(@RequestBody List<AttendanceDayDto> dtos){
-        attendanceService.updateBulkAttendance(dtos);
+    public ResponseEntity<?> saveAttendance(@RequestBody List<CreateAttendanceRecordDto> request){
+        attendanceService.createAttendanceRecord(request);
         return ResponseEntity.ok().build();
+    }
+    @PutMapping
+    public ResponseEntity<?> updateRecord(@RequestBody UpdateAttendanceDto request){
+        attendanceService.updateAttendance(request);
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/{attendance_id}")
+    public ResponseEntity<?> deleteRecord(@PathVariable Long attendance_id){
+        attendanceService.deleteAttendance(attendance_id);
+        return ResponseEntity.noContent().build();
     }
 }

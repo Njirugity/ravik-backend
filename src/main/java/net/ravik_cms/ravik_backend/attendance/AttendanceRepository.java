@@ -1,6 +1,9 @@
 package net.ravik_cms.ravik_backend.attendance;
 
+import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,29 +17,75 @@ import java.util.UUID;
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
-    @Query("""
+    @Query(
+            value= """
             SELECT m FROM ProjectMembership m
             LEFT JOIN Attendance a ON a.membership = m AND a.date = :date
+            JOIN m.user u
+            JOIN m.role r
             WHERE m.project.id = :projectId
             AND m.status = 'ACTIVE'
             AND a.id IS NULL
-            """)
-    List<ProjectMembership> findMembershipsWithoutAttendance(
-            @Param("projectId") UUID projectId,
-            @Param("date") LocalDate date
-    );
-    @Query("""
-          SELECT a FROM Attendance a
-          JOIN FETCH a.membership m
-          JOIN FETCH m.user u
-          WHERE a.date = :date
-          AND m.project.id = :projectId
-          AND m.status = 'ACTIVE'
-    """)
-    List<Attendance> findByProjectIdAndDate(
-            @Param("projectId") UUID projectId,
-            @Param("date") LocalDate date
-    );
+            AND (:role IS NULL OR r.name = :role)
+            AND (
+                   :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
+                 )
+            """,
+            countQuery = """
+                    SELECT COUNT(m) FROM ProjectMembership m
+                    LEFT JOIN Attendance a ON a.membership = m AND a.date = :date
+                    JOIN m.user u
+                    JOIN m.role r
+                    WHERE m.project.id = :projectId
+                    AND m.status = 'ACTIVE'
+                    AND a.id IS NULL
+                    AND (:role IS NULL OR r.name = :role)
+                    AND (
+                            :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search , '%'))
+                         )
+                    """
+    )
+    Page<ProjectMembership> findMembershipsWithoutAttendance(@Param("projectId")UUID projectId,
+                                                             @Param("date")LocalDate date,
+                                                             @Param("role") String role,
+                                                             @Param("search") String search,
+                                                             Pageable pageable);
+    @Query(
+            value = """
+                SELECT a FROM Attendance a
+                JOIN a.membership m
+                JOIN m.user u
+                JOIN m.role r
+                WHERE m.project.id = :projectId
+                AND a.date = :date
+                AND m.status = 'ACTIVE'
+                AND (:role IS NULL OR r.name = :role)
+                AND (:status IS NULL OR a.status = :status)
+                AND (
+                       :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
+                     )
+            """,
+            countQuery = """
+                SELECT COUNT(a) FROM Attendance a
+                JOIN a.membership m
+                JOIN m.user u
+                JOIN m.role r
+                WHERE m.project.id = :projectId
+                AND a.date = :date
+                AND m.status = 'ACTIVE'
+                AND (:role IS NULL OR r.name = :role)
+                AND (:status IS NULL OR a.status = :status)
+                AND (
+                       :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
+                     )
+            """
+    )
+    Page<Attendance> findAttendanceRecords(@Param("projectId") UUID projectId,
+                                           @Param("date") LocalDate date,
+                                           @Param("role") String role,
+                                           @Param("status") AttendanceStatus status,
+                                           @Param("search") String search,
+                                           Pageable pageable);
     @Query("SELECT a FROM Attendance a " +
             "JOIN FETCH a.membership m " +
             "JOIN FETCH m.user u " +
@@ -47,5 +96,41 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
     );
+    @Query(
+            value= """
+                SELECT new net.ravik_cms.ravik_backend.attendance.AttendanceSummaryProjection(
+                                m.id, u.userName, r.name, COUNT(a))
+                FROM ProjectMembership m
+                JOIN m.user u
+                JOIN m.role r
+                LEFT JOIN Attendance a
+                    ON a.membership = m
+                    AND a.date BETWEEN :start AND :end
+                    AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
+                WHERE m.project.id = :projectId
+                AND m.status = 'ACTIVE'
+                AND (:role IS NULL OR r.name = :role)
+                AND (
+                     :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
+                    )
+                GROUP BY m.id, u.userName, r.name
+                """,
+            countQuery = """
+                    SELECT COUNT(m)
+                    FROM ProjectMembership m
+                    JOIN m.user u
+                    JOIN m.role r
+                    WHERE m.project.id = :projectId
+                    AND m.status = 'ACTIVE'
+                    AND (:role IS NULL OR r.name = :role)
+                    AND (:search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%')))
+                """
+    )
+    Page<AttendanceSummaryProjection> findAttendanceForSummary(@Param("projectId") UUID projectId,
+                                              @Param("start") LocalDate start,
+                                              @Param("end") LocalDate end,
+                                              @Param("role") String role,
+                                              @Param("search") String search,
+                                              Pageable pageable);
 
 }

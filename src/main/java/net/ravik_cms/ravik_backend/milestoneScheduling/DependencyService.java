@@ -5,6 +5,7 @@ import net.ravik_cms.ravik_backend.common.exception.CircularDependencyException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.milestones.Milestones;
 import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
+import net.ravik_cms.ravik_backend.projects.Projects;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,6 +26,12 @@ public class DependencyService {
                 orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
         Milestones predecessor = milestonesRepository.findById(predecessorId).
                 orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
+        Projects milestoneProject = milestone.getProject();
+        Projects predecessorProject = predecessor.getProject();
+        if (!milestoneProject.getId().equals(predecessorProject.getId())) {
+            throw new IllegalArgumentException("Milestone and Predecessor must belong to the same project.");
+        }
+
         if (scheduleRepository.existsByMilestoneIdAndPredecessorId(milestoneId, predecessorId)) {
             throw new CircularDependencyException("Adding this predecessor would create a cycle");
         }
@@ -35,6 +42,7 @@ public class DependencyService {
         MilestoneDependency dependencies = new MilestoneDependency();
         dependencies.setMilestone(milestone);
         dependencies.setPredecessor(predecessor);
+        dependencies.setProject(milestoneProject);
         scheduleRepository.save(dependencies);
     }
 

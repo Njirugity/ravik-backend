@@ -8,5 +8,5 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring")
 public interface AttendanceMapper {
 
-    AttendanceDayDto toAttendanceDayDto(Attendance attendance);
+
 }

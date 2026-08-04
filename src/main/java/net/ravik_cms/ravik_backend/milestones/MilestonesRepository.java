@@ -24,6 +24,7 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     @Query("SELECT COUNT(m) FROM Milestones m WHERE m.phase.id = :phaseId AND m.status = 'COMPLETED'")
     Long countByPhaseIdAndCompleted(@Param("phaseId") UUID phaseId);
 
+    Optional<Milestones> findByTitleIgnoreCase(String title);
     @Query("""
         SELECT m FROM Milestones m
         WHERE m.project.id = :projectId
@@ -52,6 +53,34 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     Double phaseBudget(
             @Param("phaseId") UUID phaseId
     );
-
+    @Query("""
+        SELECT m FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND m.actualStartDate IS NULL
+        AND :date BETWEEN m.earliestStart AND m.latestFinish
+    """)
+    List<Milestones> findByActualStartDateIsNullAndDateBetweenESAnsLF(
+            @Param("date") LocalDate date,
+            @Param("projectId") UUID projectId
+    );
+    @Query("""
+        SELECT m FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND :date BETWEEN m.earliestStart AND m.latestFinish
+    """)
+    List<Milestones> findByDateBetweenESAndLF(
+            @Param("date") LocalDate date,
+            @Param("projectId") UUID projectId
+    );
+    @Query("""
+        SELECT m FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND m.actualStartDate IS NULL
+        AND NOT EXISTS(SELECT md FROM MilestoneDependency md
+            WHERE md.milestone = m)
+    """)
+    List<Milestones> findWithNoPredecessorsAndNoActualStart(
+            @Param("projectId") UUID projectId
+    );
 
 }

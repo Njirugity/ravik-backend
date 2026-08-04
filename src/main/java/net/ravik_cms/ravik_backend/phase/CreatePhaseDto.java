@@ -13,6 +13,4 @@ import java.time.LocalDate;
 public class CreatePhaseDto {
     private String title;
     private String description;
-    private LocalDate plannedStartDate;
-    private LocalDate plannedEndDate;
 }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.milestones.Milestones;
+import net.ravik_cms.ravik_backend.projects.Projects;
 
 import java.util.UUID;
 
@@ -27,5 +28,9 @@ public class MilestoneDependency extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "predecessorId")
     private Milestones predecessor;
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Projects project;
+
 
 }

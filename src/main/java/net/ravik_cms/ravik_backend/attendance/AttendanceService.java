@@ -15,6 +15,7 @@ import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
 import net.ravik_cms.ravik_backend.milestones.MilestonesService;
 import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.wages.CreateWageRecordDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -115,16 +116,22 @@ public class AttendanceService {
 
     @Transactional
     public void createAttendanceRecord(List<CreateAttendanceRecordDto> request){
+        List<Long> memberIds = request.stream()
+                .map(CreateAttendanceRecordDto::getMemberId).distinct().toList();
+        Map<Long, ProjectMembership> membershipMap = membershipRepository.findAllById(memberIds).stream()
+                .collect(Collectors.toMap(ProjectMembership::getId, m->m));
+        List<UUID> milestoneIds  = request.stream()
+                .map(CreateAttendanceRecordDto::getMilestoneId).distinct().toList();
+        Map<UUID, Milestones> milestoneMap = milestonesRepository.findAllById(milestoneIds).stream()
+                .collect(Collectors.toMap(Milestones::getId, m->m));
         List<Attendance> records = request.stream()
                 .map(r->{
                     Attendance a = new Attendance();
                     a.setDate(r.getDate());
                     a.setStatus(r.getStatus());
-                    ProjectMembership membership = membershipRepository.findById(r.getMemberId())
-                            .orElseThrow(()-> new ResourceNotFoundException("Membership not found"));
+                    ProjectMembership membership = membershipMap.get(r.getMemberId());
                     a.setMembership(membership);
-                    Milestones milestone = milestonesRepository.findById(r.getMilestoneId())
-                            .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
+                    Milestones milestone = milestoneMap.get(r.getMilestoneId());
                     a.setMilestone(milestone);
                     milestonesService.setMilestoneActualStartDate(milestone);
                     return a;

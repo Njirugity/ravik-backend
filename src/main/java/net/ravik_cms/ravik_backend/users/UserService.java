@@ -100,7 +100,8 @@ public class UserService {
         newSupervisor.setDailyLog(log);
         userRepository.save(newSupervisor);
 
-        membershipService.addToMembership(project, newSupervisor, roles, wage, RoleCategory.SUPERVISION);
+        membershipService.addToMembership(project, newSupervisor, roles, wage, RoleCategory.SUPERVISION,
+                supervisor.getFrequency());
         return userMapper.toSupervisor(newSupervisor);
     }
 
@@ -124,7 +125,8 @@ public class UserService {
         newLabourer.setDailyLog(log);
         userRepository.save(newLabourer);
 
-        membershipService.addToMembership(project, newLabourer, role, wage, RoleCategory.FIELD_CREW);
+        membershipService.addToMembership(project, newLabourer, role, wage, RoleCategory.FIELD_CREW,
+                labourer.getFrequency());
         return userMapper.toLabourer(newLabourer);
     }
 

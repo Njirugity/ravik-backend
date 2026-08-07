@@ -1,10 +1,13 @@
 package net.ravik_cms.ravik_backend.attendance;
 
+import jakarta.persistence.LockModeType;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
+import net.ravik_cms.ravik_backend.wages.Wages;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,7 +27,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             JOIN m.user u
             JOIN m.role r
             WHERE m.project.id = :projectId
-            AND m.status = 'ACTIVE'
+            AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
             AND a.id IS NULL
             AND (:role IS NULL OR r.name = :role)
             AND (
@@ -37,7 +40,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                     JOIN m.user u
                     JOIN m.role r
                     WHERE m.project.id = :projectId
-                    AND m.status = 'ACTIVE'
+                    AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                     AND a.id IS NULL
                     AND (:role IS NULL OR r.name = :role)
                     AND (
@@ -58,7 +61,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                 JOIN m.role r
                 WHERE m.project.id = :projectId
                 AND a.date = :date
-                AND m.status = 'ACTIVE'
+                AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                 AND (:role IS NULL OR r.name = :role)
                 AND (:status IS NULL OR a.status = :status)
                 AND (
@@ -72,7 +75,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                 JOIN m.role r
                 WHERE m.project.id = :projectId
                 AND a.date = :date
-                AND m.status = 'ACTIVE'
+                AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                 AND (:role IS NULL OR r.name = :role)
                 AND (:status IS NULL OR a.status = :status)
                 AND (
@@ -108,7 +111,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                     AND a.date BETWEEN :start AND :end
                     AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
                 WHERE m.project.id = :projectId
-                AND m.status = 'ACTIVE'
+                AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                 AND (:role IS NULL OR r.name = :role)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
@@ -121,7 +124,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                     JOIN m.user u
                     JOIN m.role r
                     WHERE m.project.id = :projectId
-                    AND m.status = 'ACTIVE'
+                    AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                     AND (:role IS NULL OR r.name = :role)
                     AND (:search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%')))
                 """
@@ -132,5 +135,20 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                               @Param("role") String role,
                                               @Param("search") String search,
                                               Pageable pageable);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT a FROM Attendance a
+        JOIN FETCH a.membership m
+        WHERE m.id IN :membershipIds
+        AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
+        AND a.date BETWEEN :start AND :end
+        AND a.wage IS NULL
+    """)
+    List<Attendance> findAttendanceForGeneratingWage(
+            @Param("memberIds") List<Long> memberIds,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
 
+    List<Attendance> findByWage(Wages wage);
 }

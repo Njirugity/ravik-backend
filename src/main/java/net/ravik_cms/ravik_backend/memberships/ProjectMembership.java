@@ -6,11 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
+import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.enums.StaffStatus;
 import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.users.Users;
+
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -35,5 +38,7 @@ public class ProjectMembership extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private StaffStatus status;
     private boolean ownership= false;
-    private Double baseDailyWage;
+    private Double baseWage;
+    @Enumerated(EnumType.STRING)
+    private PaymentFrequency frequency;
 }

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 
 import java.time.LocalDate;
 
@@ -11,13 +12,14 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WageInfoDto {
+public class WagePreviewDto {
     private Long membershipId;
     private String userName;
     private String role;
     private LocalDate startDate;
     private LocalDate endDate;
-    private Double totalAmount;
+    private Double grossPay;
     private Double baseWage;
-    private int workingDays;
+    private long workedDays;
+    private PaymentFrequency frequency;
 }

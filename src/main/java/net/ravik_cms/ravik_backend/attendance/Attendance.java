@@ -9,6 +9,7 @@ import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.milestones.Milestones;
+import net.ravik_cms.ravik_backend.wages.Wages;
 
 import java.time.LocalDate;
 
@@ -32,4 +33,7 @@ public class Attendance extends BaseEntity {
     @JoinColumn(name = "milestone_id")
     private Milestones milestone;
     private boolean locked = false;
+    @ManyToOne
+    @JoinColumn(name="wage_id")
+    private Wages wage;
 }

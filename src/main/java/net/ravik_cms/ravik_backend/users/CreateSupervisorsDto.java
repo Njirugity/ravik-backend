@@ -8,8 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.roles.RoleInfoDto;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @Getter
@@ -31,4 +33,5 @@ public class CreateSupervisorsDto {
 
     private String roleKey;
     private Double baseDailyWage;
+    private PaymentFrequency frequency;
 }

@@ -20,19 +20,12 @@ public class Wages extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private double amount;
+    private Double baseWage;
+    private Double grossPay;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int numberOfDays;
+    private Long workedDays;
     @ManyToOne
     @JoinColumn(name = "member_id")
     private ProjectMembership membership;
-
-    public Wages(Double amount, LocalDate startDate, LocalDate endDate, int numberOfDays, ProjectMembership membership) {
-        this.amount = amount;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.numberOfDays = numberOfDays;
-        this.membership = membership;
-    }
 }

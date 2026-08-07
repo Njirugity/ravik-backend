@@ -6,10 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
+import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.projects.Projects;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -38,4 +40,7 @@ public class Roles extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Projects project;
+    private Double defaultWage;
+    private PaymentFrequency defaultFrequency;
+    private LocalDate defaultPayDay;
 }

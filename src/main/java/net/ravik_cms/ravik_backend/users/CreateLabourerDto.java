@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -21,4 +24,5 @@ public class CreateLabourerDto {
     private String idNumber;
     private String roleKey;
     private Double baseDailyWage;
+    private PaymentFrequency frequency;
 }

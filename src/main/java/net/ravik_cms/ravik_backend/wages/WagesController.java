@@ -48,7 +48,7 @@ public class WagesController {
         Page<WagePreviewDto> body = wagesService.previewMonthlyWages(project_id,year,month, role, search, pageable);
         return ResponseEntity.ok(body);
     }
-    @GetMapping("/{project_id")
+    @GetMapping("/{project_id}")
     ResponseEntity<Page<WageHistoryProjection>> getWageHistory(
             @PathVariable UUID project_id,
             @RequestParam(required = false) String role,

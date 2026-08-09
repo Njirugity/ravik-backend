@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AttendanceSummaryDto {
     private String userName;
-    private String role;
+    private String jobTitle;
     private Long daysPresent;
     private Long daysOfWeek;
     private String weekOf;

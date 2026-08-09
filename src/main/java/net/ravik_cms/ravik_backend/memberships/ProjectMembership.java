@@ -9,6 +9,7 @@ import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.enums.StaffStatus;
+import net.ravik_cms.ravik_backend.jobTitles.JobTitles;
 import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.users.Users;
@@ -34,11 +35,13 @@ public class ProjectMembership extends BaseEntity {
     @JoinColumn(name = "role_id")
     private Roles role;
     @Enumerated(EnumType.STRING)
-    private RoleCategory roleCategory;
-    @Enumerated(EnumType.STRING)
     private StaffStatus status;
     private boolean ownership= false;
     private Double baseWage;
     @Enumerated(EnumType.STRING)
     private PaymentFrequency frequency;
+    @ManyToOne
+    @JoinColumn(name = "job_title_id")
+    private JobTitles jobTitle;
+    private boolean generateAttendance = true;
 }

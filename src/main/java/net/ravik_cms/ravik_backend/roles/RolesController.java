@@ -28,21 +28,6 @@ public class RolesController {
         List<RoleInfoDto> body = rolesService.getAllRoles(project_id);
         return ResponseEntity.ok(body);
     }
-    @GetMapping("/management/{project_id}")
-    public ResponseEntity<List<RoleInfoDto>> getManagementRoles(@PathVariable UUID project_id){
-        List<RoleInfoDto> body = rolesService.getManagementRoles(project_id);
-        return ResponseEntity.ok(body);
-    }
-    @GetMapping("/supervisor/{project_id}")
-    public ResponseEntity<List<RoleInfoDto>> getSupervisorRoles(@PathVariable UUID project_id){
-        List<RoleInfoDto> body = rolesService.getSupervisorRoles(project_id);
-        return ResponseEntity.ok(body);
-    }
-    @GetMapping("/field_crew/{project_id}")
-    public ResponseEntity<List<RoleInfoDto>> getFieldCrewRoles(@PathVariable UUID project_id){
-        List<RoleInfoDto> body = rolesService.getFieldCrewsRoles(project_id);
-        return ResponseEntity.ok(body);
-    }
     @PostMapping
     public ResponseEntity<RoleInfoDto> createRole(@RequestBody CreateRoleDto role, @PathVariable UUID project_id){
         RoleInfoDto body = rolesService.createRole(role, project_id);

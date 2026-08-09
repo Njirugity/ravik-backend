@@ -19,10 +19,7 @@ public class PermissionsSeeder implements CommandLineRunner {
     public void run(String... args){
         List<String> permissions = List.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_MANAGEMENT", "READ_MANAGEMENT",
-                "READ_STAFF", "UPDATE_STAFF", "DELETE_STAFF",
-                "CREATE_SUPERVISOR", "READ_SUPERVISOR",
-                "CREATE_LABOURER", "READ_LABOURER"
+                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"
         );
         for(String pName: permissions){
             if(!permissionsRepository.existsByName(pName)){

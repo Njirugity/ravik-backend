@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.enums.StaffStatus;
+import net.ravik_cms.ravik_backend.jobTitles.JobTitles;
 import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.users.Users;
@@ -30,7 +31,8 @@ public class ProjectMembershipService {
     }
     @Transactional
     public void addToMembership(Projects projects, Users users, Roles roles, Double wage,
-                                RoleCategory category, PaymentFrequency frequency){
+                                JobTitles jobTitle, PaymentFrequency frequency,
+                                boolean generateAttendance){
         ProjectMembership membership = new ProjectMembership();
         membership.setUser(users);
         membership.setProject(projects);
@@ -38,7 +40,8 @@ public class ProjectMembershipService {
         membership.setStatus(StaffStatus.ACTIVE);
         membership.setBaseWage(wage);
         membership.setFrequency(frequency);
-        membership.setRoleCategory(category);
+        membership.setJobTitle(jobTitle);
+        membership.setGenerateAttendance(generateAttendance);
 
         membershipRepository.save(membership);
     }

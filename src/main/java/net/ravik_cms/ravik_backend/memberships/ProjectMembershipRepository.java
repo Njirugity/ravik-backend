@@ -19,9 +19,6 @@ import java.util.UUID;
 @Repository
 public interface ProjectMembershipRepository extends JpaRepository<ProjectMembership, Long> {
     List<ProjectMembership> findAllByUser(Users user);
-    List<ProjectMembership> findAllByProject(Projects project);
-    List<ProjectMembership> findAllByProjectAndRole(Projects project, Roles role);
-    List<ProjectMembership> findAllByProjectAndRoleCategory(Projects projects, RoleCategory category);
     Optional<ProjectMembership> findByUserAndProject(Users user, Projects project);
 
     @Query("""
@@ -42,8 +39,4 @@ public interface ProjectMembershipRepository extends JpaRepository<ProjectMember
     Optional<ProjectMembership> findByUserIdAndRoleName(
             @Param("roleName") String roleName,
             @Param("userId") UUID userId);
-    List<ProjectMembership> findAllByProjectIdAndStatus(UUID projectId, StaffStatus status);
-
-    Optional <ProjectMembership> findByProjectAndStatusAndId(Projects project, String status,Long id);
-    List<ProjectMembership> findAllByProjectId(UUID projectId);
 }

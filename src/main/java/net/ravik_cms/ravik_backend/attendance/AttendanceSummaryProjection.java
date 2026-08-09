@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public record AttendanceSummaryProjection(Long membershipId,
                                           String userName,
-                                          String role,
+                                          String jobTitle,
                                           Long daysPresent) {
 }

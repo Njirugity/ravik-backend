@@ -5,20 +5,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
-import net.ravik_cms.ravik_backend.roles.RoleInfoDto;
 
-import java.time.LocalDate;
-import java.util.Set;
+import java.util.UUID;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-public class CreateSupervisorsDto {
+@NoArgsConstructor
+public class CreateUserDto {
     @NotBlank(message = "User name required")
     private String userName;
     @Email(message = "Email is not valid")
@@ -30,8 +26,11 @@ public class CreateSupervisorsDto {
     private String phoneNumber;
     @NotBlank(message = "Identification required")
     private String idNumber;
-
-    private String roleKey;
-    private Double baseDailyWage;
+    private boolean hasSystemAccess;
+    private UUID roleId;
+    private Long jobTitleId;
+    private Double baseWage;
     private PaymentFrequency frequency;
+    private boolean updateJobTitle;
+    private boolean generateAttendance;
 }

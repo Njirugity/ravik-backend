@@ -40,20 +40,20 @@ public class AttendanceService {
     private final MilestonesService milestonesService;
     private final CalendarService calenderService;
 
-    public Page<AttendanceSingleDayInfoDto> displayRecords(UUID projectId, LocalDate date, String role,
+    public Page<AttendanceSingleDayInfoDto> displayRecords(UUID projectId, LocalDate date, String jobTitle,
                                                            AttendanceStatus status, String search,
                                                            Pageable pageable){
         if(date == null){
             date = LocalDate.now();
         }
 
-        Page<Attendance> records = attendanceRepository.findAttendanceRecords(projectId, date, role,
+        Page<Attendance> records = attendanceRepository.findAttendanceRecords(projectId, date, jobTitle,
                 status, search, pageable);
         return records.map(a->{
                     AttendanceSingleDayInfoDto dto = new AttendanceSingleDayInfoDto();
                     dto.setMemberId(a.getMembership().getId());
                     dto.setUserName(a.getMembership().getUser().getUserName());
-                    dto.setRole(a.getMembership().getRole().getName());
+                    dto.setJobTitle(a.getMembership().getJobTitle().getTitle());
                     dto.setAttendanceId(a.getId());
                     dto.setDate(a.getDate());
                     dto.setStatus(a.getStatus());
@@ -61,27 +61,27 @@ public class AttendanceService {
                     return dto;
                 });
     }
-    public Page<AttendanceSelectionDto> displayRecordsForMarking(UUID projectId, LocalDate date, String role,
+    public Page<AttendanceSelectionDto> displayRecordsForMarking(UUID projectId, LocalDate date, String jobTitle,
                                                                  String search, Pageable pageable){
         if(date == null){
             date=LocalDate.now();
         }
         Page<ProjectMembership> memberships = attendanceRepository.findMembershipsWithoutAttendance(
-                projectId, date, role, search, pageable);
+                projectId, date, jobTitle, search, pageable);
 
         LocalDate finalDate = date;
         return memberships.map(m->{
                     AttendanceSelectionDto dto = new AttendanceSelectionDto();
                     dto.setMemberId(m.getId());
                     dto.setUserName(m.getUser().getUserName());
-                    dto.setRole(m.getRole().getName());
+                    dto.setJobTitle(m.getJobTitle().getTitle());
                     dto.setDate(finalDate);
                     dto.setMilestoneId(null);
                     dto.setStatus(null);
                     return dto;
                 });
     }
-    public Page<AttendanceSummaryDto> summary (UUID projectId, LocalDate date, String role,
+    public Page<AttendanceSummaryDto> summary (UUID projectId, LocalDate date, String jobTitle,
                                                String search, Pageable pageable){
         LocalDate workingDate =  date == null ? LocalDate.now() : date;
         Calendar calendar = calenderService.getCalenderEntity(projectId);
@@ -100,13 +100,13 @@ public class AttendanceService {
         }
 
         Page<AttendanceSummaryProjection> page = attendanceRepository.findAttendanceForSummary(projectId, firstDay, lastDay,
-                role, search, pageable);
+                jobTitle, search, pageable);
         String weekRange = getWorkingDaysString(firstDay, lastDay, calendar);
         long finalDaysOfWeek = daysOfWeek;
         return page.map(p->{
             AttendanceSummaryDto dto = new AttendanceSummaryDto();
             dto.setUserName(p.userName());
-            dto.setRole(p.role());
+            dto.setJobTitle(p.jobTitle());
             dto.setDaysPresent(p.daysPresent());
             dto.setDaysOfWeek(finalDaysOfWeek);
             dto.setWeekOf(weekRange);

@@ -23,4 +23,6 @@ public class SupervisorDto {
     private String email;
     private String idNumber;
     private String phoneNumber;
+    private String roleName;
+    private String jobTitle;
 }

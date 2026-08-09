@@ -54,14 +54,14 @@ public class WagesService {
 //        return record;
 //    }
     public Page<WagePreviewDto> previewDailyWages(UUID projectId, LocalDate startDate, LocalDate endDate,
-                                             String role, String search, Pageable pageable){
+                                             String jobTitle, String search, Pageable pageable){
         if(startDate == null && endDate == null){
             LocalDate date = LocalDate.now();
             startDate = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             endDate = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
         }
         Page<WageCalculationDataProjection> page = wagesRepository.findWageDataForDailyFrequency(
-                projectId, startDate, endDate,role, search, pageable);
+                projectId, startDate, endDate,jobTitle, search, pageable);
 
         LocalDate finalStartDate = startDate;
         LocalDate finalEndDate = endDate;
@@ -70,7 +70,7 @@ public class WagesService {
             WagePreviewDto dto = new WagePreviewDto();
             dto.setMembershipId(p.membershipId());
             dto.setUserName(p.userName());
-            dto.setRole(p.role());
+            dto.setJobTitle(p.jobTitle());
             dto.setStartDate(finalStartDate);
             dto.setEndDate(finalEndDate);
             dto.setBaseWage(p.baseWage());
@@ -82,19 +82,19 @@ public class WagesService {
     }
 
     Page<WagePreviewDto> previewMonthlyWages(UUID projectId, int year, int month,
-                                             String role, String search, Pageable pageable){
+                                             String jobTitle, String search, Pageable pageable){
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
         Page<ProjectMembership> page = wagesRepository.findWageDataForMonthlyFrequency(
-                projectId, startDate, endDate, role, search, pageable
+                projectId, startDate, endDate, jobTitle, search, pageable
         );
 
         return page.map(p->{
             WagePreviewDto dto = new WagePreviewDto();
             dto.setMembershipId(p.getId());
             dto.setUserName(p.getUser().getUserName());
-            dto.setRole(p.getRole().getName());
+            dto.setJobTitle(p.getJobTitle().getTitle());
             dto.setStartDate(startDate);
             dto.setEndDate(endDate);
             dto.setBaseWage(p.getBaseWage());
@@ -164,9 +164,9 @@ public class WagesService {
         wagesRepository.saveAll(records);
     }
 
-    public Page<WageHistoryProjection> getWageHistory(UUID projectId,String role, String search,
+    public Page<WageHistoryProjection> getWageHistory(UUID projectId,String jobTitle, String search,
                                                       Pageable pageable){
-        return wagesRepository.findWageHistory(projectId, role, search, pageable);
+        return wagesRepository.findWageHistory(projectId, jobTitle, search, pageable);
     }
     @Transactional
     public void deleteWage(Long id){

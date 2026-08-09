@@ -17,49 +17,30 @@ public class RolesSeeder {
     private final RolesRepository rolesRepository;
     private final PermissionsRepository permissionsRepository;
 
-    private void createRole(String name, Projects projects, RoleCategory category, Set<String> permissionsKey){
+    private void createRole(String name, Projects projects, Set<String> permissionsKey){
         Set<Permissions> permissions = permissionsRepository.findByNameIn(permissionsKey);
         Roles roles = new Roles();
         roles.setName(name);
         roles.setProject(projects);
-        roles.setRoleCategory(category);
         roles.setSystemDefined(true);
         roles.setPermissions(permissions);
         rolesRepository.save(roles);
     }
     public void seedDefaultRoles(Projects projects){
-        createRole("OWNER", projects, RoleCategory.MANAGEMENT, Set.of(
+        createRole("OWNER", projects, Set.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_MANAGEMENT", "READ_MANAGEMENT", "READ_STAFF", "UPDATE_STAFF", "DELETE_STAFF",
-                "CREATE_SUPERVISOR", "READ_SUPERVISOR",
-                "CREATE_LABOURER", "READ_LABOURER"
+                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"
         ));
-        createRole("DIRECTOR", projects, RoleCategory.MANAGEMENT, Set.of(
+        createRole("DIRECTOR", projects, Set.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_MANAGEMENT", "READ_MANAGEMENT", "READ_STAFF","UPDATE_STAFF", "DELETE_STAFF",
-                "CREATE_SUPERVISOR", "READ_SUPERVISOR",
-                "CREATE_LABOURER", "READ_LABOURER"
+                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"
         ));
-        createRole("CONTRACTOR", projects, RoleCategory.SUPERVISION, Set.of(
-                "READ_PROJECT", "CREATE_SUPERVISOR", "READ_SUPERVISOR", "READ_STAFF", "UPDATE_STAFF",
-                "DELETE_STAFF","CREATE_LABOURER", "READ_LABOURER"
+        createRole("CONTRACTOR", projects, Set.of(
+                "READ_PROJECT", "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"
         ));
-        createRole("CONSTRUCTION_MANAGER", projects, RoleCategory.SUPERVISION, Set.of(
-                "READ_PROJECT", "CREATE_SUPERVISOR", "READ_SUPERVISOR","READ_STAFF", "UPDATE_STAFF",
-                "DELETE_STAFF","CREATE_LABOURER", "READ_LABOURER"
+        createRole("ADMIN", projects, Set.of(
+                "READ_PROJECT", "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"
         ));
-        createRole("SITE_MANAGER", projects,RoleCategory.SUPERVISION, Set.of(
-                "READ_PROJECT", "READ_SUPERVISOR","CREATE_LABOURER", "READ_LABOURER"
-        ));
-        createRole("CLERK_OF_WORKS", projects,RoleCategory.SUPERVISION, Set.of(
-                "READ_PROJECT", "READ_SUPERVISOR","CREATE_LABOURER", "READ_LABOURER"
-        ));
-        createRole("FOREMAN", projects,RoleCategory.SUPERVISION, Set.of(
-                "READ_PROJECT", "READ_SUPERVISOR","CREATE_LABOURER", "READ_LABOURER"
-        ));
-        createRole("MASON", projects,RoleCategory.FIELD_CREW, Set.of());
-        createRole("CARPENTER", projects, RoleCategory.FIELD_CREW, Set.of());
-        createRole("OPERATOR", projects, RoleCategory.FIELD_CREW, Set.of());
-        createRole("CASUAL", projects, RoleCategory.FIELD_CREW, Set.of());
+
     }
 }

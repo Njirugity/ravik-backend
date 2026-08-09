@@ -12,6 +12,8 @@ import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.common.exception.UserAlreadyExistsException;
 import net.ravik_cms.ravik_backend.dailyLog.DailyLog;
 import net.ravik_cms.ravik_backend.dailyLog.DailyLogService;
+import net.ravik_cms.ravik_backend.jobTitles.JobTitles;
+import net.ravik_cms.ravik_backend.jobTitles.JobTitlesRepository;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipService;
@@ -19,6 +21,8 @@ import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.roles.RolesRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +45,7 @@ public class UserService {
     private final AuthorizationService authorizationService;
     private final ClientRepository clientRepository;
     private final AttendanceService attendanceService;
+    private final JobTitlesRepository jobTitlesRepository;
 
     /**
      * Find a user in the membership through current project
@@ -77,158 +82,45 @@ public class UserService {
 
         return userMapper.toClient(newUser);
     }
-
-    /**
-     * Create a supervision level user
-     * @param supervisor user dto for creating a supervisor
-     * @param id current project's id
-     * @return supervisor dto object
-     */
     @Transactional
-    public SupervisorDto addSupervisor(CreateSupervisorsDto supervisor, UUID id){
-        authorizationService.authorize( "CREATE_SUPERVISOR");
-        Projects project = projectsRepository.findById(id)
+    public void addUser(UUID projectId, CreateUserDto request){
+        Projects project = projectsRepository.findById(projectId)
                 .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
-
-        Roles roles = rolesRepository.findByNameAndProject(supervisor.getRoleKey(), project)
-                .orElseThrow(()-> new ResourceNotFoundException("Role " + supervisor.getRoleKey()+ " not found"));
+        Users user = userMapper.fromCreateUsers(request);
         DailyLog log = dailyLogService.createOrFetchDailyLog(project, LocalDate.now());
+        Roles role = null;
+        JobTitles jobTitle = null;
+        if(request.isHasSystemAccess()){
+            if(request.getRoleId() == null){
+                throw new ResourceNotFoundException("Role is required when system access is enabled");
+            }
+            role = rolesRepository.findById(request.getRoleId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Role not found"));
+        }
+        if(request.getJobTitleId() != null){
+            jobTitle = jobTitlesRepository.findById(request.getJobTitleId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Job title not found"));
+        }
+        if(request.isUpdateJobTitle()){
+            if (jobTitle == null) {
+                throw new ResourceNotFoundException("Job title is required");
+            }
+            if (request.getBaseWage() == null) {
+                throw new ResourceNotFoundException("Base wage is required");
+            }
+            if (request.getFrequency() == null) {
+                throw new ResourceNotFoundException("Wage frequency is required");
+            }
+            jobTitle.setBaseWage(request.getBaseWage());
+            jobTitle.setFrequency(request.getFrequency());
 
-        Users newSupervisor = userMapper.fromCreateSupervisor(supervisor);
-        Double wage = supervisor.getBaseDailyWage();
-        newSupervisor.setPassword(encoder.encode(newSupervisor.getPassword()));
-        newSupervisor.setDailyLog(log);
-        userRepository.save(newSupervisor);
+        }
+        user.setPassword(encoder.encode(user.getPassword()));
+        user.setDailyLog(log);
+        userRepository.save(user);
+        membershipService.addToMembership(project, user, role, request.getBaseWage(),
+                jobTitle,request.getFrequency(), request.isGenerateAttendance());
 
-        membershipService.addToMembership(project, newSupervisor, roles, wage, RoleCategory.SUPERVISION,
-                supervisor.getFrequency());
-        return userMapper.toSupervisor(newSupervisor);
-    }
-
-    /**
-     * Create a field crew level user
-     * @param labourer user dto for creating a labourer
-     * @param id current project's id
-     * @return labourer dto object
-     */
-    @Transactional
-    public LabourerDto addLabourer(CreateLabourerDto labourer, UUID id){
-        authorizationService.authorize( "CREATE_LABOURER");
-        Projects project = projectsRepository.findById(id).
-                orElseThrow(()-> new ResourceNotFoundException("Project not found"));
-        Roles role = rolesRepository.findByNameAndProject(labourer.getRoleKey(), project).
-                orElseThrow(()-> new ResourceNotFoundException("Role" + labourer.getRoleKey() + "not found"));
-        DailyLog log = dailyLogService.createOrFetchDailyLog(project, LocalDate.now());
-
-        Users newLabourer = userMapper.fromCreateLabourer(labourer);
-        Double wage = labourer.getBaseDailyWage();
-        newLabourer.setDailyLog(log);
-        userRepository.save(newLabourer);
-
-        membershipService.addToMembership(project, newLabourer, role, wage, RoleCategory.FIELD_CREW,
-                labourer.getFrequency());
-        return userMapper.toLabourer(newLabourer);
-    }
-
-    /**
-     * Find all users by category
-     * @param projectId current project's id
-     * @param category role category
-     * @return all membership with selected role
-     */
-    private List<ProjectMembership> getMembershipsByCategory(UUID projectId, RoleCategory category){
-        Projects projects = projectsRepository.findById(projectId).
-                orElseThrow(()-> new ResourceNotFoundException("Project not found"));
-        return projectMembershipRepository.findAllByProjectAndRoleCategory(projects, category);
-    }
-    public SupervisorDto getClients(UUID project_id, UUID user_id){
-        authorizationService.authorize("READ_CLIENTS");
-        Users user = findUser(project_id, user_id);
-        return userMapper.toSupervisor(user);
-    }
-    public SupervisorDto getSupervisor(UUID project_id, UUID user_id){
-        authorizationService.authorize("READ_SUPERVISOR");
-        Users user = findUser(project_id, user_id);
-        return userMapper.toSupervisor(user);
-    }
-    public LabourerDto getLabourer(UUID project_id, UUID user_id){
-        authorizationService.authorize("READ_LABOURER");
-        Users user = findUser(project_id, user_id);
-        return userMapper.toLabourer(user);
-    }
-
-    /**
-     * Find all user with management category
-     * @param projectId current project's id
-     * @return all management users as supervisor dto
-     */
-    public List<SupervisorWithRoleDto> getAllManagement(UUID projectId){
-        authorizationService.authorize( "READ_MANAGEMENT");
-        List<ProjectMembership> memberships = getMembershipsByCategory(projectId, RoleCategory.MANAGEMENT);
-        return memberships.stream()
-                .map(userMapper::toSupervisorWithRole)
-                .toList();
-    }
-
-    /**
-     * Find all user with supervision category
-     * @param projectId current project's id
-     * @return all supervisor users as supervisor dto
-     */
-    public List<SupervisorWithRoleDto> getAllSupervisors(UUID projectId){
-        authorizationService.authorize("READ_SUPERVISOR");
-        List<ProjectMembership> memberships = getMembershipsByCategory(projectId, RoleCategory.SUPERVISION);
-        return memberships.stream()
-                .map(userMapper::toSupervisorWithRole)
-                .toList();
-    }
-
-    /**
-     * Find all user with field crew category
-     * @param projectId current project's id
-     * @return all field crew users as labourer dto
-     */
-    public List<LabourerWithRoleDto> getAllFieldCrew(UUID projectId){
-        authorizationService.authorize("READ_LABOURER");
-        List<ProjectMembership> memberships = getMembershipsByCategory(projectId, RoleCategory.FIELD_CREW);
-        return memberships.stream()
-                .map(userMapper::toLabourerWithRole)
-                .toList();
-    }
-
-    /**
-     * Find all users in a project
-     * @param projectId current project's id
-     * @return all users as staff dto
-     */
-    public List<StaffDto> getAllStaffByProject(UUID projectId){
-        authorizationService.authorize("READ_STAFF");
-        Projects project = projectsRepository.findById(projectId).
-                orElseThrow(()-> new ResourceNotFoundException("Project not found"));
-        List<ProjectMembership> membership= projectMembershipRepository.findAllByProject(project);
-        return membership.stream()
-                .map(ProjectMembership::getUser)
-                .map(userMapper::toStaff)
-                .toList();
-    }
-
-    /**
-     * Find all users by project and role
-     * @param projectId current project's id
-     * @param role project roles
-     * @return all users as staff dto
-     */
-    public List<StaffDto> getAllStaffByProjectAndRoles(UUID projectId, String role){
-        authorizationService.authorize("READ_STAFF");
-        Projects project = projectsRepository.findById(projectId).
-                orElseThrow(()-> new ResourceNotFoundException("Project not found"));
-        Roles roles = rolesRepository.findByNameAndProject(role, project).
-                orElseThrow(()-> new ResourceNotFoundException("Role not found"));
-        List<ProjectMembership> memberships = projectMembershipRepository.findAllByProjectAndRole(project, roles);
-        return memberships.stream()
-                .map(ProjectMembership::getUser)
-                .map(userMapper::toStaff)
-                .toList();
     }
 
     /**
@@ -255,5 +147,19 @@ public class UserService {
         authorizationService.authorize("DELETE_STAFF");
         Users user = findUser(project_id, user_id);
         userRepository.delete(user);
+    }
+
+    /**
+     * List users belonging to a project, optionally filtered by role, job title, or search term
+     * @param project_id current project's id
+     * @param role role name to filter by
+     * @param jobTitle job title to filter by
+     * @param search search term matched against username
+     * @param pageable pagination information
+     * @return page of user details
+     */
+    public Page<UserDetailsProjection> getAllUsers(UUID project_id, String role, String jobTitle,
+                                                    String search, Pageable pageable){
+        return userRepository.findAllUsers(project_id, role, jobTitle, search, pageable);
     }
 }

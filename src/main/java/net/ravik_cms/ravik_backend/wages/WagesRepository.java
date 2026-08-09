@@ -109,7 +109,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
     @Query(
             value = """
                 SELECT net.ravik_cms.ravik_backend.wages.WageHistoryProjection(
-                    w.id, m.id, u.userName, r.role, w.startDate, w.endDate, w.grossPay,
+                    w.id, m.id, u.userName, r.name, w.startDate, w.endDate, w.grossPay,
                     m.frequency, w.createdAt)
                 FROM Wages w
                 JOIN w.membership m

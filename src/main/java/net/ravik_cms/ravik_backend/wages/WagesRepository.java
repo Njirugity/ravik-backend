@@ -20,11 +20,11 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
     @Query(
             value = """
             SELECT new net.ravik_cms.ravik_backend.wages.WageCalculationDataProjection(
-                        m.id, u.userName, r.name, m.baseWage, COUNT(a), m.frequency
+                        m.id, u.userName, j.title, m.baseWage, COUNT(a), m.frequency
                         )
             FROM ProjectMembership m
             JOIN m.user u
-            JOIN m.role r
+            JOIN m.jobTitle j
             LEFT JOIN Attendance a
                 ON a.membership = m
                 AND a.date BETWEEN :start AND :end
@@ -33,21 +33,21 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
             WHERE m.project.id = :projectId
             AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
             AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.DAILY
-            AND (:role IS NULL OR r.name = :role)
+            AND (:jobTitle IS NULL OR j.title = :jobTitle)
             AND (
                  :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
                  )
-            GROUP BY m.id, u.userName, r.name, m.baseWage, m.frequency
+            GROUP BY m.id, u.userName, j.title, m.baseWage, m.frequency
             """,
             countQuery = """
                     SELECT COUNT(m)
                     FROM ProjectMembership m
                     JOIN m.user u
-                    JOIN m.role r
+                    JOIN m.jobTitle j
                     WHERE m.project.id = :projectId
                     AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                     AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.DAILY
-                    AND (:role IS NULL OR r.name = :role)
+                    AND (:jobTitle IS NULL OR j.title = :jobTitle)
                     AND (:search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%')))
                     """
     )
@@ -55,7 +55,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
             @Param("projectId") UUID projectId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end,
-            @Param("role") String role,
+            @Param("jobTitle") String jobTitle,
             @Param("search") String search,
             Pageable pageable
     );
@@ -63,7 +63,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
             value = """
                 SELECT m FROM ProjectMembership m
                 JOIN m.user u
-                JOIN m.role r
+                JOIN m.jobTitle j
                 WHERE m.project.id = :projectId
                 AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                 AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.MONTHLY
@@ -73,7 +73,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
                         AND w.startDate = :start
                         AND w.endDate = :end
                     )
-                AND (:role IS NULL OR r.name = :role)
+                AND (:jobTitle IS NULL OR j.title = :jobTitle)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
                      )
@@ -81,7 +81,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
             countQuery = """
                 SELECT COUNT(m) FROM ProjectMembership m
                 JOIN m.user u
-                JOIN m.role r
+                JOIN m.jobTitle j
                 WHERE m.project.id = :projectId
                 AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
                 AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.MONTHLY
@@ -91,32 +91,32 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
                         AND w.startDate = :start
                         AND w.endDate = :end
                     )
-                AND (:role IS NULL OR r.name = :role)
+                AND (:jobTitle IS NULL OR j.title = :jobTitle)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
                      )
-                    """
+                """
     )
     Page<ProjectMembership> findWageDataForMonthlyFrequency(
             @Param("projectId") UUID projectId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end,
-            @Param("role") String role,
+            @Param("jobTitle") String jobTitle,
             @Param("search") String search,
             Pageable pageable
     );
 
     @Query(
             value = """
-                SELECT net.ravik_cms.ravik_backend.wages.WageHistoryProjection(
-                    w.id, m.id, u.userName, r.name, w.startDate, w.endDate, w.grossPay,
+                SELECT new net.ravik_cms.ravik_backend.wages.WageHistoryProjection(
+                    w.id, m.id, u.userName, j.title, w.startDate, w.endDate, w.grossPay,
                     m.frequency, w.createdAt)
                 FROM Wages w
                 JOIN w.membership m
                 JOIN m.user u
-                JOIN m.role r
+                JOIN m.jobTitle j
                 WHERE m.project.id = :projectId
-                AND (:role IS NULL OR r.name = :role)
+                AND (:jobTitle IS NULL OR j.title = :jobTitle)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
                      )
@@ -125,9 +125,9 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
                 SELECT COUNT(w) FROM Wages w
                 JOIN w.membership m
                 JOIN m.user u
-                JOIN m.role r
+                JOIN m.jobTitle j
                 WHERE m.project.id = :projectId
-                AND (:role IS NULL OR r.name = :role)
+                AND (:jobTitle IS NULL OR j.title = :jobTitle)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
                      )
@@ -135,7 +135,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
     )
     Page<WageHistoryProjection> findWageHistory(
             @Param("projectId") UUID projectId,
-            @Param("role") String role,
+            @Param("jobTitle") String jobTitle,
             @Param("search") String search,
             Pageable pageable
     );

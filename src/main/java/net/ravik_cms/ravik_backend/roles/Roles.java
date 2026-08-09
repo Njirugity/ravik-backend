@@ -23,11 +23,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Roles extends BaseEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String name;
-    @Enumerated(EnumType.STRING)
-    private RoleCategory roleCategory;
     private boolean systemDefined = false;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -40,7 +38,4 @@ public class Roles extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Projects project;
-    private Double defaultWage;
-    private PaymentFrequency defaultFrequency;
-    private LocalDate defaultPayDay;
 }

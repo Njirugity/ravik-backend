@@ -9,7 +9,7 @@ public record WageHistoryProjection(
         Long id,
         Long memberId,
         String userName,
-        String role,
+        String jobTitle,
         LocalDate startDate,
         LocalDate endDate,
         Double grossPay,

@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class AttendanceSingleDayInfoDto {
     private Long memberId;
     private String userName;
-    private String role;
+    private String jobTitle;
     private Long attendanceId;
     private LocalDate date;
     private AttendanceStatus status;

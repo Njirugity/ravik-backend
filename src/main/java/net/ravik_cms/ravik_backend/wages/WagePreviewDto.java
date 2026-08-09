@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class WagePreviewDto {
     private Long membershipId;
     private String userName;
-    private String role;
+    private String jobTitle;
     private LocalDate startDate;
     private LocalDate endDate;
     private Double grossPay;

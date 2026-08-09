@@ -11,10 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface RolesRepository extends JpaRepository<Roles, UUID> {
-    boolean existsByName(String name);
-    Optional<Roles> findByName(String name);
     Optional<Roles> findByNameAndProject(String name, Projects project);
     Optional<Roles> findByIdAndProject(UUID id, Projects project);
     List<Roles> findAllByProject(Projects project);
-    List<Roles> findAllByProjectAndRoleCategory(Projects projects, RoleCategory category);
 }

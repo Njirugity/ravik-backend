@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableJpaAuditing
 @EnableScheduling
-public class RavikBackendApplication {
+public class 	RavikBackendApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(RavikBackendApplication.class, args);

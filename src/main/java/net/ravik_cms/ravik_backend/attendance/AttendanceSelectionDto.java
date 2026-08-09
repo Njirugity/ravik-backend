@@ -14,7 +14,7 @@ import java.util.UUID;
 public class AttendanceSelectionDto {
     private Long memberId;
     private String userName;
-    private String role;
+    private String jobTitle;
     private LocalDate date;
     private AttendanceStatus status;
     private UUID milestoneId;

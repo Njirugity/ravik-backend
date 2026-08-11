@@ -144,4 +144,25 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     );
 
     List<Attendance> findByWage(Wages wage);
+
+    @Query(
+            value = """
+                SELECT a FROM Attendance a
+                JOIN a.membership m
+                WHERE m.id = :memberId
+                AND (:start IS NULL OR a.date >= :start)
+                AND (:end IS NULL OR a.date <= :end)
+            """,
+            countQuery = """
+                SELECT COUNT(a) FROM Attendance a
+                JOIN a.membership m
+                WHERE m.id = :memberId
+                AND (:start IS NULL OR a.date >= :start)
+                AND (:end IS NULL OR a.date <= :end)
+            """
+    )
+    Page<Attendance> findAttendanceByMembership(@Param("memberId") Long memberId,
+                                                @Param("start") LocalDate start,
+                                                @Param("end") LocalDate end,
+                                                Pageable pageable);
 }

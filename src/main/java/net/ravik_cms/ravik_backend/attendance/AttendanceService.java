@@ -61,6 +61,22 @@ public class AttendanceService {
                     return dto;
                 });
     }
+    public Page<AttendanceSingleDayInfoDto> getMemberAttendanceHistory(Long memberId, LocalDate start, LocalDate end,
+                                                                       Pageable pageable){
+        Page<Attendance> records = attendanceRepository.findAttendanceByMembership(memberId, start, end, pageable);
+        return records.map(a->{
+                    AttendanceSingleDayInfoDto dto = new AttendanceSingleDayInfoDto();
+                    dto.setMemberId(a.getMembership().getId());
+                    dto.setUserName(a.getMembership().getUser().getUserName());
+                    dto.setJobTitle(a.getMembership().getJobTitle() != null ? a.getMembership().getJobTitle().getTitle() : null);
+                    dto.setAttendanceId(a.getId());
+                    dto.setDate(a.getDate());
+                    dto.setStatus(a.getStatus());
+                    dto.setMilestoneTitle(a.getMilestone()!= null ? a.getMilestone().getTitle() : null);
+                    return dto;
+                });
+    }
+
     public Page<AttendanceSelectionDto> displayRecordsForMarking(UUID projectId, LocalDate date, String jobTitle,
                                                                  String search, Pageable pageable){
         if(date == null){

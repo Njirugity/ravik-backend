@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
+import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.users.Users;
 
 import java.time.LocalDate;
@@ -26,9 +27,9 @@ public class Projects extends BaseEntity {
     private String location;
     private String plotNo;
     private String address;
-    private String NCAregNumber;
-    private String NEMAregNumber;
-    private String CountyRegNumber;
+    private String type;
+    private Double sizeSquareMeters;
+    private ProgressStatus progress;
     @ManyToOne
     @JoinColumn(name = "client_id")
     private Users client;

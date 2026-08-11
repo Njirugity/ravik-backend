@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import java.security.Permission;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +50,13 @@ public class RolesService {
     public List<RoleInfoDto> getAllRoles(UUID project_id){
         Projects projects = projectsRepository.findById(project_id).orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         List<Roles> allRoles = rolesRepository.findAllByProject(projects);
-        return rolesMapper.toRoleDtoList(allRoles);
+        List<RoleInfoDto> roleDtos = rolesMapper.toRoleDtoList(allRoles);
+
+        Map<UUID, Long> memberCounts = rolesRepository.countMembersByRole(project_id).stream()
+                .collect(Collectors.toMap(RoleMembershipCount::getRoleId, RoleMembershipCount::getMemberCount));
+        roleDtos.forEach(dto -> dto.setMemberCount(memberCounts.getOrDefault(dto.getId(), 0L)));
+
+        return roleDtos;
     }
 
     public RoleInfoDto createRole(CreateRoleDto role, UUID project_id){

@@ -124,18 +124,106 @@ public class UserService {
     }
 
     /**
-     * Edit a user
+     * Fetch the full detail (KYC + membership) for a single user in a project
+     * @param project_id current project's id
+     * @param user_id user to fetch
+     * @return user detail dto
+     */
+    public UserDetailDto getUserDetail(UUID project_id, UUID user_id){
+        Users user = userRepository.findById(user_id)
+                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        Projects project = projectsRepository.findById(project_id)
+                .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
+        ProjectMembership membership = projectMembershipRepository.findByUserAndProject(user, project)
+                .orElseThrow(()-> new ResourceNotFoundException("Membership does not exist"));
+        return toUserDetailDto(user, membership);
+    }
+
+    private UserDetailDto toUserDetailDto(Users user, ProjectMembership membership){
+        UserDetailDto dto = new UserDetailDto();
+        dto.setId(user.getId());
+        dto.setUserName(user.getUserName());
+        dto.setEmail(user.getEmail());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setIdNumber(user.getIdNumber());
+        dto.setMemberId(membership.getId());
+        if (membership.getRole() != null) {
+            dto.setRoleId(membership.getRole().getId());
+            dto.setRoleName(membership.getRole().getName());
+        }
+        if (membership.getJobTitle() != null) {
+            dto.setJobTitleId(membership.getJobTitle().getId());
+            dto.setJobTitleName(membership.getJobTitle().getTitle());
+        }
+        dto.setBaseWage(membership.getBaseWage());
+        dto.setFrequency(membership.getFrequency());
+        dto.setGenerateAttendance(membership.isGenerateAttendance());
+        dto.setStatus(membership.getStatus());
+        return dto;
+    }
+
+    /**
+     * Edit a user's KYC details and project membership (role, job title, wage, status)
      * @param project_id current project's id
      * @param user_id user to edit
      * @param request update object
-     * @return updated user
+     * @return updated user detail
      */
     @Transactional
-    public StaffDto updateUser(UUID project_id, UUID user_id, StaffDto request){
-        authorizationService.authorize("UPDATE_STAFF");
-        Users user = findUser(project_id, user_id);
-        userMapper.updateUser(request, user);
-        return userMapper.toStaff(user);
+    public UserDetailDto updateUser(UUID project_id, UUID user_id, UpdateUserDto request){
+        authorizationService.authorize("UPDATE_USER");
+        Users user = userRepository.findById(user_id)
+                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
+        Projects project = projectsRepository.findById(project_id)
+                .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
+        ProjectMembership membership = projectMembershipRepository.findByUserAndProject(user, project)
+                .orElseThrow(()-> new ResourceNotFoundException("Membership does not exist"));
+
+        user.setUserName(request.getUserName());
+        user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setIdNumber(request.getIdNumber());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(encoder.encode(request.getPassword()));
+        }
+
+        Roles role = null;
+        JobTitles jobTitle = null;
+        if(request.isHasSystemAccess()){
+            if(request.getRoleId() == null){
+                throw new ResourceNotFoundException("Role is required when system access is enabled");
+            }
+            role = rolesRepository.findById(request.getRoleId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Role not found"));
+        }
+        if(request.getJobTitleId() != null){
+            jobTitle = jobTitlesRepository.findById(request.getJobTitleId())
+                    .orElseThrow(()-> new ResourceNotFoundException("Job title not found"));
+        }
+        if(request.isUpdateJobTitle()){
+            if (jobTitle == null) {
+                throw new ResourceNotFoundException("Job title is required");
+            }
+            if (request.getBaseWage() == null) {
+                throw new ResourceNotFoundException("Base wage is required");
+            }
+            if (request.getFrequency() == null) {
+                throw new ResourceNotFoundException("Wage frequency is required");
+            }
+            jobTitle.setBaseWage(request.getBaseWage());
+            jobTitle.setFrequency(request.getFrequency());
+        }
+
+        membership.setRole(role);
+        membership.setJobTitle(jobTitle);
+        membership.setBaseWage(request.getBaseWage());
+        membership.setFrequency(request.getFrequency());
+        membership.setGenerateAttendance(request.isGenerateAttendance());
+        if (request.getStatus() != null) {
+            membership.setStatus(request.getStatus());
+        }
+
+        return toUserDetailDto(user, membership);
     }
 
     /**
@@ -144,7 +232,7 @@ public class UserService {
      * @param user_id user to delete
      */
     public void deleteUser(UUID project_id, UUID user_id){
-        authorizationService.authorize("DELETE_STAFF");
+        authorizationService.authorize("DELETE_USER");
         Users user = findUser(project_id, user_id);
         userRepository.delete(user);
     }

@@ -35,11 +35,16 @@ public class UserController {
         return ResponseEntity.ok(body);
     }
 
+    @GetMapping("/{project_id}/{user_id}")
+    public ResponseEntity<UserDetailDto> getUserDetail(@PathVariable UUID project_id, @PathVariable UUID user_id){
+        UserDetailDto body = userService.getUserDetail(project_id, user_id);
+        return ResponseEntity.ok(body);
+    }
 
     @PatchMapping("edit/{project_id}/{user_id}")
-    public ResponseEntity<StaffDto> editStaff(@PathVariable UUID project_id, @PathVariable UUID user_id,
-                              @RequestBody StaffDto request){
-        StaffDto body = userService.updateUser(project_id, user_id, request);
+    public ResponseEntity<UserDetailDto> editStaff(@PathVariable UUID project_id, @PathVariable UUID user_id,
+                              @RequestBody UpdateUserDto request){
+        UserDetailDto body = userService.updateUser(project_id, user_id, request);
         return ResponseEntity.ok(body);
     }
 

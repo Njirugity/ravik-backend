@@ -31,6 +31,15 @@ public class AttendanceController {
         search, pageable);
         return ResponseEntity.ok(body);
     }
+    @GetMapping("/member/{member_id}")
+    public ResponseEntity<Page<AttendanceSingleDayInfoDto>> memberHistory(
+            @PathVariable Long member_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @PageableDefault(size = 20) Pageable pageable){
+        Page<AttendanceSingleDayInfoDto> body = attendanceService.getMemberAttendanceHistory(member_id, start, end, pageable);
+        return ResponseEntity.ok(body);
+    }
     @GetMapping("/mark/{project_id}")
     public ResponseEntity<Page<AttendanceSelectionDto>> displayForMarking(
             @PathVariable UUID project_id,

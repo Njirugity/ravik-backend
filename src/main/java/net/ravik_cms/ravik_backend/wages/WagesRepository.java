@@ -116,6 +116,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
                 JOIN m.user u
                 JOIN m.jobTitle j
                 WHERE m.project.id = :projectId
+                AND (:memberId IS NULL OR m.id = :memberId)
                 AND (:jobTitle IS NULL OR j.title = :jobTitle)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
@@ -127,6 +128,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
                 JOIN m.user u
                 JOIN m.jobTitle j
                 WHERE m.project.id = :projectId
+                AND (:memberId IS NULL OR m.id = :memberId)
                 AND (:jobTitle IS NULL OR j.title = :jobTitle)
                 AND (
                      :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
@@ -135,6 +137,7 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
     )
     Page<WageHistoryProjection> findWageHistory(
             @Param("projectId") UUID projectId,
+            @Param("memberId") Long memberId,
             @Param("jobTitle") String jobTitle,
             @Param("search") String search,
             Pageable pageable

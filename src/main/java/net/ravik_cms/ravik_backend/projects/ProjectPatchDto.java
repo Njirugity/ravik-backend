@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 
 @Getter
 @Setter
@@ -14,7 +15,7 @@ public class ProjectPatchDto {
     private String location;
     private String plotNo;
     private String address;
-    private String NCAregNumber;
-    private String NEMAregNumber;
-    private String CountyRegNumber;
+    private String type;
+    private Double sizeSquareMeters;
+    private ProgressStatus progress;
 }

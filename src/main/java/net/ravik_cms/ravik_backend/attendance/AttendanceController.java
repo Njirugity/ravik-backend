@@ -23,11 +23,11 @@ public class AttendanceController {
     public ResponseEntity<Page<AttendanceSingleDayInfoDto>>display(
             @PathVariable UUID project_id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String jobTitle,
             @RequestParam(required = false) AttendanceStatus status,
             @RequestParam(required = false) String search,
             @PageableDefault(size =20) Pageable pageable){
-        Page<AttendanceSingleDayInfoDto> body = attendanceService.displayRecords(project_id, date, role, status,
+        Page<AttendanceSingleDayInfoDto> body = attendanceService.displayRecords(project_id, date, jobTitle, status,
         search, pageable);
         return ResponseEntity.ok(body);
     }
@@ -44,11 +44,11 @@ public class AttendanceController {
     public ResponseEntity<Page<AttendanceSelectionDto>> displayForMarking(
             @PathVariable UUID project_id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String jobTitle,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable
     ){
-        Page<AttendanceSelectionDto> body = attendanceService.displayRecordsForMarking(project_id, date, role,
+        Page<AttendanceSelectionDto> body = attendanceService.displayRecordsForMarking(project_id, date, jobTitle,
                 search, pageable);
         return ResponseEntity.ok(body);
     }
@@ -56,10 +56,10 @@ public class AttendanceController {
     public ResponseEntity<Page<AttendanceSummaryDto>> summary(
             @PathVariable UUID project_id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String jobTitle,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable){
-        Page<AttendanceSummaryDto> body = attendanceService.summary(project_id, date, role, search, pageable);
+        Page<AttendanceSummaryDto> body = attendanceService.summary(project_id, date, jobTitle, search, pageable);
         return ResponseEntity.ok(body);
     }
     @PostMapping

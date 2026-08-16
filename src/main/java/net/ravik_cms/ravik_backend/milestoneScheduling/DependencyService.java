@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class DependencyService {
     private final ScheduleRepository scheduleRepository;
     private final MilestonesRepository milestonesRepository;
+    private final ScheduleService scheduleService;
 
     public void addPredecessor(UUID milestoneId, UUID predecessorId){
         if (milestoneId.equals(predecessorId)) {
@@ -44,6 +45,8 @@ public class DependencyService {
         dependencies.setPredecessor(predecessor);
         dependencies.setProject(milestoneProject);
         scheduleRepository.save(dependencies);
+
+        scheduleService.recalculateIfPossible(milestoneProject.getId());
     }
 
     private boolean wouldCreateCycle(UUID milestoneId, UUID predecessorId){
@@ -72,6 +75,8 @@ public class DependencyService {
             throw new ResourceNotFoundException("Predecessor relationship not found");
         }
         scheduleRepository.deleteByMilestoneIdAndPredecessorId(milestoneId, predecessorId);
+
+        scheduleService.recalculateIfPossible(milestone.getProject().getId());
     }
 
     public List<DependencyDto> getPredecessors(UUID milestoneId){
@@ -105,16 +110,24 @@ public class DependencyService {
                             ))
                             .toList();
 
-                    return new DependenciesDto(m.getId(), m.getTitle(), m.getDescription(), m.getDuration(), dependencyDto);
+                    return new DependenciesDto(
+                            m.getId(), m.getTitle(), m.getDescription(),
+                            m.getPhase().getTitle(), m.getDuration(), dependencyDto
+                    );
                 })
                 .toList();
     }
     public void updateAllPredecessors(UUID milestoneId, List<UUID> predecessorIds) {
+        Milestones milestone = milestonesRepository.findById(milestoneId).
+                orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
         scheduleRepository.deleteByMilestoneId(milestoneId);
 
         for (UUID predId : predecessorIds) {
             addPredecessor(milestoneId, predId);
         }
+        // Ensures the schedule still recalculates when predecessorIds is empty
+        // (i.e. all predecessors were cleared), a case the loop above never reaches.
+        scheduleService.recalculateIfPossible(milestone.getProject().getId());
     }
     public ProjectDependenciesDto getProjectDependencies(UUID projectId){
         List<Milestones> milestones = milestonesRepository.findAllByProjectId(projectId);

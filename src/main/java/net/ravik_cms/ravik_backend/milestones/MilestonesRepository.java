@@ -1,6 +1,8 @@
 package net.ravik_cms.ravik_backend.milestones;
 
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,23 @@ import java.util.UUID;
 @Repository
 public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     List<Milestones> findAllByProjectId(UUID projectId);
+    @Query(
+            value = """
+                SELECT m FROM Milestones m
+                WHERE m.project.id = :projectId
+                AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')))
+            """,
+            countQuery = """
+                SELECT COUNT(m) FROM Milestones m
+                WHERE m.project.id = :projectId
+                AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')))
+            """
+    )
+    Page<Milestones> findAllByProjectId(
+            @Param("projectId") UUID projectId,
+            @Param("search") String search,
+            Pageable pageable
+    );
     List<Milestones> findAllByPhaseId(UUID phaseId);
     boolean existsByPhaseIdAndStatusNotAndEarliestFinishBefore(
             UUID phaseId, ProgressStatus status, LocalDate currentDate);

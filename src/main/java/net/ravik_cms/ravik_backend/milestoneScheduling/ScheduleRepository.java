@@ -38,4 +38,6 @@ public interface ScheduleRepository extends JpaRepository<MilestoneDependency, U
     void deleteByMilestoneIdAndPredecessorId(UUID milestoneId, UUID predecessorId);
     @Transactional
     void deleteByMilestoneId(UUID milestoneId);
+    @Transactional
+    void deleteByPredecessorId(UUID predecessorId);
 }

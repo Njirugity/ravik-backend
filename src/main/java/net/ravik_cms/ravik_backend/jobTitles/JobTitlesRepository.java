@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface JobTitlesRepository extends JpaRepository<JobTitles, Long> {
+    List<JobTitles> findAllByProjectId(UUID projectId);
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.jobTitles.JobTitlesInfoProjection(

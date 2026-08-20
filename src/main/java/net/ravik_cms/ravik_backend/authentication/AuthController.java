@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.authentication;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import net.ravik_cms.ravik_backend.common.jwt.JwtUtils;
+import net.ravik_cms.ravik_backend.common.security.UserPrincipal;
 import net.ravik_cms.ravik_backend.users.ClientDto;
 import net.ravik_cms.ravik_backend.users.CreateClientDto;
 import net.ravik_cms.ravik_backend.users.UserService;
@@ -29,7 +30,8 @@ public class AuthController {
                 )
         );
 
-        String token = jwtUtils.generateToken(authentication.getName());
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        String token = jwtUtils.generateToken(principal.getId(), authentication.getName());
         System.out.println("found login");
         return ResponseEntity.ok(new LoginResponse(token));
     }

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @Repository
 public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
+    Optional<Milestones> findByIdAndProjectId(UUID id, UUID projectId);
     List<Milestones> findAllByProjectId(UUID projectId);
     List<Milestones> findAllByPhaseId(UUID phaseId);
     boolean existsByPhaseIdAndStatusNotAndEarliestFinishBefore(
@@ -45,6 +46,17 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
     List<Milestones> findOverdueMilestones(
             @Param("projectId") UUID projectId,
             @Param("currentDate") LocalDate currentDate
+    );
+    @Query("""
+        SELECT m FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND m.earliestFinish BETWEEN :currentDate AND :thresholdDate
+        AND m.status IN ('PENDING','IN_PROGRESS')
+    """)
+    List<Milestones> findAlmostDueMilestones(
+            @Param("projectId") UUID projectId,
+            @Param("currentDate") LocalDate currentDate,
+            @Param("thresholdDate") LocalDate thresholdDate
     );
     @Query("""
         SELECT SUM(m.budget) FROM Milestones m

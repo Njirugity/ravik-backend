@@ -51,11 +51,12 @@ public class WagesController {
     @GetMapping("/{project_id}")
     ResponseEntity<Page<WageHistoryProjection>> getWageHistory(
             @PathVariable UUID project_id,
+            @RequestParam(required = false) Long memberId,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable
     ){
-        Page<WageHistoryProjection> body = wagesService.getWageHistory(project_id, role, search, pageable);
+        Page<WageHistoryProjection> body = wagesService.getWageHistory(project_id, memberId, role, search, pageable);
         return ResponseEntity.ok(body);
     }
 

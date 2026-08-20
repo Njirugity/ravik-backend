@@ -164,9 +164,9 @@ public class WagesService {
         wagesRepository.saveAll(records);
     }
 
-    public Page<WageHistoryProjection> getWageHistory(UUID projectId,String jobTitle, String search,
+    public Page<WageHistoryProjection> getWageHistory(UUID projectId, Long memberId, String jobTitle, String search,
                                                       Pageable pageable){
-        return wagesRepository.findWageHistory(projectId, jobTitle, search, pageable);
+        return wagesRepository.findWageHistory(projectId, memberId, jobTitle, search, pageable);
     }
     @Transactional
     public void deleteWage(Long id){

@@ -6,12 +6,15 @@ import net.ravik_cms.ravik_backend.common.enums.DateStatus;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleRepository;
+import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleService;
 import net.ravik_cms.ravik_backend.phase.Phases;
 import net.ravik_cms.ravik_backend.phase.PhasesRepository;
 import net.ravik_cms.ravik_backend.phase.PhasesService;
 import net.ravik_cms.ravik_backend.phase.UpdatePhaseDto;
 import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +32,7 @@ public class MilestonesService {
     private final ProjectsRepository projectsRepository;
     private final PhasesService phasesService;
     private final ScheduleRepository scheduleRepository;
+    private final ScheduleService scheduleService;
 //    @Scheduled(cron = "0 0 0 * * *")
 //    public void checkOverdueMilestone(){
 //        LocalDate today = LocalDate.now();
@@ -41,6 +45,7 @@ public class MilestonesService {
 //            }
 //        }
 //    }
+    @Transactional
     public MilestoneInfoDto createMilestone(UUID phaseId, CreateMilestoneDto milestoneDto){
         Phases phase = phasesRepository.findById(phaseId)
                 .orElseThrow(()-> new ResourceNotFoundException("Phase not found"));
@@ -50,6 +55,9 @@ public class MilestonesService {
         newMilestone.setStatus(ProgressStatus.PENDING);
         milestonesRepository.save(newMilestone);
         phasesService.syncPhaseBudget(phaseId);
+
+        scheduleService.recalculateIfPossible(phase.getProject().getId());
+
         return (milestonesMapper.toInfoDto(newMilestone));
     }
 
@@ -69,12 +77,9 @@ public class MilestonesService {
                 )
                 );
     }
-    public List<MilestoneInfoDto> getProjectMilestones(UUID projectId){
-        return (
-                milestonesMapper.toInfoDtoList(
-                        milestonesRepository.findAllByProjectId(projectId)
-                )
-                );
+    public Page<MilestoneInfoDto> getProjectMilestonesPage(UUID projectId, String search, Pageable pageable){
+        return milestonesRepository.findAllByProjectId(projectId, search, pageable)
+                .map(milestonesMapper::toInfoDto);
     }
     @Transactional
     public MilestoneInfoDto updateMilestone(UUID milestoneId, UpdateMilestoneDto dto){
@@ -84,11 +89,18 @@ public class MilestonesService {
         phasesService.syncPhaseBudget(milestone.getPhase().getId());
         return milestonesMapper.toInfoDto(milestone);
     }
+    @Transactional
     public void deleteMilestone(UUID milestoneId){
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
+        UUID phaseId = milestone.getPhase().getId();
+        UUID projectId = milestone.getProject().getId();
+
+        scheduleRepository.deleteByMilestoneId(milestoneId);
+        scheduleRepository.deleteByPredecessorId(milestoneId);
         milestonesRepository.delete(milestone);
-        phasesService.syncPhaseBudget(milestone.getPhase().getId());
+        phasesService.syncPhaseBudget(phaseId);
+        scheduleService.recalculateIfPossible(projectId);
     }
     public MilestoneInfoDto getActiveMilestone(UUID projectId){
         LocalDate date  = LocalDate.now();

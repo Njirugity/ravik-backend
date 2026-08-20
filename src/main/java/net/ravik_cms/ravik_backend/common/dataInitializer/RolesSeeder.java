@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.common.dataInitializer;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
+import net.ravik_cms.ravik_backend.common.enums.RoleType;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.permission.PermissionsRepository;
 import net.ravik_cms.ravik_backend.projects.Projects;
@@ -22,7 +23,7 @@ public class RolesSeeder {
         Roles roles = new Roles();
         roles.setName(name);
         roles.setProject(projects);
-        roles.setSystemDefined(true);
+        roles.setRoleType(RoleType.SYSTEM);
         roles.setPermissions(permissions);
         rolesRepository.save(roles);
     }

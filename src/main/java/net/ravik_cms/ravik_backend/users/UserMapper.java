@@ -8,9 +8,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface UserMapper { CreateClientDto toCreateClientDto(Users client);
     Users fromCreateClient(CreateClientDto client);
-    StaffDto toStaff(Users user);
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUser(StaffDto dto, @MappingTarget Users user);
     ClientDto toClient(Users user);
     Users fromCreateUsers(CreateUserDto dto);
 }

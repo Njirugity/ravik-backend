@@ -17,6 +17,7 @@ public class DependenciesDto {
     private UUID milestoneId;
     private String milestoneTitle;
     private String milestoneDescription;
+    private String phaseTitle;
     private int duration;
     private List<DependencyDto> dependencies = new ArrayList<>();
 }

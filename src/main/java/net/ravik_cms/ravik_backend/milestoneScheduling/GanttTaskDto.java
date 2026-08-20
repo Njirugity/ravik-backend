@@ -24,4 +24,6 @@ public class GanttTaskDto {
     private String color;
     private int rowIndex;
     private boolean isMilestone;
+    private UUID phaseId;
+    private String phaseTitle;
 }

@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<Users, UUID> {
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.users.UserDetailsProjection(
-                            m.id, u.id, u.userName, u.phoneNumber, r.name, j.title, m.status)
+                            m.id, u.id, u.userName, u.email, u.phoneNumber, r.name, j.title, m.status)
                 FROM ProjectMembership m
                 JOIN m.user u
                 LEFT JOIN m.role r

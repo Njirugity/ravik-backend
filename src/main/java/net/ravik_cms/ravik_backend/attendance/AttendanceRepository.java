@@ -132,7 +132,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Query("""
         SELECT a FROM Attendance a
         JOIN FETCH a.membership m
-        WHERE m.id IN :membershipIds
+        WHERE m.id IN :memberIds
         AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
         AND a.date BETWEEN :start AND :end
         AND a.wage IS NULL

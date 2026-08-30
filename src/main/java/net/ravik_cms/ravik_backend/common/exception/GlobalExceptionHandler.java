@@ -43,4 +43,14 @@ public class GlobalExceptionHandler {
         ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.CONFLICT.value(), LocalDate.now());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
     }
+    @ExceptionHandler(UnsupportedPaymentCategoryException.class)
+    public ResponseEntity<ApiErrors> unsupportedPaymentCategoryException(UnsupportedPaymentCategoryException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(FieldRequiredException.class)
+    public ResponseEntity<ApiErrors> fieldRequiredException(FieldRequiredException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
 }

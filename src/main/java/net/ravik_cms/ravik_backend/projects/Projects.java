@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.users.Users;
@@ -32,7 +33,7 @@ public class Projects extends BaseEntity {
     private ProgressStatus progress;
     @ManyToOne
     @JoinColumn(name = "client_id")
-    private Users client;
+    private Client client;
     @ManyToMany
     @JoinTable(
             name = "project_staff",

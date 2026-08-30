@@ -30,7 +30,6 @@ public class AuthController {
         );
 
         String token = jwtUtils.generateToken(authentication.getName());
-        System.out.println("found login");
         return ResponseEntity.ok(new LoginResponse(token));
     }
     @PostMapping("/register")

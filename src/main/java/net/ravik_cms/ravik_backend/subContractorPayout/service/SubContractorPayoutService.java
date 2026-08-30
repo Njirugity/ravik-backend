@@ -1,7 +1,10 @@
 package net.ravik_cms.ravik_backend.subContractorPayout.service;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.common.utils.PaymentStatusCalculator;
+import net.ravik_cms.ravik_backend.common.utils.ReferenceCodeGenerator;
 import net.ravik_cms.ravik_backend.milestones.Milestones;
 import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
 import net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.entity.SubContractorRequired;
@@ -40,6 +43,8 @@ public class SubContractorPayoutService {
         payout.setSubContractorRequired(subContractorRequired);
         payout.setMilestone(milestone);
         payout.setProject(milestone.getProject());
+        payout.setPaymentStatus(calculatePaymentStatus(payout));
+        payout.setReferenceCode(ReferenceCodeGenerator.generate("SC", subContractorPayoutRepository::existsByReferenceCode));
 
         subContractorPayoutRepository.save(payout);
         return getSubContractorPayout(milestoneId);
@@ -63,7 +68,13 @@ public class SubContractorPayoutService {
             payout.setSubContractorRequired(subContractorRequired);
         }
         subContractorPayoutMapper.updateSubContractorPayout(request, payout);
+        payout.setPaymentStatus(calculatePaymentStatus(payout));
         subContractorPayoutRepository.save(payout);
+    }
+
+    private PaymentStatus calculatePaymentStatus(SubContractorPayout payout) {
+        double totalCost = payout.getActualJobCost() == null ? 0d : payout.getActualJobCost();
+        return PaymentStatusCalculator.calculate(totalCost, payout.getPaidAmount());
     }
 
     public void deleteSubContractorPayout(Long id) {

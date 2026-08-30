@@ -14,22 +14,20 @@ import java.util.UUID;
 
 @Repository
 public interface WagesRepository extends JpaRepository<Wages, Long> {
-    boolean existsByMembershipAndStartDateAndEndDate(ProjectMembership membership, LocalDate start, LocalDate end);
-    List<Wages> findAllByMembershipInAndStartDateAndEndDate(List<ProjectMembership> membership, LocalDate start, LocalDate end);
-
     @Query(
             value = """
             SELECT new net.ravik_cms.ravik_backend.wages.WageCalculationDataProjection(
-                        m.id, u.userName, j.title, m.baseWage, COUNT(a), m.frequency
+                        m.id, u.userName, j.title, m.baseWage, COUNT(a), m.frequency, mi.id, mi.title
                         )
             FROM ProjectMembership m
             JOIN m.user u
             JOIN m.jobTitle j
-            LEFT JOIN Attendance a
+            JOIN Attendance a
                 ON a.membership = m
                 AND a.date BETWEEN :start AND :end
                 AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
                 AND a.wage IS NULL
+            LEFT JOIN a.milestone mi
             WHERE m.project.id = :projectId
             AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
             AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.DAILY
@@ -37,18 +35,27 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
             AND (
                  :search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%'))
                  )
-            GROUP BY m.id, u.userName, j.title, m.baseWage, m.frequency
+            GROUP BY m.id, u.userName, j.title, m.baseWage, m.frequency, mi.id, mi.title
             """,
             countQuery = """
-                    SELECT COUNT(m)
-                    FROM ProjectMembership m
-                    JOIN m.user u
-                    JOIN m.jobTitle j
-                    WHERE m.project.id = :projectId
-                    AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
-                    AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.DAILY
-                    AND (:jobTitle IS NULL OR j.title = :jobTitle)
-                    AND (:search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%')))
+                    SELECT COUNT(*) FROM (
+                        SELECT m.id AS membershipId
+                        FROM ProjectMembership m
+                        JOIN m.user u
+                        JOIN m.jobTitle j
+                        JOIN Attendance a
+                            ON a.membership = m
+                            AND a.date BETWEEN :start AND :end
+                            AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
+                            AND a.wage IS NULL
+                        LEFT JOIN a.milestone mi
+                        WHERE m.project.id = :projectId
+                        AND m.status = net.ravik_cms.ravik_backend.common.enums.StaffStatus.ACTIVE
+                        AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.DAILY
+                        AND (:jobTitle IS NULL OR j.title = :jobTitle)
+                        AND (:search IS NULL OR LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%')))
+                        GROUP BY m.id, mi.id
+                    )
                     """
     )
     Page<WageCalculationDataProjection> findWageDataForDailyFrequency(

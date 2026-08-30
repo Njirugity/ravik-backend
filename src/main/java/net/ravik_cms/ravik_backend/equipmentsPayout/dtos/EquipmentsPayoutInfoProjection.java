@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.equipmentsPayout.dtos;
 
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 
 import java.time.LocalDate;
 
@@ -16,7 +17,9 @@ public record EquipmentsPayoutInfoProjection(
         long operatorCost,
         LocalDate dateUsed,
         String notes,
+        String referenceCode,
         long totalCost,
         String milestoneTitle,
-        Double paidAmount) {
+        Double paidAmount,
+        PaymentStatus paymentStatus) {
 }

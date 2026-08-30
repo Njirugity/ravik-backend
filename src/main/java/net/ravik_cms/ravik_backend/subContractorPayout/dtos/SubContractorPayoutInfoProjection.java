@@ -1,5 +1,7 @@
 package net.ravik_cms.ravik_backend.subContractorPayout.dtos;
 
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
+
 import java.time.LocalDate;
 
 public record SubContractorPayoutInfoProjection(
@@ -8,7 +10,9 @@ public record SubContractorPayoutInfoProjection(
         Long subContractorId,
         String subContractorTitle,
         Double actualJobCost,
+        String referenceCode,
         Double paidAmount,
         LocalDate jobDate,
-        String milestoneTitle) {
+        String milestoneTitle,
+        PaymentStatus paymentStatus) {
 }

@@ -2,7 +2,10 @@ package net.ravik_cms.ravik_backend.equipmentsPayout.service;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.common.utils.PaymentStatusCalculator;
+import net.ravik_cms.ravik_backend.common.utils.ReferenceCodeGenerator;
 import net.ravik_cms.ravik_backend.milestones.Milestones;
 import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
 import net.ravik_cms.ravik_backend.equipmentsPayout.dtos.CreateEquipmentsPayoutDto;
@@ -41,6 +44,8 @@ public class EquipmentsPayoutService {
         payout.setEquipmentRequired(equipmentRequired);
         payout.setMilestone(milestone);
         payout.setProject(milestone.getProject());
+        payout.setPaymentStatus(calculatePaymentStatus(payout));
+        payout.setReferenceCode(ReferenceCodeGenerator.generate("EQ", equipmentsPayoutRepository::existsByReferenceCode));
         equipmentsPayoutRepository.save(payout);
     }
 
@@ -58,7 +63,14 @@ public class EquipmentsPayoutService {
                 new ResourceNotFoundException("Equipment payout not found"));
 
         equipmentsPayoutMapper.updateEquipmentsPayout(request, payout);
+        payout.setPaymentStatus(calculatePaymentStatus(payout));
         equipmentsPayoutRepository.save(payout);
+    }
+
+    private PaymentStatus calculatePaymentStatus(EquipmentsPayout payout) {
+        EquipmentCategory category = payout.getEquipmentRequired().getEquipments().getCategory();
+        long totalCost = payout.getOperatorCost() + (category == EquipmentCategory.OWNED ? payout.getFuelCost() : payout.getRentalCost());
+        return PaymentStatusCalculator.calculate(totalCost, payout.getPaidAmount());
     }
 
     public void deleteEquipmentsPayout(Long id) {

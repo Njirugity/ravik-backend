@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.BudgetCategory;
+import net.ravik_cms.ravik_backend.common.enums.BudgetSource;
 
 import java.util.UUID;
 
@@ -15,4 +16,5 @@ public class MilestoneBudgetLineDto {
     private UUID milestoneId;
     private BudgetCategory category;
     private Double amount;
+    private BudgetSource source;
 }

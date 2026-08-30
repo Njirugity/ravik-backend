@@ -4,5 +4,6 @@ public enum BudgetCategory {
     LABOUR,
     MATERIAL,
     PLANT_AND_EQUIPMENT,
+    SUBCONTRACTOR,
     OTHERS
 }

@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
-import net.ravik_cms.ravik_backend.users.SupervisorDto;
+import net.ravik_cms.ravik_backend.users.ClientDto;
 
 import java.util.UUID;
 
@@ -22,5 +22,5 @@ public class ProjectInfoDto {
     private String type;
     private Double sizeSquareMeters;
     private ProgressStatus progress;
-    private SupervisorDto client;
+    private ClientDto client;
 }

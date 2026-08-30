@@ -60,18 +60,20 @@ public class WagesController {
         return ResponseEntity.ok(body);
     }
 
-    @PostMapping("/daily")
+    @PostMapping("/confirm-daily/{project_id}")
     ResponseEntity<?> confirmDailyWages(
+            @PathVariable UUID project_id,
             @RequestBody List<CreateWageRecordDto> request
     ){
-        wagesService.confirmDailyWage(request);
+        wagesService.confirmDailyWage(project_id, request);
         return ResponseEntity.ok().build();
     }
-    @PostMapping("/monthly")
+    @PostMapping("/confirm-monthly/{project_id}")
     ResponseEntity<?> confirmMonthlyWages(
+            @PathVariable UUID project_id,
             @RequestBody List<CreateWageRecordDto> request
     ){
-        wagesService.confirmMonthlyWage(request);
+        wagesService.confirmMonthlyWage(project_id, request);
         return ResponseEntity.ok().build();
     }
     @DeleteMapping("/{wage_id}")

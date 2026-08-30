@@ -30,9 +30,8 @@ public class ProjectOrchestrationService {
         Client client = clientRepository.findById(user.getId()).
                 orElseThrow(()-> new ResourceNotFoundException("Client profile not found"));
 
-        Projects project = projectService.createProject(request, userName);
+        Projects project = projectService.createProject(request, client);
 
-        client.getProjects().add(project);
         Roles role = rolesRepository.findByNameAndProject("OWNER", project).
                 orElseThrow(()->new ResourceNotFoundException("Role not found"));
         membershipService.createOwnerMembership(user, project, role);

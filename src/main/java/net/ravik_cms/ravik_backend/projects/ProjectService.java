@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.projects;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
@@ -35,9 +36,7 @@ public class ProjectService {
     }
 
     @Transactional
-    public Projects createProject(ProjectDto projectDto, String userName){
-        Users client = userRepository.findByUserName(userName).
-                orElseThrow(()-> new ResourceNotFoundException("User not found"));
+    public Projects createProject(ProjectDto projectDto, Client client){
         Projects newProject = projectMapper.toProjects(projectDto);
         newProject.setClient(client);
         projectsRepository.save(newProject);

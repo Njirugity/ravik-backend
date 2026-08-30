@@ -121,7 +121,7 @@ public class WagesService {
             wageByMembership.put(new WageKey(dto.getMemberId(), dto.getMilestoneId()), wage);
         }
         wagesRepository.saveAll(wagesToSave);
-        payoutService.createPayoutAndLink(projectId, wagesToSave);
+        payoutService.createPayoutAndLink(projectId, wagesToSave, start, end);
         for(Attendance a :  attendances){
             UUID milestoneId = a.getMilestone() != null ? a.getMilestone().getId() : null;
             Wages wage = wageByMembership.get(new WageKey( a.getMembership().getId(), milestoneId));
@@ -153,7 +153,8 @@ public class WagesService {
                     return wage;
                 }).toList();
         wagesRepository.saveAll(records);
-        payoutService.createPayoutAndLink(projectId, records);
+        payoutService.createPayoutAndLink(projectId, records,request.getFirst().getStartDate(),
+                request.getFirst().getEndDate());
     }
 
     public Page<WageHistoryProjection> getWageHistory(UUID projectId, Long memberId, String jobTitle, String search,

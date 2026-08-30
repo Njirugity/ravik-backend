@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +40,7 @@ public class LabourPayoutService {
     }
 
     @Transactional
-    public void createPayoutAndLink(UUID projectId, List<Wages> records) {
+    public void createPayoutAndLink(UUID projectId, List<Wages> records, LocalDate start, LocalDate end) {
         Projects p = projectsRepository.findById(projectId)
                 .orElseThrow(()->new ResourceNotFoundException("Project not found"));
         double totalAmount = records.stream().mapToDouble(Wages::getGrossPay).sum();
@@ -49,6 +50,8 @@ public class LabourPayoutService {
         payout.setTotalAmount(totalAmount);
         payout.setPaymentStatus(PaymentStatus.PENDING);
         payout.setReferenceCode(ReferenceCodeGenerator.generate("LB", labourPayoutRepository::existsByReferenceCode));
+        payout.setPeriodStart(start);
+        payout.setPeriodEnd(end);
         payout = labourPayoutRepository.save(payout);
 
         LabourPayout finalPayout = payout;

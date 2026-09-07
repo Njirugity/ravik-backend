@@ -12,9 +12,29 @@ public record PaymentInfoProjection(
         String payee,
         Double amount,
         PaymentCategory paymentCategory,
-        Long referenceId,
+        UUID referenceId,
         String referenceCode,
         UUID projectId,
         UUID accountId,
-        PaymentStatus paymentStatus) {
+        PaymentStatus paymentStatus,
+        String transactionCode,
+        Double amountDue,
+        Double totalPaidAmount
+        ) {
+
+    public PaymentInfoProjection(
+            UUID id,
+            LocalDate datePaid,
+            String payee,
+            Double amount,
+            PaymentCategory paymentCategory,
+            UUID referenceId,
+            String referenceCode,
+            UUID projectId,
+            UUID accountId,
+            PaymentStatus paymentStatus,
+            String transactionCode) {
+        this(id, datePaid, payee, amount, paymentCategory, referenceId, referenceCode, projectId, accountId,
+                paymentStatus, transactionCode, null, null);
+    }
 }

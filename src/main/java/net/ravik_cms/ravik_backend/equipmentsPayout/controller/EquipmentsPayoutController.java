@@ -45,13 +45,13 @@ public class EquipmentsPayoutController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateEquipmentsPayout(@PathVariable Long id, @RequestBody UpdateEquipmentsPayoutDto request) {
+    public ResponseEntity<?> updateEquipmentsPayout(@PathVariable UUID id, @RequestBody UpdateEquipmentsPayoutDto request) {
         equipmentsPayoutService.updateEquipmentsPayout(id, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEquipmentsPayout(@PathVariable Long id) {
+    public ResponseEntity<?> deleteEquipmentsPayout(@PathVariable UUID id) {
         equipmentsPayoutService.deleteEquipmentsPayout(id);
         return ResponseEntity.noContent().build();
     }

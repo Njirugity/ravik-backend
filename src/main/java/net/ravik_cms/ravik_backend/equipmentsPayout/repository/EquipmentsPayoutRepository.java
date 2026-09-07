@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface EquipmentsPayoutRepository extends JpaRepository<EquipmentsPayout, Long> {
+public interface EquipmentsPayoutRepository extends JpaRepository<EquipmentsPayout, UUID> {
     @Query("""
                 SELECT new net.ravik_cms.ravik_backend.equipmentsPayout.dtos.EquipmentsPayoutInfoProjection(
                             ep.id, ep.equipmentRequired.id, ep.equipmentRequired.equipments.id, ep.equipmentRequired.equipments.title, ep.equipmentRequired.equipments.category,

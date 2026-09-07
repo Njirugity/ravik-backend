@@ -49,10 +49,10 @@ public class BudgetSummaryService {
 
         Map<BudgetCategory, Double> milestoneCost = new EnumMap<>(BudgetCategory.class);
         milestoneCost.put(BudgetCategory.PLANT_AND_EQUIPMENT, nz(equipmentsPayoutRepository.sumActualCostByProjectId(projectId)));
-        milestoneCost.put(BudgetCategory.LABOUR, nz(subContractorPayoutRepository.sumActualCostByProjectId(projectId)));
+        milestoneCost.put(BudgetCategory.SUBCONTRACTOR, nz(subContractorPayoutRepository.sumActualCostByProjectId(projectId)));
+        milestoneCost.put(BudgetCategory.LABOUR, nz(labourPayoutRepository.sumTotalAmountByProjectId(projectId)));
 
         Map<BudgetCategory, Double> unscoped = toMap(expenseRepository.sumByProjectGroupByBudgetCategory(projectId));
-        unscoped.merge(BudgetCategory.LABOUR, nz(labourPayoutRepository.sumTotalAmountByProjectId(projectId)), Double::sum);
 
         List<BudgetCategoryLineDto> lines = new ArrayList<>();
         for (BudgetCategory category : BudgetCategory.values()) {

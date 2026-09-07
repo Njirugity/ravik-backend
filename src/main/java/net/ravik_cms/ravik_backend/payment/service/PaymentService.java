@@ -10,6 +10,8 @@ import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.common.utils.PaymentStatusCalculator;
 import net.ravik_cms.ravik_backend.equipmentsPayout.entity.EquipmentsPayout;
 import net.ravik_cms.ravik_backend.equipmentsPayout.repository.EquipmentsPayoutRepository;
+import net.ravik_cms.ravik_backend.expense.entity.Expenses;
+import net.ravik_cms.ravik_backend.expense.repository.ExpenseRepository;
 import net.ravik_cms.ravik_backend.labourPayout.entity.LabourPayout;
 import net.ravik_cms.ravik_backend.labourPayout.repository.LabourPayoutRepository;
 import net.ravik_cms.ravik_backend.payment.dtos.CreatePaymentDto;
@@ -45,6 +47,7 @@ public class PaymentService {
     private final LabourPayoutRepository labourPayoutRepository;
     private final ProjectsRepository projectsRepository;
     private final AccountRepository accountRepository;
+    private final ExpenseRepository expenseRepository;
 
     @Transactional
     public void addPayment(UUID projectId, CreatePaymentDto request) {
@@ -63,7 +66,48 @@ public class PaymentService {
 
     public Page<PaymentInfoProjection> getAllPayments(
             UUID projectId, PaymentCategory category, PaymentStatus status, LocalDate datePaid, Pageable pageable) {
-        return paymentRepository.findAllByProjectId(projectId, category, status, datePaid, pageable);
+        return paymentRepository.findAllByProjectId(projectId, category, status, datePaid, pageable)
+                .map(this::enrichWithPayoutAmounts);
+    }
+
+    private PaymentInfoProjection enrichWithPayoutAmounts(PaymentInfoProjection payment) {
+        double totalAmount = 0d;
+        double paidAmount = 0d;
+        switch (payment.paymentCategory()) {
+            case EQUIPMENT -> {
+                EquipmentsPayout payout = equipmentsPayoutRepository.findById(payment.referenceId()).orElse(null);
+                if (payout != null) {
+                    EquipmentCategory equipmentCategory = payout.getEquipmentRequired().getEquipments().getCategory();
+                    totalAmount = payout.getOperatorCost() + (equipmentCategory == EquipmentCategory.OWNED ? payout.getFuelCost() : payout.getRentalCost());
+                    paidAmount = payout.getPaidAmount() == null ? 0d : payout.getPaidAmount();
+                }
+            }
+            case SUBCONTRACTOR -> {
+                SubContractorPayout payout = subContractorPayoutRepository.findById(payment.referenceId()).orElse(null);
+                if (payout != null) {
+                    totalAmount = payout.getActualJobCost() == null ? 0d : payout.getActualJobCost();
+                    paidAmount = payout.getPaidAmount() == null ? 0d : payout.getPaidAmount();
+                }
+            }
+            case LABOUR -> {
+                LabourPayout payout = labourPayoutRepository.findById(payment.referenceId()).orElse(null);
+                if (payout != null) {
+                    totalAmount = payout.getTotalAmount() == null ? 0d : payout.getTotalAmount();
+                    paidAmount = payout.getPaidAmount() == null ? 0d : payout.getPaidAmount();
+                }
+            }
+            case EXPENSES -> {
+                Expenses expense = expenseRepository.findById(payment.referenceId()).orElse(null);
+                if (expense != null) {
+                    totalAmount = expense.getAmount() == null ? 0d : expense.getAmount();
+                    paidAmount = expense.getPaidAmount() == null ? 0d : expense.getPaidAmount();
+                }
+            }
+        }
+        return new PaymentInfoProjection(
+                payment.id(), payment.datePaid(), payment.payee(), payment.amount(), payment.paymentCategory(),
+                payment.referenceId(), payment.referenceCode(), payment.projectId(), payment.accountId(),
+                payment.paymentStatus(), payment.transactionCode(), totalAmount, paidAmount);
     }
 
     public Page<PayoutSummaryProjection> getAllPayouts(
@@ -77,6 +121,9 @@ public class PaymentService {
         }
         if (category == null || category == PaymentCategory.LABOUR) {
             summaries.addAll(labourPayoutRepository.findPayoutSummaries(projectId, status));
+        }
+        if (category == null || category == PaymentCategory.EXPENSES) {
+            summaries.addAll(expenseRepository.findPayoutSummaries(projectId, status));
         }
         summaries.sort(Comparator.comparing(PayoutSummaryProjection::date, Comparator.nullsLast(Comparator.reverseOrder())));
 
@@ -109,7 +156,7 @@ public class PaymentService {
         paymentRepository.delete(payment);
     }
 
-    private void applyToPayout(Payment payment, PaymentCategory category, Long referenceId, double amountDelta) {
+    private void applyToPayout(Payment payment, PaymentCategory category, UUID referenceId, double amountDelta) {
         switch (category) {
             case EQUIPMENT -> {
                 EquipmentsPayout payout = equipmentsPayoutRepository.findById(referenceId).orElseThrow(() ->
@@ -148,6 +195,19 @@ public class PaymentService {
                 payment.setPaymentStatus(status);
                 payment.setReferenceId(payout.getId());
             }
+            case EXPENSES -> {
+                Expenses expense = expenseRepository.findById(referenceId).orElseThrow(() ->
+                        new ResourceNotFoundException("Expense not found"));
+                double totalCost = expense.getAmount() == null ? 0d : expense.getAmount();
+                PaymentStatus status = applyAndCalculate(expense::getPaidAmount, expense::setPaidAmount, totalCost, amountDelta);
+                expense.setPaymentStatus(status);
+                expenseRepository.save(expense);
+                payment.setPaymentCategory(expense.getPaymentCategory());
+                payment.setReferenceCode(expense.getReferenceCode());
+                payment.setPaymentStatus(status);
+                payment.setReferenceId(expense.getId());
+            }
+
             default -> throw new UnsupportedOperationException("Unsupported payment category: " + category);
         }
     }

@@ -13,6 +13,7 @@ import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.entity.SubContractorRequired;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -21,8 +22,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class SubContractorPayout extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     @ManyToOne
     @JoinColumn(name = "sub_contractor_required_id")
     private SubContractorRequired subContractorRequired;

@@ -4,9 +4,10 @@ import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record EquipmentsPayoutInfoProjection(
-        Long id,
+        UUID id,
         Long equipmentRequiredId,
         Long equipmentId,
         String equipmentTitle,

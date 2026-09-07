@@ -1,8 +1,10 @@
 package net.ravik_cms.ravik_backend.expense.repository;
 
 import net.ravik_cms.ravik_backend.common.dtos.CategoryAmountProjection;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.expense.dtos.ExpenseInfoProjection;
 import net.ravik_cms.ravik_backend.expense.entity.Expenses;
+import net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +20,7 @@ public interface ExpenseRepository extends JpaRepository<Expenses, UUID> {
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.expense.dtos.ExpenseInfoProjection(
-                            e.id, e.title, e.description, e.amount)
+                            e.id, e.title, e.description,e.referenceCode, e.amount, e.paidAmount, e.paymentStatus, e.date, e.category.id, e.category.title)
                 FROM Expenses e
                 WHERE e.project.id = :projectId
                 AND (:search IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%')))
@@ -43,4 +45,15 @@ public interface ExpenseRepository extends JpaRepository<Expenses, UUID> {
                 GROUP BY e.category.budgetCategory
             """)
     List<CategoryAmountProjection> sumByProjectGroupByBudgetCategory(@Param("projectId") UUID projectId);
+    boolean existsByReferenceCode(String referenceCode);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection(
+                            e.id, e.paymentCategory, e.referenceCode, e.title, e.project.id,
+                            e.amount, e.paidAmount, e.paymentStatus, e.date)
+                FROM Expenses e
+                WHERE e.project.id = :projectId
+                AND (:status IS NULL OR e.paymentStatus = :status)
+            """)
+    List<PayoutSummaryProjection> findPayoutSummaries(@Param("projectId") UUID projectId, @Param("status") PaymentStatus status);
 }

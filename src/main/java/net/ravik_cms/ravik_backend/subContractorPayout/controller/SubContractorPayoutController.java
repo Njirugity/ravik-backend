@@ -45,13 +45,13 @@ public class SubContractorPayoutController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateSubContractorPayout(@PathVariable Long id, @RequestBody UpdateSubContractorPayoutDto request) {
+    public ResponseEntity<?> updateSubContractorPayout(@PathVariable UUID id, @RequestBody UpdateSubContractorPayoutDto request) {
         subContractorPayoutService.updateSubContractorPayout(id, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteSubContractorPayout(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSubContractorPayout(@PathVariable UUID id) {
         subContractorPayoutService.deleteSubContractorPayout(id);
         return ResponseEntity.noContent().build();
     }

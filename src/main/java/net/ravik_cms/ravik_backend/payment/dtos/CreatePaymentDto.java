@@ -16,6 +16,7 @@ public class CreatePaymentDto {
     private String payee;
     private Double amount;
     private PaymentCategory paymentCategory;
-    private Long referenceId;
+    private UUID referenceId;
     private UUID accountId;
+    private String transactionCode;
 }

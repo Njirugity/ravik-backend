@@ -37,13 +37,13 @@ public class LabourPayoutController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateLabourPayout(@PathVariable Long id, @RequestBody UpdateLabourPayoutDto request) {
+    public ResponseEntity<?> updateLabourPayout(@PathVariable UUID id, @RequestBody UpdateLabourPayoutDto request) {
         labourPayoutService.updateLabourPayout(id, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteLabourPayout(@PathVariable Long id) {
+    public ResponseEntity<?> deleteLabourPayout(@PathVariable UUID id) {
         labourPayoutService.deleteLabourPayout(id);
         return ResponseEntity.noContent().build();
     }

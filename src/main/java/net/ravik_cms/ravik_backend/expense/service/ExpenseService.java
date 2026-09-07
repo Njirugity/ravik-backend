@@ -1,7 +1,10 @@
 package net.ravik_cms.ravik_backend.expense.service;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.common.utils.PaymentStatusCalculator;
+import net.ravik_cms.ravik_backend.common.utils.ReferenceCodeGenerator;
 import net.ravik_cms.ravik_backend.expense.dtos.CreateExpenseDto;
 import net.ravik_cms.ravik_backend.expense.dtos.ExpenseInfoProjection;
 import net.ravik_cms.ravik_backend.expense.dtos.UpdateExpenseDto;
@@ -34,6 +37,8 @@ public class ExpenseService {
         Expenses expense = expenseMapper.toEntity(request);
         expense.setProject(project);
         expense.setCategory(category);
+        expense.setReferenceCode(ReferenceCodeGenerator.generate("EX", expenseRepository::existsByReferenceCode));
+        expense.setPaymentStatus(PaymentStatus.PENDING);
         expenseRepository.save(expense);
     }
 
@@ -50,6 +55,7 @@ public class ExpenseService {
                     new ResourceNotFoundException("Expense category not found"));
             expense.setCategory(category);
         }
+        expense.setPaymentStatus(PaymentStatusCalculator.calculate(expense.getAmount(), expense.getPaidAmount()));
         expenseRepository.save(expense);
     }
 

@@ -63,14 +63,14 @@ public class LabourPayoutService {
         return labourPayoutRepository.findAllByProjectId(projectId, paymentStatus, pageable);
     }
 
-    public void updateLabourPayout(Long id, UpdateLabourPayoutDto request) {
+    public void updateLabourPayout(UUID id, UpdateLabourPayoutDto request) {
         LabourPayout payout = labourPayoutRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Labour payout not found"));
         labourPayoutMapper.updateLabourPayout(request, payout);
         labourPayoutRepository.save(payout);
     }
 
-    public void deleteLabourPayout(Long id) {
+    public void deleteLabourPayout(UUID id) {
         LabourPayout payout = labourPayoutRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Labour payout not found"));
         labourPayoutRepository.delete(payout);

@@ -59,7 +59,7 @@ public class SubContractorPayoutService {
         return subContractorPayoutRepository.findAllByProjectId(projectId, search, jobDate, pageable);
     }
 
-    public void updateSubContractorPayout(Long id, UpdateSubContractorPayoutDto request) {
+    public void updateSubContractorPayout(UUID id, UpdateSubContractorPayoutDto request) {
         SubContractorPayout payout = subContractorPayoutRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Sub contractor payout entry not found"));
         if (request.getSubContractorRequiredId() != null) {
@@ -77,7 +77,7 @@ public class SubContractorPayoutService {
         return PaymentStatusCalculator.calculate(totalCost, payout.getPaidAmount());
     }
 
-    public void deleteSubContractorPayout(Long id) {
+    public void deleteSubContractorPayout(UUID id) {
         SubContractorPayout payout = subContractorPayoutRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Sub contractor payout entry not found"));
         subContractorPayoutRepository.delete(payout);

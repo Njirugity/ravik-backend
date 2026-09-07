@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record PayoutSummaryProjection(
-        Long id,
+        UUID id,
         PaymentCategory paymentCategory,
         String referenceCode,
         String title,

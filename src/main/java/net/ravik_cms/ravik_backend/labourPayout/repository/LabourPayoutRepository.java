@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface LabourPayoutRepository extends JpaRepository<LabourPayout, Long> {
+public interface LabourPayoutRepository extends JpaRepository<LabourPayout, UUID> {
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.labourPayout.dtos.LabourPayoutInfoProjection(

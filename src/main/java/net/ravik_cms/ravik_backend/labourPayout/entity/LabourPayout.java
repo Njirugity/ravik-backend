@@ -19,8 +19,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class LabourPayout extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private LocalDate periodStart;
     private LocalDate periodEnd;
     private Double totalAmount;

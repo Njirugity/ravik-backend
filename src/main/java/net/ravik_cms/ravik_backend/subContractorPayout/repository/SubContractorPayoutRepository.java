@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface SubContractorPayoutRepository extends JpaRepository<SubContractorPayout, Long> {
+public interface SubContractorPayoutRepository extends JpaRepository<SubContractorPayout, UUID> {
     @Query("""
                 SELECT new net.ravik_cms.ravik_backend.subContractorPayout.dtos.SubContractorPayoutInfoProjection(
                             sp.id, sp.subContractorRequired.id, sp.subContractorRequired.subContractor.id, sp.subContractorRequired.subContractor.title,

@@ -28,8 +28,9 @@ public class Payment extends BaseEntity {
     private Double amount;
     @Enumerated(EnumType.STRING)
     private PaymentCategory paymentCategory;
-    private Long referenceId;
+    private UUID referenceId;
     private String referenceCode;
+    private String transactionCode;
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Projects project;

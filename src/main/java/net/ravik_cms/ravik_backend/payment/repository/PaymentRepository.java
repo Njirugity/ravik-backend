@@ -20,7 +20,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.payment.dtos.PaymentInfoProjection(
-                            p.id, p.datePaid, p.payee, p.amount, p.paymentCategory, p.referenceId, p.referenceCode, p.project.id, p.account.id, p.paymentStatus)
+                            p.id, p.datePaid, p.payee, p.amount, p.paymentCategory, p.referenceId, p.referenceCode, p.project.id, p.account.id, p.paymentStatus, p.transactionCode)
                 FROM Payment p
                 WHERE p.project.id = :projectId
                 AND (:category IS NULL OR p.paymentCategory = :category)

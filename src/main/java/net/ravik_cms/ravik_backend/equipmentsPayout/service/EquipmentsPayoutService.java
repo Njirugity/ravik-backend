@@ -58,7 +58,7 @@ public class EquipmentsPayoutService {
         return equipmentsPayoutRepository.findAllByProjectId(projectId, search, category, dateUsed, pageable);
     }
 
-    public void updateEquipmentsPayout(Long id, UpdateEquipmentsPayoutDto request) {
+    public void updateEquipmentsPayout(UUID id, UpdateEquipmentsPayoutDto request) {
         EquipmentsPayout payout = equipmentsPayoutRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Equipment payout not found"));
 
@@ -73,7 +73,7 @@ public class EquipmentsPayoutService {
         return PaymentStatusCalculator.calculate(totalCost, payout.getPaidAmount());
     }
 
-    public void deleteEquipmentsPayout(Long id) {
+    public void deleteEquipmentsPayout(UUID id) {
         EquipmentsPayout payout = equipmentsPayoutRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Equipment payout not found"));
         equipmentsPayoutRepository.delete(payout);

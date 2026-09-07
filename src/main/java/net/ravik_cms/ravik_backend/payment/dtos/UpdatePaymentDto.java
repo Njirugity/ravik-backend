@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class UpdatePaymentDto {
     private LocalDate datePaid;
-    private String payee;
     private Double amount;
     private UUID accountId;
+    private String transactionCode;
 }

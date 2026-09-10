@@ -23,6 +23,7 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
                 SELECT m FROM Milestones m
                 WHERE m.project.id = :projectId
                 AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')))
+                ORDER BY m.earliestStart ASC
             """,
             countQuery = """
                 SELECT COUNT(m) FROM Milestones m

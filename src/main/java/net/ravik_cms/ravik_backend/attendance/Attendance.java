@@ -8,7 +8,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
-import net.ravik_cms.ravik_backend.milestones.Milestones;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import net.ravik_cms.ravik_backend.wages.Wages;
 
 import java.time.LocalDate;

@@ -15,8 +15,8 @@ import net.ravik_cms.ravik_backend.equipmentsPayout.repository.EquipmentsPayoutR
 import net.ravik_cms.ravik_backend.expense.repository.ExpenseRepository;
 import net.ravik_cms.ravik_backend.labourPayout.repository.LabourPayoutRepository;
 import net.ravik_cms.ravik_backend.milestoneBudget.repository.MilestoneBudgetRepository;
-import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
-import net.ravik_cms.ravik_backend.phase.PhasesRepository;
+import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
+import net.ravik_cms.ravik_backend.phase.repository.PhasesRepository;
 import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
 import net.ravik_cms.ravik_backend.subContractorPayout.repository.SubContractorPayoutRepository;
 import org.springframework.stereotype.Service;

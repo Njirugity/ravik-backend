@@ -1,12 +1,13 @@
-package net.ravik_cms.ravik_backend.phase;
+package net.ravik_cms.ravik_backend.milestones.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import net.ravik_cms.ravik_backend.phase.entity.Phases;
 import net.ravik_cms.ravik_backend.projects.Projects;
 
 import java.time.LocalDate;
@@ -15,23 +16,31 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 
 @Entity
-public class Phases extends BaseEntity {
+public class Milestones extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String title;
     private String description;
-    private LocalDate plannedStartDate;
-    private LocalDate plannedEndDate;
+    private int duration;
+    private LocalDate earliestStart;
+    private LocalDate earliestFinish;
+    private LocalDate latestStart;
+    private LocalDate latestFinish;
+    private boolean critical;
+    private Long totalFloat;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
-    private Double budget;
+    @Enumerated(EnumType.STRING)
+    private ProgressStatus status;
+    @ManyToOne
+    @JoinColumn(name = "phase_id", nullable = true)
+    private Phases phase;
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Projects project;
-    @Enumerated(EnumType.STRING)
-    private ProgressStatus status;
+
 }

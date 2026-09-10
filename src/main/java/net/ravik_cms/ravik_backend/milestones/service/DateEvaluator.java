@@ -1,6 +1,7 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.milestones.service;
 
 import net.ravik_cms.ravik_backend.common.enums.DateStatus;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

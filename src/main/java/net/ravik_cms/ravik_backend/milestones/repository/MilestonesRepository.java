@@ -1,6 +1,7 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.milestones.repository;
 
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -78,13 +79,6 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("thresholdDate") LocalDate thresholdDate
     );
     @Query("""
-        SELECT SUM(m.budget) FROM Milestones m
-        WHERE m.phase.id = :phaseId
-    """)
-    Double phaseBudget(
-            @Param("phaseId") UUID phaseId
-    );
-    @Query("""
         SELECT m FROM Milestones m
         WHERE m.project.id = :projectId
         AND m.actualStartDate IS NULL
@@ -114,4 +108,16 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("projectId") UUID projectId
     );
 
+    long countByProjectId(UUID projectId);
+    long countByProjectIdAndStatus(UUID projectId, ProgressStatus status);
+    @Query("""
+        SELECT COUNT(m) FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND m.earliestFinish < :currentDate
+        AND m.status IN ('PENDING','IN_PROGRESS')
+    """)
+    long countOverdueMilestones(
+            @Param("projectId") UUID projectId,
+            @Param("currentDate") LocalDate currentDate
+    );
 }

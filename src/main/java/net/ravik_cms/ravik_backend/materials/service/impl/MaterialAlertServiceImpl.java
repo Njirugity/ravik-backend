@@ -8,8 +8,8 @@ import net.ravik_cms.ravik_backend.materials.repository.MaterialDeliveredReposit
 import net.ravik_cms.ravik_backend.materials.repository.MaterialRequiredRepository;
 import net.ravik_cms.ravik_backend.materials.repository.MaterialUsedRepository;
 import net.ravik_cms.ravik_backend.materials.service.MaterialAlertService;
-import net.ravik_cms.ravik_backend.milestones.Milestones;
-import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
+import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

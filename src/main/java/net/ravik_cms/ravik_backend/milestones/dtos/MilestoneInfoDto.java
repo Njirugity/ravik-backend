@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.milestones.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.DateStatus;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
-import net.ravik_cms.ravik_backend.phase.Phases;
 
 import java.time.LocalDate;
 
@@ -28,6 +27,5 @@ public class MilestoneInfoDto {
     private LocalDate actualEndDate;
     private ProgressStatus status;
     private DateStatus dateStatus;
-    private Double budget;
     private String phaseTitle;
 }

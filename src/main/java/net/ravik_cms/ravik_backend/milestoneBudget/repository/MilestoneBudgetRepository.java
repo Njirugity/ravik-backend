@@ -19,6 +19,9 @@ public interface MilestoneBudgetRepository extends JpaRepository<MilestoneBudget
     @Query("SELECT COALESCE(SUM(mb.amount), 0) FROM MilestoneBudget mb WHERE mb.milestone.id = :milestoneId")
     Double sumAmountByMilestoneId(@Param("milestoneId") UUID milestoneId);
 
+    @Query("SELECT COALESCE(SUM(mb.amount), 0) FROM MilestoneBudget mb WHERE mb.milestone.phase.id = :phaseId")
+    Double sumAmountByPhaseId(@Param("phaseId") UUID phaseId);
+
     @Query("""
                 SELECT new net.ravik_cms.ravik_backend.common.dtos.CategoryAmountProjection(
                             mb.category, COALESCE(SUM(mb.amount), 0))

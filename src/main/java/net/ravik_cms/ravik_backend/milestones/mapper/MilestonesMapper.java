@@ -1,6 +1,11 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.milestones.mapper;
 
 import net.ravik_cms.ravik_backend.common.enums.DateStatus;
+import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.UpdateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
+import net.ravik_cms.ravik_backend.milestones.service.DateEvaluator;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
 

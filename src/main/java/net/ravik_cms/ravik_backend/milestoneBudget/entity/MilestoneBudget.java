@@ -8,7 +8,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.BudgetCategory;
 import net.ravik_cms.ravik_backend.common.enums.BudgetSource;
-import net.ravik_cms.ravik_backend.milestones.Milestones;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 
 @Entity
 @Getter

@@ -1,6 +1,12 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.milestones.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneSummaryDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.PossibleActiveMilestonesDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.UpdateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.service.MilestonesService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -8,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,9 +23,9 @@ import java.util.UUID;
 public class MilestonesController {
     private final MilestonesService milestonesService;
 
-    @PostMapping("/{phase_id}")
-    public ResponseEntity<MilestoneInfoDto> addMilestone(@PathVariable UUID phase_id, @RequestBody CreateMilestoneDto dto){
-        MilestoneInfoDto body = milestonesService.createMilestone(phase_id, dto);
+    @PostMapping("/{project_id}")
+    public ResponseEntity<MilestoneInfoDto> addMilestone(@PathVariable UUID project_id, @RequestBody CreateMilestoneDto dto){
+        MilestoneInfoDto body = milestonesService.createMilestone(project_id, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
@@ -42,6 +47,12 @@ public class MilestonesController {
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable){
         Page<MilestoneInfoDto> body = milestonesService.getProjectMilestonesPage(project_id, search, pageable);
+        return ResponseEntity.ok(body);
+    }
+
+    @GetMapping("/summary/{project_id}")
+    public ResponseEntity<MilestoneSummaryDto> getMilestoneSummary(@PathVariable UUID project_id){
+        MilestoneSummaryDto body = milestonesService.getMilestoneSummary(project_id);
         return ResponseEntity.ok(body);
     }
 

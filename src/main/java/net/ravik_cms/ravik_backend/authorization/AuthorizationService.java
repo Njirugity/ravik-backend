@@ -19,14 +19,14 @@ public class AuthorizationService {
         UUID projectId = context.getProjectId();
         UUID userId = context.getUserId();
         ProjectMembership membership = membershipRepository.findByUserIdAndProjectId(projectId, userId)
-                .orElseThrow(()-> new ResourceNotFoundException("Membership not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Project Membership not found"));
         boolean hasPermission = membership.getRole()
                 .getPermissions()
                 .stream()
                 .anyMatch(p->p.getName().equals(permission));
 
         if (!hasPermission){
-            throw new AccessDeniedException("FORBIDDEN!!. Permission Required");
+            throw new AccessDeniedException("Access Denied, permission Required, " + permission);
         }
     }
 

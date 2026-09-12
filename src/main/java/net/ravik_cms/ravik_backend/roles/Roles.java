@@ -8,6 +8,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
+import net.ravik_cms.ravik_backend.common.enums.RoleType;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.projects.Projects;
 
@@ -26,7 +27,8 @@ public class Roles extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String name;
-    private boolean systemDefined = false;
+    @Enumerated(EnumType.STRING)
+    private RoleType roleType;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "roles_permission",

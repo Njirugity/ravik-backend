@@ -9,17 +9,27 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Order(2)
 @Component
 @RequiredArgsConstructor
 public class PermissionsSeeder implements CommandLineRunner {
     private final PermissionsRepository permissionsRepository;
 
     @Override
-    @Order(2)
     public void run(String... args){
         List<String> permissions = List.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"
+                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
+                "CREATE_MATERIAL_LIST", "READ_MATERIAL_LIST", "UPDATE_MATERIAL_LIST", "DELETE_MATERIAL_LIST",
+                "CREATE_MATERIAL_REQUIRED", "READ_MATERIAL_REQUIRED", "UPDATE_MATERIAL_REQUIRED", "DELETE_MATERIAL_REQUIRED",
+                "CREATE_MATERIAL_DELIVERED", "READ_MATERIAL_DELIVERED", "UPDATE_MATERIAL_DELIVERED", "DELETE_MATERIAL_DELIVERED",
+                "CREATE_MATERIAL_USED", "READ_MATERIAL_USED", "UPDATE_MATERIAL_USED", "DELETE_MATERIAL_USED",
+                "READ_MATERIALS_REPORT", "READ_MATERIAL_ALERTS","CREATE_MILESTONE",
+                "READ_MILESTONE", "UPDATE_MILESTONE", "DELETE_MILESTONE", "CREATE_SCHEDULE",
+                "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
+                "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
+                "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
         );
         for(String pName: permissions){
             if(!permissionsRepository.existsByName(pName)){

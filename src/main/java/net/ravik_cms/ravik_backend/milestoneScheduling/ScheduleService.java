@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestoneScheduling;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.ravik_cms.ravik_backend.calendar.Calendar;
 import net.ravik_cms.ravik_backend.calendar.CalendarService;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
@@ -18,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
@@ -29,6 +31,7 @@ public class ScheduleService {
     /**
      * Calculate the complete project schedule
      */
+    @Transactional
     public void calculateSchedule(UUID projectId){
         //1.Get and validate the project
         Projects project =  projectsRepository.findById(projectId)
@@ -64,6 +67,21 @@ public class ScheduleService {
         project.setScheduled(true);
         project.setPlannedEnd(endDate);
         projectsRepository.save(project);
+    }
+    /**
+     * Recalculate the schedule if the project is in a schedulable state, silently
+     * skipping recalculation (instead of throwing) when milestones or a calendar
+     * aren't set up yet. Intended to be called after any milestone/dependency
+     * mutation so the schedule never goes stale without requiring a manual
+     * "Calculate Schedule" step.
+     */
+    @Transactional
+    public void recalculateIfPossible(UUID projectId){
+        try {
+            calculateSchedule(projectId);
+        } catch (ResourceNotFoundException | CircularDependencyException e) {
+            log.warn("Schedule recalculation skipped for project {}: {}", projectId, e.getMessage());
+        }
     }
     /**
      * Internal data class to hold graph structures
@@ -440,7 +458,9 @@ public class ScheduleService {
                 taskDependencies,
                 color,
                 0, // rowIndex to be set later
-                milestone.getDuration() == 0 // isMilestone
+                milestone.getDuration() == 0, // isMilestone
+                milestone.getPhase().getId(),
+                milestone.getPhase().getTitle()
         );
     }
 

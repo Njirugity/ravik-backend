@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Order(2)
 @Component
 @RequiredArgsConstructor
 public class PermissionsSeeder implements CommandLineRunner {
     private final PermissionsRepository permissionsRepository;
 
     @Override
-    @Order(2)
     public void run(String... args){
         List<String> permissions = List.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
@@ -28,7 +28,8 @@ public class PermissionsSeeder implements CommandLineRunner {
                 "READ_MILESTONE", "UPDATE_MILESTONE", "DELETE_MILESTONE", "CREATE_SCHEDULE",
                 "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
                 "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
-                "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE"
+                "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
         );
         for(String pName: permissions){
             if(!permissionsRepository.existsByName(pName)){

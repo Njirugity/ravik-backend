@@ -28,7 +28,7 @@ public class Roles extends BaseEntity {
     private UUID id;
     private String name;
     @Enumerated(EnumType.STRING)
-    private RoleType roleType = RoleType.CUSTOM;
+    private RoleType roleType;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "roles_permission",

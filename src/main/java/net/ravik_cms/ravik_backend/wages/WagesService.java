@@ -6,8 +6,11 @@ import net.ravik_cms.ravik_backend.attendance.Attendance;
 import net.ravik_cms.ravik_backend.attendance.AttendanceRepository;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.labourPayout.service.LabourPayoutService;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
+import net.ravik_cms.ravik_backend.milestoneBudget.repository.MilestoneBudgetRepository;
+import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,32 +30,11 @@ public class WagesService {
     private final WagesRepository wagesRepository;
     private final AttendanceRepository attendanceRepository;
     private final ProjectMembershipRepository membershipRepository;
+    private final LabourPayoutService payoutService;
+    private final MilestonesRepository milestonesRepository;
 
-//    public List<WagePreviewDto> displayWages(UUID projectId, LocalDate startDate, LocalDate endDate) {
-//        List<ProjectMembership> memberships = membershipRepository.findAllByProjectId(projectId);
-//        List<Wages> wages = wagesRepository.findAllByMembershipInAndStartDateAndEndDate(memberships, startDate, endDate);
-//        Map<ProjectMembership, List<Wages>> grouped = wages.stream()
-//                .collect(Collectors.groupingBy(Wages::getMembership));
-//        List<WagePreviewDto> wagesRows = new ArrayList<>();
-//        for (Wages wage : wages) {
-//            WagePreviewDto record = getWageInfoDto(wage);
-//            wagesRows.add(record);
-//        }
-//        return wagesRows;
-//    }
-//
-//    private static @NonNull WagePreviewDto getWageInfoDto(Wages wage) {
-//        WagePreviewDto record = new WagePreviewDto();
-//        record.setUserName(wage.getMembership().getUser().getUserName());
-//        record.setStartDate(wage.getStartDate());
-//        record.setEndDate(wage.getEndDate());
-//        record.setBaseWage(wage.getMembership().getBaseDailyWage());
-//        record.setWorkingDays(wage.getNumberOfDays());
-//        record.setTotalAmount(wage.getAmount());
-//        record.setMembershipId(wage.getMembership().getId());
-//        record.setRole(wage.getMembership().getRole().getName());
-//        return record;
-//    }
+    private record WageKey(Long membershipId, UUID milestoneId) {}
+
     public Page<WagePreviewDto> previewDailyWages(UUID projectId, LocalDate startDate, LocalDate endDate,
                                              String jobTitle, String search, Pageable pageable){
         if(startDate == null && endDate == null){
@@ -77,6 +59,8 @@ public class WagesService {
             dto.setGrossPay(grossPay);
             dto.setWorkedDays(p.workedDays());
             dto.setFrequency(p.frequency());
+            dto.setMilestoneId(p.milestoneId());
+            dto.setMilestoneName(p.milestoneName());
             return dto;
         });
     }
@@ -104,7 +88,7 @@ public class WagesService {
         });
     }
     @Transactional
-    public void confirmDailyWage(List<CreateWageRecordDto> request){
+    public void confirmDailyWage(UUID projectId, List<CreateWageRecordDto> request){
         if (request == null || request.isEmpty()) {
             return;
         }
@@ -116,7 +100,7 @@ public class WagesService {
                .collect(Collectors.toMap(ProjectMembership::getId, m->m));
         List<Attendance> attendances = attendanceRepository.findAttendanceForGeneratingWage(memberIds,start, end);
         List<Wages> wagesToSave = new ArrayList<>();
-        Map<Long, Wages> wageByMembership = new HashMap<>();
+        Map<WageKey, Wages> wageByMembership = new HashMap<>();
         for(CreateWageRecordDto dto : request){
             ProjectMembership membership = membershipMap.get(dto.getMemberId());
             if (membership == null) {
@@ -130,18 +114,22 @@ public class WagesService {
             wage.setBaseWage(dto.getBaseWage());
             wage.setGrossPay(dto.getGrossPay());
             wage.setWorkedDays(dto.getWorkedDays());
-
+            if(dto.getMilestoneId() != null){
+                wage.setMilestone(milestonesRepository.getReferenceById(dto.getMilestoneId()));
+            }
             wagesToSave.add(wage);
-            wageByMembership.put(dto.getMemberId(), wage);
+            wageByMembership.put(new WageKey(dto.getMemberId(), dto.getMilestoneId()), wage);
         }
         wagesRepository.saveAll(wagesToSave);
+        payoutService.createPayoutAndLink(projectId, wagesToSave, start, end);
         for(Attendance a :  attendances){
-            Wages wage = wageByMembership.get(a.getMembership().getId());
+            UUID milestoneId = a.getMilestone() != null ? a.getMilestone().getId() : null;
+            Wages wage = wageByMembership.get(new WageKey( a.getMembership().getId(), milestoneId));
             a.setWage(wage);
         }
     }
     @Transactional
-    public void confirmMonthlyWage(List<CreateWageRecordDto> request){
+    public void confirmMonthlyWage(UUID projectId, List<CreateWageRecordDto> request){
         if (request == null || request.isEmpty()) {
             return;
         }
@@ -152,8 +140,11 @@ public class WagesService {
 
         List<Wages> records = request.stream()
                 .map(r->{
-                    Wages wage = new Wages();
                     ProjectMembership membership = membershipMap.get(r.getMemberId());
+                    if (membership == null) {
+                        throw new ResourceNotFoundException("Membership not found");
+                    }
+                    Wages wage = new Wages();
                     wage.setMembership(membership);
                     wage.setStartDate(r.getStartDate());
                     wage.setEndDate(r.getEndDate());
@@ -162,6 +153,8 @@ public class WagesService {
                     return wage;
                 }).toList();
         wagesRepository.saveAll(records);
+        payoutService.createPayoutAndLink(projectId, records,request.getFirst().getStartDate(),
+                request.getFirst().getEndDate());
     }
 
     public Page<WageHistoryProjection> getWageHistory(UUID projectId, Long memberId, String jobTitle, String search,

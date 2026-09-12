@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.attendance;
 import jakarta.persistence.LockModeType;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
+import net.ravik_cms.ravik_backend.resourcesUsage.labourUsage.dtos.LabourUsageProjection;
 import net.ravik_cms.ravik_backend.wages.Wages;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -132,7 +132,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Query("""
         SELECT a FROM Attendance a
         JOIN FETCH a.membership m
-        WHERE m.id IN :membershipIds
+        WHERE m.id IN :memberIds
         AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
         AND a.date BETWEEN :start AND :end
         AND a.wage IS NULL
@@ -144,6 +144,27 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     );
 
     List<Attendance> findByWage(Wages wage);
+
+    @Query("""
+        SELECT COALESCE(SUM(w.grossPay), 0) FROM Attendance a
+        JOIN a.wage w
+        JOIN a.membership m
+        WHERE a.milestone.id = :milestoneId
+        AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
+        AND m.frequency = net.ravik_cms.ravik_backend.common.enums.PaymentFrequency.DAILY
+    """)
+    Double sumActualWagesPaidForMilestone(@Param("milestoneId") UUID milestoneId);
+
+    @Query("""
+        SELECT new net.ravik_cms.ravik_backend.resourcesUsage.labourUsage.dtos.LabourUsageProjection(
+                    m.jobTitle.id, m.jobTitle.title, COUNT(a))
+        FROM Attendance a
+        JOIN a.membership m
+        WHERE a.milestone.id = :milestoneId
+        AND a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT
+        GROUP BY m.jobTitle.id, m.jobTitle.title
+    """)
+    List<LabourUsageProjection> findLabourUsedByMilestone(@Param("milestoneId") UUID milestoneId);
 
     @Query(
             value = """

@@ -31,6 +31,7 @@ public class ScheduleService {
     /**
      * Calculate the complete project schedule
      */
+    @Transactional
     public void calculateSchedule(UUID projectId){
         //1.Get and validate the project
         Projects project =  projectsRepository.findById(projectId)
@@ -74,6 +75,7 @@ public class ScheduleService {
      * mutation so the schedule never goes stale without requiring a manual
      * "Calculate Schedule" step.
      */
+    @Transactional
     public void recalculateIfPossible(UUID projectId){
         try {
             calculateSchedule(projectId);

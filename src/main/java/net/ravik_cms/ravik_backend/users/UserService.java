@@ -8,6 +8,7 @@ import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.client.ClientRepository;
 import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
+import net.ravik_cms.ravik_backend.common.exception.FieldRequiredException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.common.exception.UserAlreadyExistsException;
 import net.ravik_cms.ravik_backend.dailyLog.DailyLog;
@@ -70,14 +71,15 @@ public class UserService {
      */
     @Transactional
     public ClientDto addClient(CreateClientDto clientToAdd){
-        Users newClient = userMapper.fromCreateClient(clientToAdd);
-        newClient.setPassword(encoder.encode(newClient.getPassword()));
-        Users newUser = userRepository.save(newClient);
+        if (userRepository.findByUserName(clientToAdd.getUserName()).isPresent()) {
+            throw new UserAlreadyExistsException("Username already taken");
+        }
+        Users newUser = userMapper.fromCreateClient(clientToAdd);
+        newUser.setPassword(encoder.encode(newUser.getPassword()));
+        newUser = userRepository.save(newUser);
+
         Client client = new Client();
-        client.setId(newUser.getId());
-        client.setEmail(newUser.getEmail());
-        client.setUserName(newUser.getUserName());
-        client.setPhoneNumber(newClient.getPhoneNumber());
+        client.setUser(newUser);
         clientRepository.save(client);
 
         return userMapper.toClient(newUser);
@@ -103,13 +105,13 @@ public class UserService {
         }
         if(request.isUpdateJobTitle()){
             if (jobTitle == null) {
-                throw new ResourceNotFoundException("Job title is required");
+                throw new FieldRequiredException("Job title is required");
             }
             if (request.getBaseWage() == null) {
-                throw new ResourceNotFoundException("Base wage is required");
+                throw new FieldRequiredException("Base wage is required");
             }
             if (request.getFrequency() == null) {
-                throw new ResourceNotFoundException("Wage frequency is required");
+                throw new FieldRequiredException("Wage frequency is required");
             }
             jobTitle.setBaseWage(request.getBaseWage());
             jobTitle.setFrequency(request.getFrequency());

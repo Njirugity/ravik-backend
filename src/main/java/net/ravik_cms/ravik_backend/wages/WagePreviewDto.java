@@ -7,6 +7,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -22,4 +23,6 @@ public class WagePreviewDto {
     private Double baseWage;
     private long workedDays;
     private PaymentFrequency frequency;
+    private UUID milestoneId;
+    private String milestoneName;
 }

@@ -9,9 +9,9 @@ import net.ravik_cms.ravik_backend.milestoneBudget.dtos.*;
 import net.ravik_cms.ravik_backend.milestoneBudget.entity.MilestoneBudget;
 import net.ravik_cms.ravik_backend.milestoneBudget.mapper.MilestoneBudgetMapper;
 import net.ravik_cms.ravik_backend.milestoneBudget.repository.MilestoneBudgetRepository;
-import net.ravik_cms.ravik_backend.milestones.Milestones;
-import net.ravik_cms.ravik_backend.milestones.MilestonesRepository;
-import net.ravik_cms.ravik_backend.phase.PhasesService;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
+import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
+import net.ravik_cms.ravik_backend.phase.service.PhasesService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -93,9 +93,6 @@ public class MilestoneBudgetService {
     }
 
     private void syncMilestoneBudget(Milestones milestone) {
-        Double total = milestoneBudgetRepository.sumAmountByMilestoneId(milestone.getId());
-        milestone.setBudget(total != null ? total : 0.0);
-        milestonesRepository.save(milestone);
         phasesService.syncPhaseBudget(milestone.getPhase().getId());
     }
 }

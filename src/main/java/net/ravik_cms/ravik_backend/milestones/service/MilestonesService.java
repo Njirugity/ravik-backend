@@ -1,27 +1,29 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.milestones.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.common.enums.DateStatus;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleRepository;
 import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleService;
-import net.ravik_cms.ravik_backend.phase.Phases;
-import net.ravik_cms.ravik_backend.phase.PhasesRepository;
-import net.ravik_cms.ravik_backend.phase.PhasesService;
-import net.ravik_cms.ravik_backend.phase.UpdatePhaseDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneSummaryDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.PossibleActiveMilestonesDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.UpdateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
+import net.ravik_cms.ravik_backend.milestones.mapper.MilestonesMapper;
+import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
+import net.ravik_cms.ravik_backend.phase.repository.PhasesRepository;
+import net.ravik_cms.ravik_backend.phase.service.PhasesService;
 import net.ravik_cms.ravik_backend.projects.Projects;
 import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -46,18 +48,15 @@ public class MilestonesService {
 //        }
 //    }
     @Transactional
-    public MilestoneInfoDto createMilestone(UUID phaseId, CreateMilestoneDto milestoneDto){
-        Phases phase = phasesRepository.findById(phaseId)
-                .orElseThrow(()-> new ResourceNotFoundException("Phase not found"));
+    public MilestoneInfoDto createMilestone(UUID projectId, CreateMilestoneDto milestoneDto){
+        Projects project = projectsRepository.findById(projectId)
+                .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         Milestones newMilestone = milestonesMapper.toEntity(milestoneDto);
-        newMilestone.setPhase(phase);
-        newMilestone.setProject(phase.getProject());
+        newMilestone.setProject(project);
         newMilestone.setStatus(ProgressStatus.PENDING);
         milestonesRepository.save(newMilestone);
-        phasesService.syncPhaseBudget(phaseId);
 
-        scheduleService.recalculateIfPossible(phase.getProject().getId());
-
+        scheduleService.recalculateIfPossible(projectId);
         return (milestonesMapper.toInfoDto(newMilestone));
     }
 
@@ -80,6 +79,18 @@ public class MilestonesService {
     public Page<MilestoneInfoDto> getProjectMilestonesPage(UUID projectId, String search, Pageable pageable){
         return milestonesRepository.findAllByProjectId(projectId, search, pageable)
                 .map(milestonesMapper::toInfoDto);
+    }
+    public MilestoneSummaryDto getMilestoneSummary(UUID projectId){
+        if (!projectsRepository.existsById(projectId)) {
+            throw new ResourceNotFoundException("Project not found");
+        }
+        long total = milestonesRepository.countByProjectId(projectId);
+        long overdue = milestonesRepository.countOverdueMilestones(projectId, LocalDate.now());
+        long inProgress = milestonesRepository.countByProjectIdAndStatus(projectId, ProgressStatus.IN_PROGRESS);
+        long completed = milestonesRepository.countByProjectIdAndStatus(projectId, ProgressStatus.COMPLETED);
+        long pending = milestonesRepository.countByProjectIdAndStatus(projectId, ProgressStatus.PENDING);
+
+        return new MilestoneSummaryDto(total, overdue, inProgress, completed, pending);
     }
     @Transactional
     public MilestoneInfoDto updateMilestone(UUID milestoneId, UpdateMilestoneDto dto){

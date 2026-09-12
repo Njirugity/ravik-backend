@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.milestones;
+package net.ravik_cms.ravik_backend.phase.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,17 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TimeVarianceDto {
-    private UUID id;
-    private String title;
+public class PhasesInfographicsDto {
+    private Long totalPhases;
+    private String activePhase;
     private LocalDate plannedEndDate;
-    private Long daysOverdue;
-    private String severity;
-
+    private Double totalSpent;
 }

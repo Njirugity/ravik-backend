@@ -24,12 +24,12 @@ import net.ravik_cms.ravik_backend.jobTitles.JobTitlesService;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
 import net.ravik_cms.ravik_backend.milestoneBudget.service.MilestoneBudgetService;
 import net.ravik_cms.ravik_backend.milestoneScheduling.DependencyService;
-import net.ravik_cms.ravik_backend.milestones.CreateMilestoneDto;
-import net.ravik_cms.ravik_backend.milestones.MilestoneInfoDto;
-import net.ravik_cms.ravik_backend.milestones.MilestonesService;
-import net.ravik_cms.ravik_backend.phase.CreatePhaseDto;
-import net.ravik_cms.ravik_backend.phase.PhasesInfoDto;
-import net.ravik_cms.ravik_backend.phase.PhasesService;
+import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
+import net.ravik_cms.ravik_backend.milestones.service.MilestonesService;
+import net.ravik_cms.ravik_backend.phase.dtos.CreatePhaseDto;
+import net.ravik_cms.ravik_backend.phase.dtos.PhasesInfoDto;
+import net.ravik_cms.ravik_backend.phase.service.PhasesService;
 import net.ravik_cms.ravik_backend.projects.ProjectDto;
 import net.ravik_cms.ravik_backend.projects.ProjectInfoDto;
 import net.ravik_cms.ravik_backend.projects.ProjectOrchestrationService;
@@ -112,7 +112,7 @@ public class DevDataSeeder implements CommandLineRunner {
         seedBudget(projectId);
 
         PhasesInfoDto phase = seedPhase(projectId);
-        List<MilestoneInfoDto> milestones = seedMilestones(phase.getId());
+        List<MilestoneInfoDto> milestones = seedMilestones(projectId);
         seedDependencies(milestones);
 
         UUID firstMilestoneId = UUID.fromString(milestones.get(0).getId());
@@ -201,13 +201,13 @@ public class DevDataSeeder implements CommandLineRunner {
         return phasesService.createPhase(projectId, new CreatePhaseDto("Substructure", "Foundation and groundworks"));
     }
 
-    private List<MilestoneInfoDto> seedMilestones(UUID phaseId) {
+    private List<MilestoneInfoDto> seedMilestones(UUID projectId) {
         MilestoneInfoDto foundation = milestonesService.createMilestone(
-                phaseId, new CreateMilestoneDto("Foundation Excavation", "Excavate and cast foundation", 10));
+                projectId, new CreateMilestoneDto("Foundation Excavation", "Excavate and cast foundation", 10));
         MilestoneInfoDto framing = milestonesService.createMilestone(
-                phaseId, new CreateMilestoneDto("Structural Framing", "Cast columns and beams", 20));
+                projectId, new CreateMilestoneDto("Structural Framing", "Cast columns and beams", 20));
         MilestoneInfoDto roofing = milestonesService.createMilestone(
-                phaseId, new CreateMilestoneDto("Roofing", "Install roof structure and covering", 15));
+                projectId, new CreateMilestoneDto("Roofing", "Install roof structure and covering", 15));
         return List.of(foundation, framing, roofing);
     }
 

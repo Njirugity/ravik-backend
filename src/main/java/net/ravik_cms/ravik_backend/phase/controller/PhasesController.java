@@ -1,6 +1,11 @@
-package net.ravik_cms.ravik_backend.phase;
+package net.ravik_cms.ravik_backend.phase.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.phase.dtos.*;
+import net.ravik_cms.ravik_backend.phase.service.PhasesService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("api/v1/phases")
 public class PhasesController {
-    private final PhasesService  phasesService;
+    private final PhasesService phasesService;
 
     @PostMapping("/{project_id}")
     public ResponseEntity<PhasesInfoDto> addPhase(@PathVariable UUID project_id, @RequestBody CreatePhaseDto request){
@@ -27,8 +32,11 @@ public class PhasesController {
     }
 
     @GetMapping("/project/{project_id}")
-    public ResponseEntity<List<PhasesInfoDto>> getPhases(@PathVariable UUID project_id){
-        List<PhasesInfoDto> body= phasesService.getPhases(project_id);
+    public ResponseEntity<Page<PhasesInfoDto>> getPhases(
+            @PathVariable UUID project_id,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable){
+        Page<PhasesInfoDto> body= phasesService.getPhases(project_id, search, pageable);
         return ResponseEntity.ok(body);
     }
 
@@ -42,6 +50,17 @@ public class PhasesController {
     @DeleteMapping("/{phase_id}")
     public ResponseEntity<?> deletePhase( @PathVariable UUID phase_id) {
         phasesService.deletePhase( phase_id);
+        return ResponseEntity.noContent().build();
+    }
+    @PatchMapping("/{phase_id}/milestone/assign")
+    public ResponseEntity<?> assignMilestone(@PathVariable UUID phase_id,
+                                             @RequestBody List<MilestoneAssignmentDto> request){
+        phasesService.assignMilestones(phase_id, request);
+        return ResponseEntity.noContent().build();
+    }
+    @PatchMapping("/milestone/unassign")
+    public ResponseEntity<?> unassignMilestone(@RequestBody List<MilestoneAssignmentDto> request){
+        phasesService.unassignMilestones(request);
         return ResponseEntity.noContent().build();
     }
 

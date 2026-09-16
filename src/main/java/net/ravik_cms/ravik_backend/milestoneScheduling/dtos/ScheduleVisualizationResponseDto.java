@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.milestoneScheduling;
+package net.ravik_cms.ravik_backend.milestoneScheduling.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

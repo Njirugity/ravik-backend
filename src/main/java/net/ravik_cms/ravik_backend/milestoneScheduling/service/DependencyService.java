@@ -1,8 +1,13 @@
-package net.ravik_cms.ravik_backend.milestoneScheduling;
+package net.ravik_cms.ravik_backend.milestoneScheduling.service;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.exception.CircularDependencyException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.DependenciesDto;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.DependencyDto;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.ProjectDependenciesDto;
+import net.ravik_cms.ravik_backend.milestoneScheduling.entity.MilestoneDependency;
+import net.ravik_cms.ravik_backend.milestoneScheduling.repository.ScheduleRepository;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import net.ravik_cms.ravik_backend.projects.Projects;

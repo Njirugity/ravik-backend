@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.milestoneScheduling;
+package net.ravik_cms.ravik_backend.milestoneScheduling.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +7,9 @@ import net.ravik_cms.ravik_backend.calendar.CalendarService;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.CircularDependencyException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.*;
+import net.ravik_cms.ravik_backend.milestoneScheduling.entity.MilestoneDependency;
+import net.ravik_cms.ravik_backend.milestoneScheduling.repository.ScheduleRepository;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import net.ravik_cms.ravik_backend.projects.Projects;
@@ -61,7 +64,7 @@ public class ScheduleService {
         backwardPass(sortedMilestones, data.successorMap, endDate, calender);
 
         //Identify the critical path
-        markCritical(sortedMilestones);
+        markCritical(sortedMilestones, calender);
 
         milestonesRepository.saveAll(sortedMilestones);
         project.setScheduled(true);
@@ -291,17 +294,17 @@ public class ScheduleService {
      *  Float is when the difference between earliest and latest
      * dates are not equal to zero
      */
-    private void markCritical(List<Milestones> milestone){
+    private void markCritical(List<Milestones> milestone, Calendar calender){
 
         for(Milestones m: milestone){
             boolean isCritical = m.getEarliestStart() != null &&
                     m.getLatestStart() != null &&
-                    m.getEarliestStart().equals(m.getLatestStart())&&
-                    m.getLatestFinish().equals(m.getLatestFinish());
+                    m.getEarliestStart().equals(m.getLatestStart());
             m.setCritical(isCritical);
+            m.setTotalFloat(0L);
 
             if(!isCritical && m.getEarliestFinish() != null && m.getLatestFinish() != null){
-                long totalFloat = ChronoUnit.DAYS.between(m.getEarliestStart(), m.getLatestStart());
+                long totalFloat = calendarService.daysBetween(m.getEarliestStart(), m.getLatestStart(), calender);
                 m.setTotalFloat(totalFloat);
             }
         }
@@ -382,7 +385,7 @@ public class ScheduleService {
         ScheduleSummary scheduleSummary = getScheduleSummary(projectId);
 
         // Get Milestone Statuses (for project tracking)
-        List<MilestoneStatusDTO> milestoneStatuses = getMilestoneStatuses(milestones);
+        List<MilestoneStatusDTO> milestoneStatuses = getMilestoneStatuses(milestones, calendar);
 
         return new ScheduleVisualizationResponseDto(
                 aonDiagram,
@@ -647,21 +650,24 @@ public class ScheduleService {
     /**
      * Get milestone statuses for project tracking
      */
-    private List<MilestoneStatusDTO> getMilestoneStatuses(List<Milestones> milestones) {
+    private List<MilestoneStatusDTO> getMilestoneStatuses(List<Milestones> milestones, Calendar calendar) {
         return milestones.stream()
-                .map(this::convertToMilestoneStatus)
+                .map(m->{
+                    return convertToMilestoneStatus(m, calendar);
+                })
                 .collect(Collectors.toList());
     }
 
     /**
      * Convert Milestone to MilestoneStatusDTO
      */
-    private MilestoneStatusDTO convertToMilestoneStatus(Milestones milestone) {
+    private MilestoneStatusDTO convertToMilestoneStatus(Milestones milestone, Calendar calendar) {
         ProgressStatus status = milestone.getStatus();
-        // You might want to store actual dates in the database
-        // For now, we'll use estimated dates as actual dates
-        LocalDate actualStart = milestone.getEarliestStart();
-        LocalDate actualFinish = milestone.getEarliestFinish();
+
+        LocalDate actualStart = milestone.getActualStartDate();
+        LocalDate actualFinish = milestone.getActualEndDate() == null ? calendarService.addWorkingDays(
+                actualStart, milestone.getDuration(), calendar) : milestone.getActualEndDate();
+
         Double completionPercentage = 0.0;
 
         boolean isDelayed = false;

@@ -102,4 +102,18 @@ public class CalendarService {
         }
         return current;
     }
+    public long daysBetween(LocalDate start, LocalDate end, Calendar calendar){
+        if(start.isAfter(end)){
+            return 0L;
+        }
+        long duration = 0L;
+        LocalDate current = start;
+        while(!current.isAfter(end)){
+            if(isWorkingDay(calendar, current)){
+                duration++;
+            }
+            current = current.plusDays(1);
+        }
+        return duration;
+    }
 }

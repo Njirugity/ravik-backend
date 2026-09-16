@@ -1,6 +1,11 @@
-package net.ravik_cms.ravik_backend.milestoneScheduling;
+package net.ravik_cms.ravik_backend.milestoneScheduling.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.milestoneScheduling.DependencyService;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.DependenciesDto;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.DependencyDto;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.PredecessorRequest;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.ProjectDependenciesDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

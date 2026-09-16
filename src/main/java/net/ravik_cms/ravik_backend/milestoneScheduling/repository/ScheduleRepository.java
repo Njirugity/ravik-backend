@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.milestoneScheduling;
+package net.ravik_cms.ravik_backend.milestoneScheduling.repository;
 
 import jakarta.transaction.Transactional;
 import net.ravik_cms.ravik_backend.milestoneScheduling.entity.MilestoneDependency;

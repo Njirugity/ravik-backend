@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestoneScheduling;
 
 import jakarta.transaction.Transactional;
+import net.ravik_cms.ravik_backend.milestoneScheduling.entity.MilestoneDependency;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

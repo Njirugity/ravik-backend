@@ -1,6 +1,8 @@
 package net.ravik_cms.ravik_backend.milestoneScheduling;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.ScheduleSummary;
+import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.ScheduleVisualizationResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

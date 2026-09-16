@@ -399,13 +399,8 @@ public class ScheduleService {
      * Convert milestone to node
      */
     private NodeDto convertToNode(Milestones milestone) {
-        ProgressStatus status = milestone.getStatus();
-        String color = milestone.isCritical() ? "#FF6B6B" : "#4ECDC4";
         return new NodeDto(
-                milestone.getId(), milestone.getTitle(), milestone.getDuration(), milestone.getEarliestStart(),
-                milestone.getEarliestFinish(), milestone.getLatestStart(), milestone.getLatestFinish(),
-                milestone.getTotalFloat(), milestone.isCritical(), milestone.getDuration()==0,
-                status, 0, 0, color
+                milestone.getId(), milestone.getTitle(), milestone.getDuration() == 0, 0, 0
         );
     }
     /**
@@ -528,7 +523,13 @@ public class ScheduleService {
             List<MilestoneDependency> dependencies,
             GraphData graphData) {
 
-        List<NodeDto> nodes = milestones.stream()
+        // Sort milestones topologically (predecessors before successors) for display.
+        // Use a defensive copy of indegree: topologicalSort drains it, and
+        // assignNodePositions/calculateNodeLevel below still need the original.
+        List<Milestones> sortedMilestones = topologicalSort(
+                milestones, new HashMap<>(graphData.indegree), graphData.successorMap);
+
+        List<NodeDto> nodes = sortedMilestones.stream()
                 .map(this::convertToNode)
                 .collect(Collectors.toList());
 
@@ -539,26 +540,11 @@ public class ScheduleService {
         // Calculate positions (simple layered layout)
         assignNodePositions(nodes, graphData);
 
-        // Find project start and end
-        LocalDate projectStart = milestones.stream()
-                .map(Milestones::getEarliestStart)
-                .filter(Objects::nonNull)
-                .min(LocalDate::compareTo)
-                .orElse(null);
-
-        LocalDate projectEnd = milestones.stream()
-                .map(Milestones::getLatestFinish)
-                .filter(Objects::nonNull)
-                .max(LocalDate::compareTo)
-                .orElse(null);
-
         return new AONDiagramDto(
                 nodes,
                 links,
                 !milestones.isEmpty() ? milestones.get(0).getProject().getId() : null,
-                !milestones.isEmpty() ? milestones.get(0).getProject().getTitle() : null,
-                projectStart,
-                projectEnd
+                !milestones.isEmpty() ? milestones.get(0).getProject().getTitle() : null
         );
     }
     private GanttChartDto buildGanttChart(List<Milestones> milestones, List<MilestoneDependency> dependencies, Projects project,

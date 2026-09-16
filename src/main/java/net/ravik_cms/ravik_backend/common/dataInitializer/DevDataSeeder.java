@@ -23,7 +23,7 @@ import net.ravik_cms.ravik_backend.jobTitles.JobTitlesRepository;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitlesService;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
 import net.ravik_cms.ravik_backend.milestoneBudget.service.MilestoneBudgetService;
-import net.ravik_cms.ravik_backend.milestoneScheduling.DependencyService;
+import net.ravik_cms.ravik_backend.milestoneScheduling.service.DependencyService;
 import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
 import net.ravik_cms.ravik_backend.milestones.service.MilestonesService;

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.milestoneScheduling.repository.ScheduleRepository;
+import net.ravik_cms.ravik_backend.milestoneScheduling.service.ForecastService;
 import net.ravik_cms.ravik_backend.milestoneScheduling.service.ScheduleService;
 import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
@@ -35,6 +36,7 @@ public class MilestonesService {
     private final PhasesService phasesService;
     private final ScheduleRepository scheduleRepository;
     private final ScheduleService scheduleService;
+    private final ForecastService forecastService;
 //    @Scheduled(cron = "0 0 0 * * *")
 //    public void checkOverdueMilestone(){
 //        LocalDate today = LocalDate.now();
@@ -56,7 +58,6 @@ public class MilestonesService {
         newMilestone.setStatus(ProgressStatus.PENDING);
         milestonesRepository.save(newMilestone);
 
-        scheduleService.recalculateIfPossible(projectId);
         return (milestonesMapper.toInfoDto(newMilestone));
     }
 
@@ -97,20 +98,25 @@ public class MilestonesService {
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
         milestonesMapper.updateMilestone(dto, milestone);
-        phasesService.syncPhaseBudget(milestone.getPhase().getId());
+        if (milestone.getPhase() != null) {
+            phasesService.syncPhaseBudget(milestone.getPhase().getId());
+        }
+        forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
         return milestonesMapper.toInfoDto(milestone);
     }
     @Transactional
     public void deleteMilestone(UUID milestoneId){
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
-        UUID phaseId = milestone.getPhase().getId();
+        UUID phaseId = milestone.getPhase() != null ? milestone.getPhase().getId() : null;
         UUID projectId = milestone.getProject().getId();
 
         scheduleRepository.deleteByMilestoneId(milestoneId);
         scheduleRepository.deleteByPredecessorId(milestoneId);
         milestonesRepository.delete(milestone);
-        phasesService.syncPhaseBudget(phaseId);
+        if (phaseId != null) {
+            phasesService.syncPhaseBudget(phaseId);
+        }
         scheduleService.recalculateIfPossible(projectId);
     }
     public MilestoneInfoDto getActiveMilestone(UUID projectId){
@@ -149,7 +155,10 @@ public class MilestonesService {
             milestone.setStatus(ProgressStatus.IN_PROGRESS);
             milestonesRepository.save(milestone);
 
-            phasesService.setPhaseActualStartDate(milestone.getPhase().getId());
+            if (milestone.getPhase() != null) {
+                phasesService.setPhaseActualStartDate(milestone.getPhase().getId());
+            }
+            forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
         }
     }
     @Transactional

@@ -34,6 +34,13 @@ public class Milestones extends BaseEntity {
     private Long totalFloat;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
+    private LocalDate forecastES;
+    private LocalDate forecastEF;
+    private LocalDate forecastLS;
+    private LocalDate forecastLF;
+    private Long forecastFloat;
+    private boolean forecastCritical;
+    private Integer remainingDuration;
     @Enumerated(EnumType.STRING)
     private ProgressStatus status;
     @ManyToOne

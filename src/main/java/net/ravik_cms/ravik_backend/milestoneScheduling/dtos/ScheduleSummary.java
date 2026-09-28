@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,5 +21,5 @@ public class ScheduleSummary {
     private Long criticalPathDuration;
     private int criticalMilestoneCount;
     private int totalMilestoneCount;
-    private List<Milestones> criticalPath;
+    private List<CriticalPathMilestoneDto> criticalPath;
 }

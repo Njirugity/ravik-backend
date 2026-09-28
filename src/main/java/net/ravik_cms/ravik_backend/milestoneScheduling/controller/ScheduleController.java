@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestoneScheduling.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.milestoneScheduling.service.ForecastService;
 import net.ravik_cms.ravik_backend.milestoneScheduling.service.ScheduleService;
 import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.ScheduleSummary;
 import net.ravik_cms.ravik_backend.milestoneScheduling.dtos.ScheduleVisualizationResponseDto;
@@ -14,11 +15,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ScheduleController {
     private final ScheduleService scheduleService;
+    private final ForecastService forecastService;
 
     @PostMapping("/projects/{projectId}")
     public ResponseEntity<?> calculateSchedule(@PathVariable UUID projectId){
         scheduleService.calculateSchedule(projectId);
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/projects/{projectId}/forecast")
+    public ResponseEntity<ForecastService.ForecastResult> recalculateForecast(@PathVariable UUID projectId){
+        ForecastService.ForecastResult body = forecastService.recalculateForecast(projectId);
+        return ResponseEntity.ok(body);
     }
     @GetMapping("/projects/{projectId}")
     public ResponseEntity<ScheduleSummary> getSchedule(@PathVariable UUID projectId){

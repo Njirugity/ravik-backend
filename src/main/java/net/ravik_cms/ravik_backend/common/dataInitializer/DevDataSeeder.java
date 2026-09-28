@@ -141,10 +141,11 @@ public class DevDataSeeder implements CommandLineRunner {
     }
 
     private List<Long> seedJobTitles(UUID projectId) {
-        jobTitlesService.addJobTitle(new CreateJobTitleDto("Site Supervisor", 3000.0, PaymentFrequency.MONTHLY), projectId);
+        jobTitlesService.addJobTitle(new CreateJobTitleDto("Site Supervisor", 40000.0, PaymentFrequency.MONTHLY), projectId);
         jobTitlesService.addJobTitle(new CreateJobTitleDto("Mason", 1500.0, PaymentFrequency.DAILY), projectId);
         jobTitlesService.addJobTitle(new CreateJobTitleDto("Laborer", 800.0, PaymentFrequency.DAILY), projectId);
-
+        jobTitlesService.addJobTitle(new CreateJobTitleDto("Carpenter", 1500.0, PaymentFrequency.DAILY), projectId);
+        jobTitlesService.addJobTitle(new CreateJobTitleDto("Foreman", 2500.0, PaymentFrequency.DAILY), projectId);
         return jobTitlesRepository.findAll().stream()
                 .filter(jt -> jt.getProject().getId().equals(projectId))
                 .map(JobTitles::getId)
@@ -160,8 +161,9 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private List<Long> seedEquipment(UUID projectId) {
         equipmentService.addEquipment(new CreateEquipmentDto("Concrete Mixer", EquipmentCategory.OWNED, 500L, "litres"), projectId);
-        equipmentService.addEquipment(new CreateEquipmentDto("Excavator", EquipmentCategory.RENTED, 1L, "unit"), projectId);
-
+        equipmentService.addEquipment(new CreateEquipmentDto("Excavator", EquipmentCategory.RENTED, 22L, "tons"), projectId);
+        equipmentService.addEquipment(new CreateEquipmentDto("Concrete Vibrator", EquipmentCategory.OWNED, 1L, "piece"),projectId);
+        equipmentService.addEquipment(new CreateEquipmentDto("BackHoe", EquipmentCategory.RENTED, 12L, "tons"), projectId);
         return equipmentRepository.findAll().stream()
                 .filter(e -> e.getProject().getId().equals(projectId))
                 .map(Equipments::getId)
@@ -203,23 +205,61 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private List<MilestoneInfoDto> seedMilestones(UUID projectId) {
         MilestoneInfoDto foundation = milestonesService.createMilestone(
-                projectId, new CreateMilestoneDto("Foundation Excavation", "Excavate and cast foundation", 10));
+                projectId, new CreateMilestoneDto("Foundation Excavation", "Excavate and cart away debris", 5));
+        MilestoneInfoDto steel = milestonesService.createMilestone(
+                projectId,new CreateMilestoneDto("Steel fixing","Prepare the steel reinforcement for the pad foundation", 3));
+        MilestoneInfoDto formwork = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Formwork for pad foundation bases", "Install formwork on excavated bases", 2));
+        MilestoneInfoDto columnsPreparation = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Prepare formwork for pad foundation columns", "Prepare formwork for the bases in anticipation of concreting the bases", 2));
+        MilestoneInfoDto blinding = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Pour concrete blinding to pad foundation bases", "Pour concrete blinding to the prepared bases", 1));
+        MilestoneInfoDto installSteel = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Place reinforcement on bases", "Install the steel reinforcement on excavated bases", 3));
+        MilestoneInfoDto concreteBases = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Concrete the foundation bases", "Pour concrete to the desired level to the bases", 2));
+        MilestoneInfoDto columnFormwork = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Formwork for pad foundation columns", "Install formwork on foundation columns", 1));
+        MilestoneInfoDto concreteColumns = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Concrete the foundation columns", "Pour concrete to the desired level to the columns", 1));
+        MilestoneInfoDto backfill = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Backfill the pad foundation", "Backfill the pad foundation pits to the desired level", 4));
         MilestoneInfoDto framing = milestonesService.createMilestone(
                 projectId, new CreateMilestoneDto("Structural Framing", "Cast columns and beams", 20));
         MilestoneInfoDto roofing = milestonesService.createMilestone(
                 projectId, new CreateMilestoneDto("Roofing", "Install roof structure and covering", 15));
-        return List.of(foundation, framing, roofing);
+        return List.of(foundation, framing, roofing, steel, formwork, columnsPreparation, blinding, installSteel, concreteBases, columnFormwork,
+                concreteColumns, backfill);
     }
 
     private void seedDependencies(List<MilestoneInfoDto> milestones) {
-        if (milestones.size() < 3) {
+        if (milestones.size() < 12) {
             return;
         }
         UUID foundationId = UUID.fromString(milestones.get(0).getId());
         UUID framingId = UUID.fromString(milestones.get(1).getId());
         UUID roofingId = UUID.fromString(milestones.get(2).getId());
+        UUID steelId = UUID.fromString(milestones.get(3).getId());
+        UUID formworkId = UUID.fromString(milestones.get(4).getId());
+        UUID columnsPrepId = UUID.fromString(milestones.get(5).getId());
+        UUID blindingId = UUID.fromString(milestones.get(6).getId());
+        UUID installSteelId = UUID.fromString(milestones.get(7).getId());
+        UUID concreteBaseId = UUID.fromString(milestones.get(8).getId());
+        UUID columnFormworkId = UUID.fromString(milestones.get(9).getId());
+        UUID concreteColumnsId = UUID.fromString(milestones.get(10).getId());
+        UUID backFill = UUID.fromString(milestones.get(11).getId());
 
-        dependencyService.addPredecessor(framingId, foundationId);
+        dependencyService.addPredecessor(steelId, foundationId);
+        dependencyService.addPredecessor(formworkId, foundationId);
+        dependencyService.addPredecessor(columnsPrepId, foundationId);
+        dependencyService.addPredecessor(blindingId, formworkId);
+        dependencyService.addPredecessor(installSteelId, steelId);
+        dependencyService.addPredecessor(installSteelId, blindingId);
+        dependencyService.addPredecessor(concreteBaseId, blindingId);
+        dependencyService.addPredecessor(columnFormworkId, concreteBaseId);
+        dependencyService.addPredecessor(concreteColumnsId, columnFormworkId);
+        dependencyService.addPredecessor(backFill, concreteColumnsId);
+        dependencyService.addPredecessor(framingId, backFill);
         dependencyService.addPredecessor(roofingId, framingId);
     }
 

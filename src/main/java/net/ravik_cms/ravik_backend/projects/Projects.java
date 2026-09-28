@@ -43,5 +43,8 @@ public class Projects extends BaseEntity {
     private Set<Users> staff;
     private LocalDate plannedStart;
     private LocalDate plannedEnd;
+    LocalDate dataDate;
+    LocalDate forecastEnd;
+    LocalDate contractFinish;
     private boolean scheduled = false;
 }

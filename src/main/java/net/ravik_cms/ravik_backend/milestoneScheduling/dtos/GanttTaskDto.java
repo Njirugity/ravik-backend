@@ -26,4 +26,8 @@ public class GanttTaskDto {
     private boolean isMilestone;
     private UUID phaseId;
     private String phaseTitle;
+    private LocalDate forecastStart;
+    private LocalDate forecastFinish;
+    private Long forecastFloat;
+    private boolean forecastCritical;
 }

@@ -116,4 +116,17 @@ public class CalendarService {
         }
         return duration;
     }
+
+    /**
+     * Signed working-day difference (negative when {@code to} is before {@code from}).
+     * Unlike {@link #daysBetween}, which clamps to 0 when start is after end, this is what
+     * forecast variance needs so "3 days ahead" reads as negative rather than zero.
+     */
+    public long workingDaysBetween(LocalDate from, LocalDate to, Calendar calendar){
+        if(from == null || to == null) return 0L;
+        if(!from.isAfter(to)){
+            return daysBetween(from, to, calendar);
+        }
+        return -daysBetween(to, from, calendar);
+    }
 }

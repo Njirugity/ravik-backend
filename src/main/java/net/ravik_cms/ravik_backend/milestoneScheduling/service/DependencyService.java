@@ -117,7 +117,8 @@ public class DependencyService {
 
                     return new DependenciesDto(
                             m.getId(), m.getTitle(), m.getDescription(),
-                            m.getPhase().getTitle(), m.getDuration(), dependencyDto
+                            m.getPhase() != null ? m.getPhase().getTitle() : null,
+                            m.getDuration(), dependencyDto
                     );
                 })
                 .toList();

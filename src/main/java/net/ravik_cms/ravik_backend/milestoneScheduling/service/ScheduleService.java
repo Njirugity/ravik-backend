@@ -30,6 +30,8 @@ public class ScheduleService {
     private final MilestonesRepository milestonesRepository;
     private final ProjectsRepository projectsRepository;
     private final CalendarService calendarService;
+    private final ScheduleGraph scheduleGraph;
+    private final ForecastService forecastService;
 
     /**
      * Calculate the complete project schedule
@@ -48,20 +50,19 @@ public class ScheduleService {
         Calendar calender = calendarService.getCalenderEntity(projectId);
         //Build the data required for traversal. this is the milestone with its predecessors
         //successors
-        GraphData data = buildGraphData(milestones, projectId);
+        ScheduleGraph.GraphData data = scheduleGraph.build(milestones, projectId);
 
         //Perform the topological sort to order the milestones
-        List<Milestones> sortedMilestones = topologicalSort(milestones,
-                data.indegree, data.successorMap);
+        List<Milestones> sortedMilestones = scheduleGraph.topologicalSort(milestones, data);
 
         //Perform the forward pass to calculate the earliest dates
-        forwardPass(sortedMilestones, data.predecessorMap, project.getPlannedStart(), calender);
+        forwardPass(sortedMilestones, data, project.getPlannedStart(), calender);
 
         //Get the project end date after performing the forward pass. We need it for backward pass
-        LocalDate endDate = findEarliestProjectFinish(sortedMilestones, data.successorMap);
+        LocalDate endDate = findEarliestProjectFinish(sortedMilestones, data);
 
         //Perform backward pass to calculate the latest dates
-        backwardPass(sortedMilestones, data.successorMap, endDate, calender);
+        backwardPass(sortedMilestones, data, endDate, calender);
 
         //Identify the critical path
         markCritical(sortedMilestones, calender);
@@ -70,6 +71,10 @@ public class ScheduleService {
         project.setScheduled(true);
         project.setPlannedEnd(endDate);
         projectsRepository.save(project);
+
+        //Baseline changed — the forecast (frozen actuals + re-derived CPM dates) must
+        //be recomputed so it never goes stale relative to the new baseline.
+        forecastService.recalculateForecastIfPossible(projectId);
     }
     /**
      * Recalculate the schedule if the project is in a schedulable state, silently
@@ -87,143 +92,39 @@ public class ScheduleService {
         }
     }
     /**
-     * Internal data class to hold graph structures
-     */
-    private static class GraphData{
-        final Map<UUID, List<Milestones>> successorMap;
-        final Map<UUID, List<Milestones>> predecessorMap;
-        final Map<UUID, Integer> indegree;
-
-        public GraphData(Map<UUID, List<Milestones>> successorMap, Map<UUID,
-                List<Milestones>> predecessorMap, Map<UUID, Integer> indegree) {
-            this.successorMap = successorMap;
-            this.predecessorMap = predecessorMap;
-            this.indegree = indegree;
-        }
-    }
-    /**
-     * Build all the maps needed for graph traversal
-     */
-    private GraphData buildGraphData(List<Milestones> milestones, UUID projectId){
-        Map<UUID, List<Milestones>> successorMap = new HashMap<>();
-        Map<UUID, List<Milestones>> predecessorMap =  new HashMap<>();
-        Map<UUID, Integer> indegree =  new HashMap<>();
-
-        //Populate the maps with each milestones id and an empty array that we will
-        // populate with the milestone predecessor and successors later
-        for (Milestones m: milestones){
-            successorMap.put(m.getId(), new ArrayList<>());
-            predecessorMap.put(m.getId(), new ArrayList<>());
-            indegree.put(m.getId(), 0);
-        }
-
-        //Get all the records from the milestoneDependency table
-        List<MilestoneDependency> allDependencies = scheduleRepository.findByProjectId(projectId);
-
-        //Populate the maps empty arrays with their correct successors and predecessors
-        for (MilestoneDependency d: allDependencies){
-            UUID milestoneId = d.getMilestone().getId();
-            UUID predecessorId = d.getPredecessor().getId();
-
-            //Predecessor has this d as its successor
-            successorMap.get(predecessorId).add(d.getMilestone());
-            //Milestone has d as its predecessor
-            predecessorMap.get(milestoneId).add(d.getPredecessor());
-            //Indegree is the number of predecessors a milestone has.
-            indegree.merge(milestoneId, 1, Integer::sum);
-        }
-        return new GraphData(successorMap, predecessorMap, indegree);
-    }
-    /**
-     * Kahn's Algorithm for topological sorting
-     * Orders milestones so each appears after all its dependencies
-     * Visit <a href="https://youtu.be/cIBFEhD77b4?si=z_-FhbRpvPyRffPl">...</a> to get and idea of how it works
-     */
-    private List<Milestones> topologicalSort(
-            List<Milestones> milestones, Map<UUID, Integer> indegree,
-            Map<UUID, List<Milestones>> successorMap){
-        //1.Create a list to store the sorted milestones
-        List<Milestones> sorted = new ArrayList<>();
-
-        //2.Create lookup for quick milestone access by id
-        Map<UUID, Milestones> milestonesMap = milestones.stream()
-              .collect(Collectors.toMap(Milestones::getId, milestone -> milestone));
-
-        //2.Create a Queue for nodes with no incoming edges. Queue is used for its efficiency in
-        //  tracking and processing and FIFO application
-        Queue<Milestones> queue = new LinkedList<>();
-
-        //3.Find all milestones with inDegree = 0 (no predecessors) and add them to the queue
-        for(Milestones m: milestones){
-            if(indegree.get(m.getId())== 0){
-                queue.offer(m);
-            }
-        }
-        //-Topological sorts are purely acyclic so you need to avoid cycle or get to an infinite loop
-        if(queue.isEmpty()){
-            throw new CircularDependencyException(
-                    "No start milestone found. Every milestone has a predecessor, possible cycle.");
-        }
-        //4. Populate the sorted array
-        while(!queue.isEmpty()){
-            //4.1.the queue contains milestones(mlt) with no predecessors. So remove it from the queue
-            //    and add it to the sorted array
-            Milestones current = queue.poll();
-            sorted.add(current);
-            //4.2.For the removed mlt we need to find the mlt that go after it, thus we need its successor
-            for (Milestones successor : successorMap.get(current.getId())) {
-                //4.2.1.Reduce the indegree of the successor
-                int newIndegree = indegree.merge(successor.getId(), -1, Integer::sum);
-                //4.2.2.If its zero add it to the queue, if not skip the step and go back to the start
-                //      of the while loop.
-                if(newIndegree == 0){
-                    queue.offer(milestonesMap.get(successor.getId()));
-                }
-            }
-        }
-        //5. Confirm that all the milestones are sorted. sorted should be equal to milestone
-        if(sorted.size() != milestones.size()){
-            //5.1. Get all the id for easy look-ups
-            Set<UUID> sortedIds = sorted.stream()
-                    .map(Milestones::getId)
-                    .collect(Collectors.toSet());
-            //5.2 filter milestone that are not in sorted and throw an error
-            List<String> unsorted = milestones.stream()
-                    .filter(m->!sortedIds.contains(m.getId()))
-                    .map(Milestones::getTitle)
-                    .toList();
-            throw new CircularDependencyException(
-                    "Circular dependency detected involving milestones: " + unsorted);
-        }
-        return sorted;
-    }
-    /**
-     * Forward pass: Calculate the earliest start and finish dates
+     * Forward pass: Calculate the earliest start and finish dates.
+     * Lag is applied per predecessor edge (via data.lagBetween) before taking the max,
+     * matching ForecastService.earliestStartFromPredecessors so the baseline and
+     * forecast passes can never disagree on how lag is applied.
      */
     public void forwardPass(List<Milestones>sortedMilestones,
-                            Map<UUID, List<Milestones>>predecessorsMap, LocalDate startDate,
+                            ScheduleGraph.GraphData data, LocalDate startDate,
                             Calendar calendar){
         for (Milestones m : sortedMilestones){
             //1. For each milestone in sorted get its predecessor
-            List<Milestones> predecessors = predecessorsMap.getOrDefault(
-                    m.getId(), Collections.emptyList()
-            );
+            List<Milestones> predecessors = data.predecessorsOf(m.getId());
             //2. Mlt with no predecessors(pred) are the ones that kickoff the project
             if(predecessors.isEmpty()){
                 m.setEarliestStart(startDate);
             }else{
-                //3. Get the pred's earliest finish date(efd), this automatically becomes the milestones
-                //   earliest start date(esd). If a pred has no efd there is an error. For milestones with
-                //   more than one preds the largest one is its esd.
-                LocalDate maxPredecessorFinishDate = predecessors.stream()
-                        .map(Milestones::getEarliestFinish)
-                        .filter(Objects::nonNull)
-                        .max(LocalDate::compareTo)
-                        .orElseThrow(()-> new ResourceNotFoundException(
-                                "Predecessor without calculated finish date for milestone"+ m.getTitle()
-                        ));
-
-                m.setEarliestStart(calendarService.addWorkingDays(maxPredecessorFinishDate, 2, calendar));
+                //3. Get the pred's earliest finish date(efd) plus the edge lag; this becomes a
+                //   candidate earliest start date(esd). If a pred has no efd there is an error.
+                //   For milestones with more than one pred, the largest candidate is its esd.
+                LocalDate maxCandidate = null;
+                for (Milestones p : predecessors){
+                    LocalDate pFinish = p.getEarliestFinish();
+                    if (pFinish == null) continue;
+                    LocalDate candidate = calendarService.addWorkingDays(
+                            pFinish, data.lagBetween(p.getId(), m.getId()), calendar);
+                    if (maxCandidate == null || candidate.isAfter(maxCandidate)) {
+                        maxCandidate = candidate;
+                    }
+                }
+                if (maxCandidate == null) {
+                    throw new ResourceNotFoundException(
+                            "Predecessor without calculated finish date for milestone"+ m.getTitle());
+                }
+                m.setEarliestStart(maxCandidate);
             }
             //4. Get efd by adding the duration to esd
             LocalDate earliestFinish = calendarService.addWorkingDays(m.getEarliestStart(),
@@ -238,12 +139,9 @@ public class ScheduleService {
      * This is the latest earliest finish of all milestones with no successors
      */
     private LocalDate findEarliestProjectFinish(List<Milestones> sortedMilestone,
-                                           Map<UUID, List<Milestones>>successorMap){
+                                           ScheduleGraph.GraphData data){
         return sortedMilestone.stream()
-                .filter(m->{
-                    List<Milestones> successors = successorMap.get(m.getId());
-                    return successors == null || successors.isEmpty();
-                })
+                .filter(m -> data.isTerminal(m.getId()))
                 .map(Milestones::getEarliestFinish)
                 .filter(Objects::nonNull)
                 .max(LocalDate::compareTo)
@@ -251,35 +149,42 @@ public class ScheduleService {
     }
 
     /**
-     * Backward pass: Calculate latest start and finish dates
+     * Backward pass: Calculate latest start and finish dates.
+     * Lag is applied per successor edge (via data.lagBetween) before taking the min,
+     * mirroring ForecastService.forecastBackwardPass.
      */
     private void backwardPass(List<Milestones>sortedMilestones,
-                              Map<UUID, List<Milestones>>successorMap, LocalDate endDate, Calendar calendar){
+                              ScheduleGraph.GraphData data, LocalDate endDate, Calendar calendar){
         //1. Reverse sorted so that the mlt(no successors) is the first one we will go through
         List<Milestones> reversed = new ArrayList<>(sortedMilestones);
         Collections.reverse(reversed);
 
         for(Milestones m: reversed){
             //2. For each sorted mlt get its successors
-            List<Milestones> successors = successorMap.getOrDefault(
-                    m.getId(), Collections.emptyList()
-            );
+            List<Milestones> successors = data.successorsOf(m.getId());
             //3. Mlt with no successors is the last one so it's the latest finish date(lsd) is
             //   the projects endDate
             if(successors.isEmpty()){
                 m.setLatestFinish(endDate);
             }else{
-                //4. Get the successors lsd this will be the milestones lfd. If the successor
-                //  has no lsd there is an error. If a mlt has multiple successors pick the
-                //  the minimum date this will be the milestones lsd
-                LocalDate minSuccessorStartDate = successors.stream()
-                        .map(Milestones::getLatestStart)
-                        .filter(Objects::nonNull)
-                        .min(LocalDate::compareTo)
-                        .orElseThrow(()-> new ResourceNotFoundException(
-                                "Successor without calculated start date for milestone"+ m.getTitle()
-                        ));
-                m.setLatestFinish(calendarService.subtractWorkingDays(minSuccessorStartDate, 2, calendar));
+                //4. Get the successors lsd minus the edge lag; this is a candidate lfd. If the
+                //  successor has no lsd there is an error. If a mlt has multiple successors pick
+                //  the minimum candidate — this will be the milestones lfd.
+                LocalDate minCandidate = null;
+                for (Milestones s : successors){
+                    LocalDate sLatestStart = s.getLatestStart();
+                    if (sLatestStart == null) continue;
+                    LocalDate candidate = calendarService.subtractWorkingDays(
+                            sLatestStart, data.lagBetween(m.getId(), s.getId()), calendar);
+                    if (minCandidate == null || candidate.isBefore(minCandidate)) {
+                        minCandidate = candidate;
+                    }
+                }
+                if (minCandidate == null) {
+                    throw new ResourceNotFoundException(
+                            "Successor without calculated start date for milestone"+ m.getTitle());
+                }
+                m.setLatestFinish(minCandidate);
             }
             //5. get the lsd by subtracting duration from lfd
             LocalDate latestStart = calendarService.subtractWorkingDays(m.getLatestFinish(),
@@ -350,10 +255,16 @@ public class ScheduleService {
         long totalDuration = criticalPath.stream()
                 .mapToInt(Milestones::getDuration)
                 .sum();
+        // Mapped to a narrow DTO rather than returned as entities: Milestones carries a
+        // project reference, and Projects/Client reference each other back (client.projects),
+        // so serialising the raw entities here recurses through that cycle indefinitely.
+        List<CriticalPathMilestoneDto> criticalPathDtos = criticalPath.stream()
+                .map(m -> new CriticalPathMilestoneDto(m.getId(), m.getTitle(), m.getDuration()))
+                .collect(Collectors.toList());
 
         return new ScheduleSummary(
                 project.getId(), project.getTitle(), project.getPlannedStart(), project.getPlannedEnd(), totalDuration,
-                criticalPath.size(), milestones.size(), criticalPath
+                criticalPath.size(), milestones.size(), criticalPathDtos
         );
     }
     @Transactional(readOnly = true)
@@ -370,7 +281,7 @@ public class ScheduleService {
         Calendar calendar = calendarService.getCalenderEntity(projectId);
 
         // Build graph data for visualization
-        GraphData graphData = buildGraphData(milestones, projectId);
+        ScheduleGraph.GraphData graphData = scheduleGraph.build(milestones, projectId);
 
         // Create AON Diagram
         AONDiagramDto aonDiagram = buildAONDiagram(milestones, dependencies, graphData);
@@ -385,7 +296,7 @@ public class ScheduleService {
         ScheduleSummary scheduleSummary = getScheduleSummary(projectId);
 
         // Get Milestone Statuses (for project tracking)
-        List<MilestoneStatusDTO> milestoneStatuses = getMilestoneStatuses(milestones, calendar);
+        List<MilestoneStatusDTO> milestoneStatuses = getMilestoneStatuses(milestones);
 
         return new ScheduleVisualizationResponseDto(
                 aonDiagram,
@@ -457,16 +368,21 @@ public class ScheduleService {
                 color,
                 0, // rowIndex to be set later
                 milestone.getDuration() == 0, // isMilestone
-                milestone.getPhase().getId(),
-                milestone.getPhase().getTitle()
+                milestone.getPhase() != null ? milestone.getPhase().getId() : null,
+                milestone.getPhase() != null ? milestone.getPhase().getTitle() : null,
+                milestone.getForecastES(),
+                milestone.getForecastEF(),
+                milestone.getForecastFloat(),
+                milestone.isForecastCritical()
         );
     }
 
-    private void assignNodePositions(List<NodeDto> nodes, GraphData graphData){
+    private void assignNodePositions(List<NodeDto> nodes, ScheduleGraph.GraphData graphData, List<Milestones> sorted){
+        Map<UUID, Integer> levels = scheduleGraph.computeLevels(sorted, graphData);
         Map<Integer, List<NodeDto>> levelMap = new HashMap<>();
 
         for (NodeDto node : nodes) {
-            int level = calculateNodeLevel(node.getId(), graphData);
+            int level = levels.getOrDefault(node.getId(), 0);
             levelMap.computeIfAbsent(level, k -> new ArrayList<>()).add(node);
         }
 
@@ -489,45 +405,17 @@ public class ScheduleService {
         }
     }
     /**
-     * Calculate a nodes positioning
-     */
-    private int calculateNodeLevel(UUID nodeId, GraphData graphData){
-        Map<UUID, Integer> levels = new HashMap<>();
-        Queue<UUID> queue = new LinkedList<>();
-        for (Map.Entry<UUID, Integer> entry : graphData.indegree.entrySet()) {
-            if (entry.getValue() == 0) {
-                queue.offer(entry.getKey());
-                levels.put(entry.getKey(), 0);
-            }
-        }
-        while (!queue.isEmpty()) {
-            UUID current = queue.poll();
-            int currentLevel = levels.get(current);
-
-            for (Milestones successor : graphData.successorMap.getOrDefault(current, Collections.emptyList())) {
-                UUID successorId = successor.getId();
-                if (!levels.containsKey(successorId) || levels.get(successorId) < currentLevel + 1) {
-                    levels.put(successorId, currentLevel + 1);
-                    queue.offer(successorId);
-                }
-            }
-        }
-
-        return levels.getOrDefault(nodeId, 0);
-    }
-    /**
      * Build AON Diagram data for the frontend
      */
     private AONDiagramDto buildAONDiagram(
             List<Milestones> milestones,
             List<MilestoneDependency> dependencies,
-            GraphData graphData) {
+            ScheduleGraph.GraphData graphData) {
 
         // Sort milestones topologically (predecessors before successors) for display.
-        // Use a defensive copy of indegree: topologicalSort drains it, and
-        // assignNodePositions/calculateNodeLevel below still need the original.
-        List<Milestones> sortedMilestones = topologicalSort(
-                milestones, new HashMap<>(graphData.indegree), graphData.successorMap);
+        // scheduleGraph.topologicalSort takes its own defensive copy of indegree, so
+        // graphData stays intact for assignNodePositions below.
+        List<Milestones> sortedMilestones = scheduleGraph.topologicalSort(milestones, graphData);
 
         List<NodeDto> nodes = sortedMilestones.stream()
                 .map(this::convertToNode)
@@ -538,7 +426,7 @@ public class ScheduleService {
                 .collect(Collectors.toList());
 
         // Calculate positions (simple layered layout)
-        assignNodePositions(nodes, graphData);
+        assignNodePositions(nodes, graphData, sortedMilestones);
 
         return new AONDiagramDto(
                 nodes,
@@ -636,10 +524,10 @@ public class ScheduleService {
     /**
      * Get milestone statuses for project tracking
      */
-    private List<MilestoneStatusDTO> getMilestoneStatuses(List<Milestones> milestones, Calendar calendar) {
+    private List<MilestoneStatusDTO> getMilestoneStatuses(List<Milestones> milestones) {
         return milestones.stream()
                 .map(m->{
-                    return convertToMilestoneStatus(m, calendar);
+                    return convertToMilestoneStatus(m);
                 })
                 .collect(Collectors.toList());
     }
@@ -647,12 +535,11 @@ public class ScheduleService {
     /**
      * Convert Milestone to MilestoneStatusDTO
      */
-    private MilestoneStatusDTO convertToMilestoneStatus(Milestones milestone, Calendar calendar) {
+    private MilestoneStatusDTO convertToMilestoneStatus(Milestones milestone) {
         ProgressStatus status = milestone.getStatus();
 
         LocalDate actualStart = milestone.getActualStartDate();
-        LocalDate actualFinish = milestone.getActualEndDate() == null ? calendarService.addWorkingDays(
-                actualStart, milestone.getDuration(), calendar) : milestone.getActualEndDate();
+        LocalDate actualFinish = milestone.getActualEndDate();
 
         Double completionPercentage = 0.0;
 

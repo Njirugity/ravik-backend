@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.authentication;
+package net.ravik_cms.ravik_backend.authentication.dto;
 
 import lombok.Builder;
 

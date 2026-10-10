@@ -53,4 +53,14 @@ public class GlobalExceptionHandler {
         ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
     }
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiErrors> invalidTokenException(InvalidTokenException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), LocalDate.now());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errors);
+    }
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiErrors> invalidCredentialsException(InvalidCredentialsException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), LocalDate.now());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errors);
+    }
 }

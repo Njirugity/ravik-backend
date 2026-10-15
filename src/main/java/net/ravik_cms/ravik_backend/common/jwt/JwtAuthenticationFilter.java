@@ -4,10 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -62,14 +60,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
             }
-        }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth != null) {
-            System.out.println("AUTHENTICATED USER: " + auth.getName());
-            auth.getAuthorities().forEach(a ->
-                    System.out.println("AUTHORITY: " + a.getAuthority())
-            );
         }
         filterChain.doFilter(request, response);
     }

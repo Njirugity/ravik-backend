@@ -2,6 +2,8 @@ package net.ravik_cms.ravik_backend.projects.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.budget.dtos.CreateBudgetDto;
+import net.ravik_cms.ravik_backend.projects.dtos.CreateProjectAndBudgetDto;
 import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
 import net.ravik_cms.ravik_backend.projects.dtos.ProjectInfoDto;
 import net.ravik_cms.ravik_backend.projects.dtos.ProjectPatchDto;
@@ -23,8 +25,11 @@ public class ProjectController {
     private final ProjectOrchestrationService orchestrationService;
 
     @PostMapping
-    public ResponseEntity <ProjectInfoDto> createProject(@Valid @RequestBody ProjectDto project, @AuthenticationPrincipal UserDetails currentUser){
-        ProjectInfoDto body = orchestrationService.createProject(project, currentUser.getUsername());
+    public ResponseEntity <ProjectInfoDto> createProject(@Valid @RequestBody CreateProjectAndBudgetDto request,
+                                                         @AuthenticationPrincipal UserDetails currentUser){
+        ProjectDto project = request.projectDto();
+        List<CreateBudgetDto> budget = request.budgetDtoList();
+        ProjectInfoDto body = orchestrationService.createProject(project, currentUser.getUsername(), budget);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 

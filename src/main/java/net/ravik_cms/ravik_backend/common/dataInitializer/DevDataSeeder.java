@@ -53,6 +53,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -137,7 +138,14 @@ public class DevDataSeeder implements CommandLineRunner {
                 "Riverside Apartments", "Nairobi, Kenya", "LR-2026-001", "Along Riverside Drive",
                 "Residential", 2500.0, null, LocalDate.now()
         );
-        return projectOrchestrationService.createProject(dto, client.getUserName());
+        List<CreateBudgetDto> budget = new ArrayList<>();
+        CreateBudgetDto labour = new CreateBudgetDto(15000000.0, BudgetCategory.LABOUR);
+        CreateBudgetDto material = new CreateBudgetDto(45000000.0, BudgetCategory.MATERIAL);
+        CreateBudgetDto other = new CreateBudgetDto(5000000.0, BudgetCategory.OTHERS);
+        budget.add(labour);
+        budget.add(material);
+        budget.add(other);
+        return projectOrchestrationService.createProject(dto, client.getUserName(), budget);
     }
 
     private List<Long> seedJobTitles(UUID projectId) {

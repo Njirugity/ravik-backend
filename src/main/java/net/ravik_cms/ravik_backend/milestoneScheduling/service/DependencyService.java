@@ -10,7 +10,7 @@ import net.ravik_cms.ravik_backend.milestoneScheduling.entity.MilestoneDependenc
 import net.ravik_cms.ravik_backend.milestoneScheduling.repository.ScheduleRepository;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
-import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

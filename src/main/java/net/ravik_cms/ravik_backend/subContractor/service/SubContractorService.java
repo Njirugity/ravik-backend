@@ -2,8 +2,8 @@ package net.ravik_cms.ravik_backend.subContractor.service;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import net.ravik_cms.ravik_backend.subContractor.dtos.CreateSubContractorDto;
 import net.ravik_cms.ravik_backend.subContractor.dtos.SubContractorInfoProjection;
 import net.ravik_cms.ravik_backend.subContractor.dtos.UpdateSubContractorDto;

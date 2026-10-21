@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.dtos;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 
 import java.time.LocalDate;
-import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor

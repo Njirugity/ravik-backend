@@ -1,10 +1,14 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectInfoDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectPatchDto;
+import net.ravik_cms.ravik_backend.projects.service.ProjectOrchestrationService;
+import net.ravik_cms.ravik_backend.projects.service.ProjectService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;

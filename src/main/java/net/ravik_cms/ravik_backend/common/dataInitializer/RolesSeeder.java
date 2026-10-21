@@ -1,11 +1,10 @@
 package net.ravik_cms.ravik_backend.common.dataInitializer;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.enums.RoleType;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.permission.PermissionsRepository;
-import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.roles.RolesRepository;
 import org.springframework.stereotype.Service;

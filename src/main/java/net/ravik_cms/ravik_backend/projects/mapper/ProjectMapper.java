@@ -1,5 +1,9 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.mapper;
 
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectInfoDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectPatchDto;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

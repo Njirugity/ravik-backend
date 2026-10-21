@@ -1,5 +1,6 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.repository;
 
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

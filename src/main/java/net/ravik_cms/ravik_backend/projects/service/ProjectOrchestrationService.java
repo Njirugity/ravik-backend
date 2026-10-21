@@ -1,12 +1,15 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.client.ClientRepository;
-import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipService;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectInfoDto;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.mapper.ProjectMapper;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.roles.RolesRepository;
 import net.ravik_cms.ravik_backend.users.UserRepository;

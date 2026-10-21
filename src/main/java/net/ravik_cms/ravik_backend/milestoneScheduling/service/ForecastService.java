@@ -8,8 +8,8 @@ import net.ravik_cms.ravik_backend.common.exception.CircularDependencyException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

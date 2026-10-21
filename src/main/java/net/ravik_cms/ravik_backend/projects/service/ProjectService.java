@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +8,12 @@ import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectInfoDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectPatchDto;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.mapper.ProjectMapper;
 import net.ravik_cms.ravik_backend.users.UserRepository;
 import net.ravik_cms.ravik_backend.users.Users;
 import org.springframework.security.access.AccessDeniedException;
@@ -62,7 +68,7 @@ public class ProjectService {
                 .toList();
     }
     @Transactional
-    public ProjectPatchDto patchProject(UUID id,String userName, ProjectPatchDto request){
+    public ProjectPatchDto patchProject(UUID id, String userName, ProjectPatchDto request){
         authorizationService.authorize("UPDATE_PROJECT");
         Projects project = findProject(id, userName);
         projectMapper.updateProjectFromDto(request, project);

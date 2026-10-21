@@ -1,4 +1,4 @@
-package net.ravik_cms.ravik_backend.projects;
+package net.ravik_cms.ravik_backend.projects.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,6 @@ import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.users.Users;
 
 import java.time.LocalDate;
-import java.util.Calendar;
 import java.util.Set;
 import java.util.UUID;
 

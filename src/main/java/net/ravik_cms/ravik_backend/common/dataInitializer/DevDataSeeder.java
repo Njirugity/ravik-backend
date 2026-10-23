@@ -21,6 +21,7 @@ import net.ravik_cms.ravik_backend.jobTitles.CreateJobTitleDto;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitles;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitlesRepository;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitlesService;
+import net.ravik_cms.ravik_backend.locations.repository.WardRepository;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
 import net.ravik_cms.ravik_backend.milestoneBudget.service.MilestoneBudgetService;
 import net.ravik_cms.ravik_backend.milestoneScheduling.service.DependencyService;
@@ -72,8 +73,11 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private static final String SEED_USERNAME = "admin";
     private static final String SEED_PASSWORD = "Password123!";
+    // IEBC code for Kileleshwa ward, Dagoretti North, Nairobi
+    private static final String SEED_WARD_CODE = "1374";
 
     private final ProjectsRepository projectsRepository;
+    private final WardRepository wardRepository;
     private final UserService userService;
     private final ProjectOrchestrationService projectOrchestrationService;
     private final JobTitlesService jobTitlesService;
@@ -134,8 +138,11 @@ public class DevDataSeeder implements CommandLineRunner {
     }
 
     private ProjectInfoDto seedProject(ClientDto client) {
+        Long wardId = wardRepository.findByCode(SEED_WARD_CODE)
+                .orElseThrow(() -> new IllegalStateException("Seed ward " + SEED_WARD_CODE + " not found; has LocationSeeder run?"))
+                .getId();
         ProjectDto dto = new ProjectDto(
-                "Riverside Apartments", "Nairobi, Kenya", "LR-2026-001", "Along Riverside Drive",
+                "Riverside Apartments", "LR-2026-001", wardId, "Along Riverside Drive",
                 "Residential", 2500.0, null, LocalDate.now()
         );
         List<CreateBudgetDto> budget = new ArrayList<>();

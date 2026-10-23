@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import net.ravik_cms.ravik_backend.locations.dto.ProjectLocationDto;
 import net.ravik_cms.ravik_backend.users.ClientDto;
 
 import java.util.UUID;
@@ -16,9 +17,9 @@ import java.util.UUID;
 public class ProjectInfoDto {
     private UUID id;
     private String title;
-    private String location;
     private String plotNo;
-    private String address;
+    private String street;
+    private ProjectLocationDto location;
     private String type;
     private Double sizeSquareMeters;
     private ProgressStatus progress;

@@ -8,6 +8,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import net.ravik_cms.ravik_backend.locations.entity.Ward;
 import net.ravik_cms.ravik_backend.users.Users;
 
 import java.time.LocalDate;
@@ -24,9 +25,11 @@ public class Projects extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String title;
-    private String location;
     private String plotNo;
-    private String address;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ward_id")
+    private Ward ward;
+    private String street;
     private String type;
     private Double sizeSquareMeters;
     private ProgressStatus progress;

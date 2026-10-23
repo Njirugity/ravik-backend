@@ -6,6 +6,7 @@ import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.locations.service.LocationService;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
 import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
@@ -31,11 +32,13 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMembershipRepository projectMembershipRepository;
     private final RolesSeeder rolesSeeder;
     private final AuthorizationService authorizationService;
+    private final LocationService locationService;
 
     @Override
     @Transactional
     public Projects createProject(ProjectDto projectDto, Client client){
         Projects newProject = projectMapper.toProjects(projectDto);
+        newProject.setWard(locationService.getWard(projectDto.getWardId()));
         newProject.setClient(client);
         projectsRepository.save(newProject);
         rolesSeeder.seedDefaultRoles(newProject);
@@ -67,6 +70,9 @@ public class ProjectServiceImpl implements ProjectService {
         authorizationService.authorize("UPDATE_PROJECT");
         Projects project = findProject(id, userName);
         projectMapper.updateProjectFromDto(request, project);
+        if(request.getWardId() != null){
+            project.setWard(locationService.getWard(request.getWardId()));
+        }
         return projectMapper.toProjectPatchDto(projectsRepository.save(project));
     }
     @Override

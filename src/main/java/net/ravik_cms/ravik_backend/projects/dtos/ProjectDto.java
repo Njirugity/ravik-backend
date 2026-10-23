@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.projects.dtos;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,10 +17,10 @@ import java.time.LocalDate;
 public class ProjectDto {
     @NotBlank(message = "Project title cannot be blank")
     private String title;
-    @NotBlank(message = "Project's location cannot be blank")
-    private String location;
     private String plotNo;
-    private String address;
+    @NotNull(message = "Project's ward is required")
+    private Long wardId;
+    private String street;
     private String type;
     private Double sizeSquareMeters;
     private ProgressStatus progress;

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import net.ravik_cms.ravik_backend.locations.dto.ProjectLocationDto;
 
 @Getter
 @Setter
@@ -12,10 +13,12 @@ import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 @AllArgsConstructor
 public class ProjectPatchDto {
     private String title;
-    private String location;
     private String plotNo;
-    private String address;
+    private Long wardId;
+    private String street;
     private String type;
     private Double sizeSquareMeters;
     private ProgressStatus progress;
+    // populated on responses only; ignored on requests
+    private ProjectLocationDto location;
 }

@@ -1,7 +1,8 @@
 package net.ravik_cms.ravik_backend.milestones.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
+import jakarta.validation.Valid;
+import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneAndBudgetDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneSummaryDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.PossibleActiveMilestonesDto;
@@ -24,8 +25,10 @@ public class MilestonesController {
     private final MilestonesService milestonesService;
 
     @PostMapping("/{project_id}")
-    public ResponseEntity<MilestoneInfoDto> addMilestone(@PathVariable UUID project_id, @RequestBody CreateMilestoneDto dto){
-        MilestoneInfoDto body = milestonesService.createMilestone(project_id, dto);
+    public ResponseEntity<MilestoneInfoDto> addMilestone(@PathVariable UUID project_id,
+                                                         @Valid @RequestBody CreateMilestoneAndBudgetDto request){
+        MilestoneInfoDto body = milestonesService.createMilestone(
+                project_id, request.milestoneDto(), request.budgetDtoList());
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 

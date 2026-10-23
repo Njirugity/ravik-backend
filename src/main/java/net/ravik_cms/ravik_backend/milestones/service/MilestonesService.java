@@ -4,6 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
+import net.ravik_cms.ravik_backend.milestoneBudget.entity.MilestoneBudget;
+import net.ravik_cms.ravik_backend.milestoneBudget.mapper.MilestoneBudgetMapper;
+import net.ravik_cms.ravik_backend.milestoneBudget.repository.MilestoneBudgetRepository;
 import net.ravik_cms.ravik_backend.milestoneScheduling.repository.ScheduleRepository;
 import net.ravik_cms.ravik_backend.milestoneScheduling.service.ForecastService;
 import net.ravik_cms.ravik_backend.milestoneScheduling.service.ScheduleService;
@@ -37,6 +41,8 @@ public class MilestonesService {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleService scheduleService;
     private final ForecastService forecastService;
+    private final MilestoneBudgetRepository milestoneBudgetRepository;
+    private final MilestoneBudgetMapper milestoneBudgetMapper;
 //    @Scheduled(cron = "0 0 0 * * *")
 //    public void checkOverdueMilestone(){
 //        LocalDate today = LocalDate.now();
@@ -51,12 +57,33 @@ public class MilestonesService {
 //    }
     @Transactional
     public MilestoneInfoDto createMilestone(UUID projectId, CreateMilestoneDto milestoneDto){
+        return createMilestone(projectId, milestoneDto, null);
+    }
+
+    /**
+     * Creates the milestone and its opening budget lines in one transaction, so a
+     * failure on the budget does not leave a milestone behind without one.
+     * A null or empty list creates the milestone with no budget lines.
+     */
+    @Transactional
+    public MilestoneInfoDto createMilestone(UUID projectId, CreateMilestoneDto milestoneDto,
+                                            List<CreateMilestoneBudgetLineDto> budgetRequest){
         Projects project = projectsRepository.findById(projectId)
                 .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         Milestones newMilestone = milestonesMapper.toEntity(milestoneDto);
         newMilestone.setProject(project);
         newMilestone.setStatus(ProgressStatus.PENDING);
         milestonesRepository.save(newMilestone);
+
+        if (budgetRequest != null && !budgetRequest.isEmpty()) {
+            List<MilestoneBudget> lines = budgetRequest.stream()
+                    .map(dto -> {
+                        MilestoneBudget line = milestoneBudgetMapper.toEntity(dto);
+                        line.setMilestone(newMilestone);
+                        return line;
+                    }).toList();
+            milestoneBudgetRepository.saveAll(lines);
+        }
 
         return (milestonesMapper.toInfoDto(newMilestone));
     }

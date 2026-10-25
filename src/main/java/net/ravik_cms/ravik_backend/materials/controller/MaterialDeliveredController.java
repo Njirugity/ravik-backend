@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.materials.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.common.response.ApiMessageResponse;
@@ -28,7 +29,7 @@ public class MaterialDeliveredController {
 
     @PostMapping
     @Operation(summary = "Record a material delivery", description = "Project is resolved from the X-Project-ID header.")
-    public ResponseEntity<ApiMessageResponse> create(@RequestBody CreateMaterialDeliveredDto dto) {
+    public ResponseEntity<ApiMessageResponse> create(@Valid @RequestBody CreateMaterialDeliveredDto dto) {
         materialDeliveredService.create(userProjectContext.getProjectId(), dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiMessageResponse.of("Material delivery recorded successfully", HttpStatus.CREATED.value()));

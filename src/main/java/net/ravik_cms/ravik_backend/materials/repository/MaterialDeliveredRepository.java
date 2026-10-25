@@ -1,8 +1,10 @@
 package net.ravik_cms.ravik_backend.materials.repository;
 
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.materials.dto.MaterialDeliveredAggregateProjection;
 import net.ravik_cms.ravik_backend.materials.entity.MaterialDelivered;
+import net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,4 +35,20 @@ public interface MaterialDeliveredRepository extends JpaRepository<MaterialDeliv
         GROUP BY md.materialList.id
     """)
     List<MaterialDeliveredAggregateProjection> aggregateByMaterialForProject(@Param("projectId") UUID projectId);
+
+    boolean existsByReferenceCode(String referenceCode);
+
+    @Query("""
+        SELECT new net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection(
+        md.id, md.paymentCategory, md.referenceCode, md.materialList.name, md.project.id,
+        md.totalCost, md.paidAmount, md.paymentStatus, md.dateDelivered)
+        FROM MaterialDelivered md
+        WHERE md.project.id = :projectId
+        AND md.status = 'NOT_DELETED'
+        AND (:status IS NULL OR md.paymentStatus = :status)
+    """)
+    List<PayoutSummaryProjection> findMaterialDeliveredSummary(@Param("projectId") UUID projectId, @Param("status")PaymentStatus status);
+
+    @Query("SELECT COALESCE(SUM(md.totalCost), 0) FROM MaterialDelivered md WHERE md.project.id = :projectId AND md.status = 'NOT_DELETED'")
+    Double sumTotalCostsByProjectId(@Param("projectId")UUID projectId);
 }

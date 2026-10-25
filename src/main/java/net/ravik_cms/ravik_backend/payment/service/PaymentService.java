@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.payment.service;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.account.entity.Accounts;
 import net.ravik_cms.ravik_backend.account.repository.AccountRepository;
+import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
@@ -14,6 +15,8 @@ import net.ravik_cms.ravik_backend.expense.entity.Expenses;
 import net.ravik_cms.ravik_backend.expense.repository.ExpenseRepository;
 import net.ravik_cms.ravik_backend.labourPayout.entity.LabourPayout;
 import net.ravik_cms.ravik_backend.labourPayout.repository.LabourPayoutRepository;
+import net.ravik_cms.ravik_backend.materials.entity.MaterialDelivered;
+import net.ravik_cms.ravik_backend.materials.repository.MaterialDeliveredRepository;
 import net.ravik_cms.ravik_backend.payment.dtos.CreatePaymentDto;
 import net.ravik_cms.ravik_backend.payment.dtos.PaymentInfoProjection;
 import net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection;
@@ -48,6 +51,7 @@ public class PaymentService {
     private final ProjectsRepository projectsRepository;
     private final AccountRepository accountRepository;
     private final ExpenseRepository expenseRepository;
+    private final MaterialDeliveredRepository materialDeliveredRepository;
 
     @Transactional
     public void addPayment(UUID projectId, CreatePaymentDto request) {
@@ -59,6 +63,11 @@ public class PaymentService {
             Accounts account = accountRepository.findById(request.getAccountId()).orElseThrow(() ->
                     new ResourceNotFoundException("Account not found"));
             payment.setAccount(account);
+        }
+        if (request.getPaymentCategory() == PaymentCategory.MATERIALS) {
+            // only live deliveries on this project can take new payments; update/delete still reach deleted ones
+            materialDeliveredRepository.findByIdAndProjectIdAndStatus(request.getReferenceId(), projectId, DeletionStatus.NOT_DELETED)
+                    .orElseThrow(() -> new ResourceNotFoundException("Delivered material not found"));
         }
         applyToPayout(payment, request.getPaymentCategory(), request.getReferenceId(), request.getAmount());
         paymentRepository.save(payment);
@@ -96,6 +105,13 @@ public class PaymentService {
                     paidAmount = payout.getPaidAmount() == null ? 0d : payout.getPaidAmount();
                 }
             }
+            case MATERIALS -> {
+                MaterialDelivered delivered = materialDeliveredRepository.findById(payment.referenceId()).orElse(null);
+                if(delivered != null){
+                    totalAmount = delivered.getTotalCost() == null ? 0d : delivered.getTotalCost();
+                    paidAmount = delivered.getPaidAmount() == null ? 0d : delivered.getPaidAmount();
+                }
+            }
             case EXPENSES -> {
                 Expenses expense = expenseRepository.findById(payment.referenceId()).orElse(null);
                 if (expense != null) {
@@ -121,6 +137,9 @@ public class PaymentService {
         }
         if (category == null || category == PaymentCategory.LABOUR) {
             summaries.addAll(labourPayoutRepository.findPayoutSummaries(projectId, status));
+        }
+        if (category == null || category == PaymentCategory.MATERIALS){
+            summaries.addAll(materialDeliveredRepository.findMaterialDeliveredSummary(projectId, status));
         }
         if (category == null || category == PaymentCategory.EXPENSES) {
             summaries.addAll(expenseRepository.findPayoutSummaries(projectId, status));
@@ -194,6 +213,18 @@ public class PaymentService {
                 payment.setReferenceCode(payout.getReferenceCode());
                 payment.setPaymentStatus(status);
                 payment.setReferenceId(payout.getId());
+            }
+            case MATERIALS -> {
+                MaterialDelivered delivered = materialDeliveredRepository.findById(referenceId).orElseThrow(() ->
+                        new ResourceNotFoundException("Delivered material not found"));
+                double totalCost = delivered.getTotalCost() == null ? 0d : delivered.getTotalCost();
+                PaymentStatus status = applyAndCalculate(delivered::getPaidAmount, delivered::setPaidAmount, totalCost, amountDelta);
+                delivered.setPaymentStatus(status);
+                materialDeliveredRepository.save(delivered);
+                payment.setPaymentCategory(delivered.getPaymentCategory());
+                payment.setReferenceCode(delivered.getReferenceCode());
+                payment.setPaymentStatus(status);
+                payment.setReferenceId(delivered.getId());
             }
             case EXPENSES -> {
                 Expenses expense = expenseRepository.findById(referenceId).orElseThrow(() ->

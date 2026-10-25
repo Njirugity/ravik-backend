@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
+import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.projects.entity.Projects;
 
 import java.time.LocalDate;
@@ -38,6 +40,15 @@ public class MaterialDelivered extends BaseEntity {
     private Double quantityDelivered;
     private Double unitPrice;
     private LocalDate dateDelivered;
+
+    private Double totalCost;
+    private Double paidAmount;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+    @Enumerated(EnumType.STRING)
+    private PaymentCategory paymentCategory = PaymentCategory.MATERIALS;
+    @Column(unique = true)
+    private String referenceCode;
 
     // Not on MVP — receipts/photos upload plumbing isn't built yet, field is a placeholder.
     private String supportingDocuments;

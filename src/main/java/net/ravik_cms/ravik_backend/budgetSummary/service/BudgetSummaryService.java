@@ -14,6 +14,7 @@ import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.equipmentsPayout.repository.EquipmentsPayoutRepository;
 import net.ravik_cms.ravik_backend.expense.repository.ExpenseRepository;
 import net.ravik_cms.ravik_backend.labourPayout.repository.LabourPayoutRepository;
+import net.ravik_cms.ravik_backend.materials.repository.MaterialDeliveredRepository;
 import net.ravik_cms.ravik_backend.milestoneBudget.repository.MilestoneBudgetRepository;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import net.ravik_cms.ravik_backend.phase.repository.PhasesRepository;
@@ -36,6 +37,7 @@ public class BudgetSummaryService {
     private final SubContractorPayoutRepository subContractorPayoutRepository;
     private final LabourPayoutRepository labourPayoutRepository;
     private final ExpenseRepository expenseRepository;
+    private final MaterialDeliveredRepository materialDeliveredRepository;
     private final ProjectsRepository projectsRepository;
     private final PhasesRepository phasesRepository;
     private final MilestonesRepository milestonesRepository;
@@ -51,6 +53,7 @@ public class BudgetSummaryService {
         milestoneCost.put(BudgetCategory.PLANT_AND_EQUIPMENT, nz(equipmentsPayoutRepository.sumActualCostByProjectId(projectId)));
         milestoneCost.put(BudgetCategory.SUBCONTRACTOR, nz(subContractorPayoutRepository.sumActualCostByProjectId(projectId)));
         milestoneCost.put(BudgetCategory.LABOUR, nz(labourPayoutRepository.sumTotalAmountByProjectId(projectId)));
+        milestoneCost.put(BudgetCategory.MATERIAL, nz(materialDeliveredRepository.sumTotalCostsByProjectId(projectId)));
 
         Map<BudgetCategory, Double> unscoped = toMap(expenseRepository.sumByProjectGroupByBudgetCategory(projectId));
 

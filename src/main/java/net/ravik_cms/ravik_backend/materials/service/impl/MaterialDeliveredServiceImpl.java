@@ -4,7 +4,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
+import net.ravik_cms.ravik_backend.common.utils.PaymentStatusCalculator;
+import net.ravik_cms.ravik_backend.common.utils.ReferenceCodeGenerator;
 import net.ravik_cms.ravik_backend.materials.dto.CreateMaterialDeliveredDto;
 import net.ravik_cms.ravik_backend.materials.dto.MaterialDeliveredDto;
 import net.ravik_cms.ravik_backend.materials.dto.UpdateMaterialDeliveredDto;
@@ -57,7 +60,9 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
         materialDelivered.setQuantityDelivered(dto.quantityDelivered());
         materialDelivered.setUnitPrice(dto.unitPrice());
         materialDelivered.setDateDelivered(dto.dateDelivered());
-
+        materialDelivered.setReferenceCode(ReferenceCodeGenerator.generate("MD", materialDeliveredRepository::existsByReferenceCode));
+        materialDelivered.setPaymentStatus(PaymentStatus.PENDING);
+        materialDelivered.setTotalCost(dto.quantityDelivered() * dto.unitPrice());
         return withCreatorName(materialDeliveredMapper.toDto(materialDeliveredRepository.save(materialDelivered)));
     }
 
@@ -102,6 +107,12 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
         authorizationService.authorize("UPDATE_MATERIAL_DELIVERED");
         MaterialDelivered materialDelivered = findMaterialDelivered(projectId, id);
         materialDeliveredMapper.updateFromDto(dto, materialDelivered);
+
+        if (materialDelivered.getQuantityDelivered() != null && materialDelivered.getUnitPrice() != null) {
+            double totalCost = materialDelivered.getQuantityDelivered() * materialDelivered.getUnitPrice();
+            materialDelivered.setTotalCost(totalCost);
+            materialDelivered.setPaymentStatus(PaymentStatusCalculator.calculate(totalCost, materialDelivered.getPaidAmount()));
+        }
         return withCreatorName(materialDeliveredMapper.toDto(materialDeliveredRepository.save(materialDelivered)));
     }
 

@@ -30,8 +30,11 @@ public class CostSummaryService {
         paidByCategory.put(BudgetCategory.PLANT_AND_EQUIPMENT,
                 nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.EQUIPMENT))));
         paidByCategory.put(BudgetCategory.LABOUR,
-                nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.LABOUR, PaymentCategory.SUBCONTRACTOR))));
-
+                nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.LABOUR))));
+        paidByCategory.put(BudgetCategory.MATERIAL,
+                nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.MATERIALS))));
+        paidByCategory.put(BudgetCategory.SUBCONTRACTOR,
+                nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.SUBCONTRACTOR))));
         List<CostCategoryLineDto> lines = new ArrayList<>();
         for (BudgetCategoryLineDto line : budgetSummary.getCategories()) {
             lines.add(buildLine(line.getCategory(), line.getTotalActualCost(), paidByCategory.getOrDefault(line.getCategory(), 0.0)));

@@ -1,5 +1,7 @@
 package net.ravik_cms.ravik_backend.payment.repository;
 
+import net.ravik_cms.ravik_backend.common.dtos.CategoryAmountProjection;
+import net.ravik_cms.ravik_backend.common.dtos.MonthAmountProjection;
 import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.payment.dtos.PaymentInfoProjection;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -57,4 +60,30 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.project.id = :projectId AND p.account.id = :accountId")
     Double sumAmountByProjectIdAndAccountId(@Param("projectId") UUID projectId, @Param("accountId") UUID accountId);
+
+    /**
+     * Expense payments re-bucketed into the budget category of the expense they settle.
+     * Payments against an expense without a category are left out.
+     */
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.CategoryAmountProjection(
+                            c.budgetCategory, COALESCE(SUM(p.amount), 0))
+                FROM Payment p
+                JOIN Expenses e ON e.id = p.referenceId
+                JOIN e.category c
+                WHERE p.project.id = :projectId
+                AND p.paymentCategory = net.ravik_cms.ravik_backend.common.enums.PaymentCategory.EXPENSES
+                GROUP BY c.budgetCategory
+            """)
+    List<CategoryAmountProjection> sumExpensePaymentsByBudgetCategory(@Param("projectId") UUID projectId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.MonthAmountProjection(
+                            YEAR(p.datePaid), MONTH(p.datePaid), COALESCE(SUM(p.amount), 0))
+                FROM Payment p
+                WHERE p.project.id = :projectId
+                AND p.datePaid >= :from
+                GROUP BY YEAR(p.datePaid), MONTH(p.datePaid)
+            """)
+    List<MonthAmountProjection> sumByProjectGroupByMonth(@Param("projectId") UUID projectId, @Param("from") LocalDate from);
 }

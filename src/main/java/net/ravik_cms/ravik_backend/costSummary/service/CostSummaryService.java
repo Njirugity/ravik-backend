@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.BudgetCategoryLineDto;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.ProjectBudgetSummaryDto;
 import net.ravik_cms.ravik_backend.budgetSummary.service.BudgetSummaryService;
+import net.ravik_cms.ravik_backend.common.dtos.CategoryAmountProjection;
 import net.ravik_cms.ravik_backend.common.enums.BudgetCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
 import net.ravik_cms.ravik_backend.costSummary.dtos.CostCategoryLineDto;
@@ -35,6 +36,11 @@ public class CostSummaryService {
                 nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.MATERIALS))));
         paidByCategory.put(BudgetCategory.SUBCONTRACTOR,
                 nz(paymentRepository.sumAmountByProjectIdAndPaymentCategoryIn(projectId, List.of(PaymentCategory.SUBCONTRACTOR))));
+        // expenses carry their own budget category, so their payments land wherever the expense was booked
+        for (CategoryAmountProjection expensePaid : paymentRepository.sumExpensePaymentsByBudgetCategory(projectId)) {
+            paidByCategory.merge(expensePaid.category(), nz(expensePaid.total()), Double::sum);
+        }
+
         List<CostCategoryLineDto> lines = new ArrayList<>();
         for (BudgetCategoryLineDto line : budgetSummary.getCategories()) {
             lines.add(buildLine(line.getCategory(), line.getTotalActualCost(), paidByCategory.getOrDefault(line.getCategory(), 0.0)));

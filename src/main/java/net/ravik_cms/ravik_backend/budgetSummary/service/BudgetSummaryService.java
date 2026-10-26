@@ -20,6 +20,7 @@ import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import net.ravik_cms.ravik_backend.phase.repository.PhasesRepository;
 import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import net.ravik_cms.ravik_backend.subContractorPayout.repository.SubContractorPayoutRepository;
+import net.ravik_cms.ravik_backend.wages.WagesRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class BudgetSummaryService {
     private final ProjectsRepository projectsRepository;
     private final PhasesRepository phasesRepository;
     private final MilestonesRepository milestonesRepository;
+    private final WagesRepository wagesRepository;
 
     public ProjectBudgetSummaryDto getProjectBudgetSummary(UUID projectId) {
         if (!projectsRepository.existsById(projectId)) {
@@ -76,7 +78,8 @@ public class BudgetSummaryService {
 
         Map<BudgetCategory, Double> milestoneCost = new EnumMap<>(BudgetCategory.class);
         milestoneCost.put(BudgetCategory.PLANT_AND_EQUIPMENT, nz(equipmentsPayoutRepository.sumActualCostByPhaseId(phaseId)));
-        milestoneCost.put(BudgetCategory.LABOUR, nz(subContractorPayoutRepository.sumActualCostByPhaseId(phaseId)));
+        milestoneCost.put(BudgetCategory.SUBCONTRACTOR, nz(subContractorPayoutRepository.sumActualCostByPhaseId(phaseId)));
+        milestoneCost.put(BudgetCategory.LABOUR, nz(wagesRepository.sumGrossPayByPhaseId(phaseId)));
 
         List<PhaseCategoryLineDto> lines = new ArrayList<>();
         for (BudgetCategory category : BudgetCategory.values()) {
@@ -95,7 +98,8 @@ public class BudgetSummaryService {
 
         Map<BudgetCategory, Double> actual = new EnumMap<>(BudgetCategory.class);
         actual.put(BudgetCategory.PLANT_AND_EQUIPMENT, nz(equipmentsPayoutRepository.sumActualCostByMilestoneId(milestoneId)));
-        actual.put(BudgetCategory.LABOUR, nz(subContractorPayoutRepository.sumActualCostByMilestoneId(milestoneId)));
+        actual.put(BudgetCategory.SUBCONTRACTOR, nz(subContractorPayoutRepository.sumActualCostByMilestoneId(milestoneId)));
+        actual.put(BudgetCategory.LABOUR, nz(wagesRepository.sumGrossPayByMilestoneId(milestoneId)));
 
         List<MilestoneCategoryLineDto> lines = new ArrayList<>();
         for (BudgetCategory category : BudgetCategory.values()) {

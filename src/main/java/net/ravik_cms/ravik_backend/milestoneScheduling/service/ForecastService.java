@@ -187,6 +187,8 @@ public class ForecastService {
                 if (PUSH_UNSTARTED_TO_DATA_DATE) {
                     fStart = maxDate(fStart, dataDate);
                 }
+
+                fStart = calendarService.nextWorkingDay(fStart, calendar);
                 fFinish = calendarService.addWorkingDays(fStart, m.getDuration(), calendar);
             }
 

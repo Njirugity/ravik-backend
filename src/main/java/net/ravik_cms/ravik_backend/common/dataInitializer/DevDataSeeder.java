@@ -143,7 +143,7 @@ public class DevDataSeeder implements CommandLineRunner {
                 .getId();
         ProjectDto dto = new ProjectDto(
                 "Riverside Apartments", "LR-2026-001", wardId, "Along Riverside Drive",
-                "Residential", 2500.0, null, LocalDate.now()
+                "Residential", 2500.0, null, LocalDate.now(), LocalDate.now().plusMonths(3)
         );
         List<CreateBudgetDto> budget = new ArrayList<>();
         CreateBudgetDto labour = new CreateBudgetDto(15000000.0, BudgetCategory.LABOUR);

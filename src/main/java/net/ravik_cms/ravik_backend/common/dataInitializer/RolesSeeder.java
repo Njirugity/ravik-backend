@@ -39,20 +39,20 @@ public class RolesSeeder {
                 "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
                 "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
                 "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "UPLOAD_FILE", "READ_FILE"
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "UPLOAD_FILE", "READ_FILE", "READ_DASHBOARD"
         ));
         createRole("DIRECTOR", projects, RoleType.SYSTEM,Set.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
                 "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "READ_DASHBOARD"
         ));
         createRole("ACCOUNTANT", projects,RoleType.SYSTEM, Set.of(
                 "READ_PROJECT", "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "READ_DASHBOARD"
         ));
         createRole("ADMIN", projects, RoleType.SYSTEM,Set.of(
                 "READ_PROJECT", "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "READ_DASHBOARD"
         ));
 
     }

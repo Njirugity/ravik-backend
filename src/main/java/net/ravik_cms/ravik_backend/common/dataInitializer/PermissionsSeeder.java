@@ -1,6 +1,8 @@
 package net.ravik_cms.ravik_backend.common.dataInitializer;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.permission.PermissionsRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -8,7 +10,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @Order(2)
 @Component
 @RequiredArgsConstructor
@@ -16,6 +20,7 @@ public class PermissionsSeeder implements CommandLineRunner {
     private final PermissionsRepository permissionsRepository;
 
     @Override
+    @Transactional
     public void run(String... args){
         List<String> permissions = List.of(
                 "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
@@ -29,7 +34,8 @@ public class PermissionsSeeder implements CommandLineRunner {
                 "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
                 "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
                 "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "UPLOAD_FILE", "READ_FILE", "DELETE_FILE"
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "UPLOAD_FILE", "READ_FILE", "DELETE_FILE",
+                "READ_DASHBOARD"
         );
         for(String pName: permissions){
             if(!permissionsRepository.existsByName(pName)){
@@ -38,7 +44,6 @@ public class PermissionsSeeder implements CommandLineRunner {
                 permissionsRepository.save(p);
             }
         }
-        System.out.println("Permissions seeded successfully");
+        log.info("Permissions seeded successfully");
     }
-
 }

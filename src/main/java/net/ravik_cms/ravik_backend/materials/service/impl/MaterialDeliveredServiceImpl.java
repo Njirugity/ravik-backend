@@ -2,7 +2,6 @@ package net.ravik_cms.ravik_backend.materials.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
@@ -41,7 +40,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
     private final MaterialListRepository materialListRepository;
     private final UserRepository userRepository;
     private final MaterialDeliveredMapper materialDeliveredMapper;
-    private final AuthorizationService authorizationService;
 
     /**
      * Records a delivery of a material type to the project.
@@ -51,7 +49,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
     @Override
     @Transactional
     public MaterialDeliveredDto create(UUID projectId, CreateMaterialDeliveredDto dto) {
-        authorizationService.authorize("CREATE_MATERIAL_DELIVERED");
         MaterialList materialList = findMaterialList(projectId, dto.materialListId());
 
         MaterialDelivered materialDelivered = new MaterialDelivered();
@@ -71,7 +68,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
      */
     @Override
     public MaterialDeliveredDto get(UUID projectId, UUID id) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         return withCreatorName(materialDeliveredMapper.toDto(findMaterialDelivered(projectId, id)));
     }
 
@@ -80,7 +76,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
      */
     @Override
     public List<MaterialDeliveredDto> getAllByProject(UUID projectId) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         return withCreatorNames(materialDeliveredMapper.toDtoList(
                 materialDeliveredRepository.findAllByProjectIdAndStatus(projectId, DeletionStatus.NOT_DELETED)));
     }
@@ -90,7 +85,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
      */
     @Override
     public List<MaterialDeliveredDto> getAllByMaterial(UUID projectId, UUID materialListId) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         return withCreatorNames(materialDeliveredMapper.toDtoList(
                 materialDeliveredRepository.findAllByProjectIdAndMaterialListIdAndStatus(
                         projectId, materialListId, DeletionStatus.NOT_DELETED)));
@@ -104,7 +98,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
     @Override
     @Transactional
     public MaterialDeliveredDto update(UUID projectId, UUID id, UpdateMaterialDeliveredDto dto) {
-        authorizationService.authorize("UPDATE_MATERIAL_DELIVERED");
         MaterialDelivered materialDelivered = findMaterialDelivered(projectId, id);
         materialDeliveredMapper.updateFromDto(dto, materialDelivered);
 
@@ -125,7 +118,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
     @Override
     @Transactional
     public void delete(UUID projectId, UUID id) {
-        authorizationService.authorize("DELETE_MATERIAL_DELIVERED");
         MaterialDelivered materialDelivered = findMaterialDelivered(projectId, id);
         materialDelivered.setStatus(DeletionStatus.DELETED);
         materialDeliveredRepository.save(materialDelivered);
@@ -137,7 +129,6 @@ public class MaterialDeliveredServiceImpl implements MaterialDeliveredService {
      */
     @Override
     public Double computeTotalDelivered(UUID projectId, UUID materialListId) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         return materialDeliveredRepository.sumDeliveredQuantity(projectId, materialListId);
     }
 

@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Builds the materials section of the dashboard on top of the materials report and alerts,
- * using their unauthorised build methods since the dashboard checks READ_DASHBOARD itself.
+ * Builds the materials section of the dashboard on top of the materials report and alerts.
  */
 @Component
 @RequiredArgsConstructor

@@ -2,7 +2,6 @@ package net.ravik_cms.ravik_backend.materials.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.materials.dto.CreateMaterialUsedDto;
@@ -46,7 +45,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
     private final MilestonesRepository milestonesRepository;
     private final UserRepository userRepository;
     private final MaterialUsedMapper materialUsedMapper;
-    private final AuthorizationService authorizationService;
 
     /**
      * Records material usage against a milestone, deducting from the referenced delivery's
@@ -58,7 +56,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
     @Override
     @Transactional
     public MaterialUsedCreationResult create(UUID projectId, CreateMaterialUsedDto dto) {
-        authorizationService.authorize("CREATE_MATERIAL_USED");
         Milestones milestone = findMilestone(projectId, dto.milestoneId());
         MaterialDelivered materialDelivered = findMaterialDelivered(projectId, dto.materialDeliveredId());
 
@@ -87,7 +84,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
      */
     @Override
     public MaterialUsedDto get(UUID projectId, UUID id) {
-        authorizationService.authorize("READ_MATERIAL_USED");
         return withCreatorName(materialUsedMapper.toDto(findMaterialUsed(projectId, id)));
     }
 
@@ -96,7 +92,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
      */
     @Override
     public List<MaterialUsedDto> getAllByMilestone(UUID projectId, UUID milestoneId) {
-        authorizationService.authorize("READ_MATERIAL_USED");
         return withCreatorNames(materialUsedMapper.toDtoList(
                 materialUsedRepository.findAllByProjectIdAndMilestoneId(projectId, milestoneId)));
     }
@@ -106,7 +101,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
      */
     @Override
     public List<MaterialUsedDto> getAllByProject(UUID projectId) {
-        authorizationService.authorize("READ_MATERIAL_USED");
         return withCreatorNames(materialUsedMapper.toDtoList(materialUsedRepository.findAllByProjectId(projectId)));
     }
 
@@ -119,7 +113,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
     @Override
     @Transactional
     public MaterialUsedDto update(UUID projectId, UUID id, UpdateMaterialUsedDto dto) {
-        authorizationService.authorize("UPDATE_MATERIAL_USED");
         MaterialUsed materialUsed = findMaterialUsed(projectId, id);
         materialUsedMapper.updateFromDto(dto, materialUsed);
         return withCreatorName(materialUsedMapper.toDto(materialUsedRepository.save(materialUsed)));
@@ -134,7 +127,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
     @Override
     @Transactional
     public void delete(UUID projectId, UUID id) {
-        authorizationService.authorize("DELETE_MATERIAL_USED");
         materialUsedRepository.delete(findMaterialUsed(projectId, id));
     }
 
@@ -145,7 +137,6 @@ public class MaterialUsedServiceImpl implements MaterialUsedService {
      */
     @Override
     public MaterialStockDto computeStock(UUID projectId, UUID materialListId) {
-        authorizationService.authorize("READ_MATERIAL_USED");
         MaterialList materialList = materialListRepository.findByIdAndProjectIdAndStatus(materialListId, projectId, DeletionStatus.NOT_DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException("Material not found"));
         Double totalDelivered = materialDeliveredRepository.sumDeliveredQuantity(projectId, materialListId);

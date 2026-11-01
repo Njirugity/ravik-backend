@@ -1,7 +1,6 @@
 package net.ravik_cms.ravik_backend.materials.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.materials.dto.MaterialDeliveredAggregateProjection;
 import net.ravik_cms.ravik_backend.materials.dto.MaterialRequiredAggregateProjection;
@@ -36,7 +35,6 @@ public class MaterialsReportServiceImpl implements MaterialsReportService {
     private final MaterialRequiredRepository materialRequiredRepository;
     private final MaterialDeliveredRepository materialDeliveredRepository;
     private final MaterialUsedRepository materialUsedRepository;
-    private final AuthorizationService authorizationService;
 
     @Override
     public MaterialsReportDto getProjectReport(UUID projectId) {

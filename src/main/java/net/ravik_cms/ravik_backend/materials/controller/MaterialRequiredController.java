@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.common.response.ApiMessageResponse;
 import net.ravik_cms.ravik_backend.materials.dto.CreateMaterialRequiredDto;
@@ -25,10 +26,12 @@ import java.util.UUID;
 public class MaterialRequiredController {
     private final MaterialRequiredService materialRequiredService;
     private final UserProjectContext userProjectContext;
+    private final AuthorizationService authorizationService;
 
     @PostMapping
     @Operation(summary = "Add a material requirement to a milestone", description = "Project is derived from the milestone; project is resolved from the X-Project-ID header for authorization scoping.")
     public ResponseEntity<ApiMessageResponse> create(@RequestBody CreateMaterialRequiredDto dto) {
+        authorizationService.authorize("CREATE_MATERIAL_REQUIRED");
         materialRequiredService.create(userProjectContext.getProjectId(), dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiMessageResponse.of("Material requirement created successfully", HttpStatus.CREATED.value()));
@@ -37,6 +40,7 @@ public class MaterialRequiredController {
     @GetMapping("/{id}")
     @Operation(summary = "Get a material requirement by id")
     public ResponseEntity<MaterialRequiredDto> get(@Parameter(description = "Material requirement id") @PathVariable UUID id) {
+        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         MaterialRequiredDto body = materialRequiredService.get(userProjectContext.getProjectId(), id);
         return ResponseEntity.ok(body);
     }
@@ -44,6 +48,7 @@ public class MaterialRequiredController {
     @GetMapping("/milestone/{milestoneId}")
     @Operation(summary = "List material requirements for a milestone", description = "Backs the milestone page's resources tab.")
     public ResponseEntity<List<MaterialRequiredDto>> getAllByMilestone(@Parameter(description = "Milestone id") @PathVariable UUID milestoneId) {
+        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         List<MaterialRequiredDto> body = materialRequiredService.getAllByMilestone(userProjectContext.getProjectId(), milestoneId);
         return ResponseEntity.ok(body);
     }
@@ -51,6 +56,7 @@ public class MaterialRequiredController {
     @GetMapping
     @Operation(summary = "List all material requirements for the current project")
     public ResponseEntity<List<MaterialRequiredDto>> getAllByProject() {
+        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         List<MaterialRequiredDto> body = materialRequiredService.getAllByProject(userProjectContext.getProjectId());
         return ResponseEntity.ok(body);
     }
@@ -58,6 +64,7 @@ public class MaterialRequiredController {
     @GetMapping("/milestone/{milestoneId}/planned-cost")
     @Operation(summary = "Total planned material cost for a milestone", description = "Sum of quantity_required * unit_price across the milestone's material requirements.")
     public ResponseEntity<PlannedCostDto> getPlannedCostForMilestone(@Parameter(description = "Milestone id") @PathVariable UUID milestoneId) {
+        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         Double total = materialRequiredService.computeTotalPlannedCostForMilestone(userProjectContext.getProjectId(), milestoneId);
         return ResponseEntity.ok(PlannedCostDto.builder().totalPlannedCost(total).build());
     }
@@ -65,6 +72,7 @@ public class MaterialRequiredController {
     @GetMapping("/planned-cost")
     @Operation(summary = "Total planned material cost for the current project", description = "Sum of quantity_required * unit_price across every material requirement in the project.")
     public ResponseEntity<PlannedCostDto> getPlannedCostForProject() {
+        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         Double total = materialRequiredService.computeTotalPlannedCostForProject(userProjectContext.getProjectId());
         return ResponseEntity.ok(PlannedCostDto.builder().totalPlannedCost(total).build());
     }
@@ -72,6 +80,7 @@ public class MaterialRequiredController {
     @PatchMapping("/{id}")
     @Operation(summary = "Partially update a material requirement", description = "Null fields on the request body are left unchanged.")
     public ResponseEntity<ApiMessageResponse> update(@Parameter(description = "Material requirement id") @PathVariable UUID id, @RequestBody UpdateMaterialRequiredDto dto) {
+        authorizationService.authorize("UPDATE_MATERIAL_REQUIRED");
         materialRequiredService.update(userProjectContext.getProjectId(), id, dto);
         return ResponseEntity.ok(ApiMessageResponse.of("Material requirement updated successfully", HttpStatus.OK.value()));
     }
@@ -79,6 +88,7 @@ public class MaterialRequiredController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a material requirement")
     public ResponseEntity<ApiMessageResponse> delete(@Parameter(description = "Material requirement id") @PathVariable UUID id) {
+        authorizationService.authorize("DELETE_MATERIAL_REQUIRED");
         materialRequiredService.delete(userProjectContext.getProjectId(), id);
         return ResponseEntity.ok(ApiMessageResponse.of("Material requirement deleted successfully", HttpStatus.OK.value()));
     }

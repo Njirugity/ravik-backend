@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,5 +20,4 @@ public interface RolesRepository extends JpaRepository<Roles, UUID> {
             "WHERE m.role.project.id = :projectId GROUP BY m.role.id")
     List<RoleMembershipCount> countMembersByRole(@Param("projectId") UUID projectId);
 
-    List<Roles> findAllByNameIn(Collection<String> names);
 }

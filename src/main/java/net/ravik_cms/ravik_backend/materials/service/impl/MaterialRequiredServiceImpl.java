@@ -2,7 +2,6 @@ package net.ravik_cms.ravik_backend.materials.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.materials.dto.CreateMaterialRequiredDto;
@@ -40,7 +39,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
     private final MilestonesRepository milestonesRepository;
     private final UserRepository userRepository;
     private final MaterialRequiredMapper materialRequiredMapper;
-    private final AuthorizationService authorizationService;
 
     /**
      * Creates a material requirement for a milestone. The project is derived from the milestone
@@ -52,7 +50,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
     @Override
     @Transactional
     public MaterialRequiredDto create(UUID projectId, CreateMaterialRequiredDto dto) {
-        authorizationService.authorize("CREATE_MATERIAL_REQUIRED");
         Milestones milestone = findMilestone(projectId, dto.milestoneId());
         MaterialList materialList = findMaterialList(projectId, dto.materialListId());
 
@@ -71,7 +68,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
      */
     @Override
     public MaterialRequiredDto get(UUID projectId, UUID id) {
-        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         return withCreatorName(materialRequiredMapper.toDto(findMaterialRequired(projectId, id)));
     }
 
@@ -80,7 +76,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
      */
     @Override
     public List<MaterialRequiredDto> getAllByMilestone(UUID projectId, UUID milestoneId) {
-        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         return withCreatorNames(materialRequiredMapper.toDtoList(
                 materialRequiredRepository.findAllByProjectIdAndMilestoneId(projectId, milestoneId)));
     }
@@ -90,7 +85,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
      */
     @Override
     public List<MaterialRequiredDto> getAllByProject(UUID projectId) {
-        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         return withCreatorNames(materialRequiredMapper.toDtoList(materialRequiredRepository.findAllByProjectId(projectId)));
     }
 
@@ -102,7 +96,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
     @Override
     @Transactional
     public MaterialRequiredDto update(UUID projectId, UUID id, UpdateMaterialRequiredDto dto) {
-        authorizationService.authorize("UPDATE_MATERIAL_REQUIRED");
         MaterialRequired materialRequired = findMaterialRequired(projectId, id);
         materialRequiredMapper.updateFromDto(dto, materialRequired);
         return withCreatorName(materialRequiredMapper.toDto(materialRequiredRepository.save(materialRequired)));
@@ -117,7 +110,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
     @Override
     @Transactional
     public void delete(UUID projectId, UUID id) {
-        authorizationService.authorize("DELETE_MATERIAL_REQUIRED");
         materialRequiredRepository.delete(findMaterialRequired(projectId, id));
     }
 
@@ -128,7 +120,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
      */
     @Override
     public Double computeTotalPlannedCostForMilestone(UUID projectId, UUID milestoneId) {
-        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         return materialRequiredRepository.sumPlannedCostByMilestone(projectId, milestoneId);
     }
 
@@ -139,7 +130,6 @@ public class MaterialRequiredServiceImpl implements MaterialRequiredService {
      */
     @Override
     public Double computeTotalPlannedCostForProject(UUID projectId) {
-        authorizationService.authorize("READ_MATERIAL_REQUIRED");
         return materialRequiredRepository.sumPlannedCostByProject(projectId);
     }
 

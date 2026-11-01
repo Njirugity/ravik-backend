@@ -1,7 +1,6 @@
 package net.ravik_cms.ravik_backend.dashboard.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.dashboard.dto.AccountsDashboardDto;
@@ -27,15 +26,14 @@ import java.util.UUID;
  * Default {@link DashboardService} implementation.
  * <p>
  * Project-scoped analytics across schedule, milestones, budget, payments, accounts and
- * materials. Every section is gated by READ_DASHBOARD alone, so roles without the per-module
- * read permissions can still see the dashboard. The section maths lives in the
+ * materials. Permissions are checked in {@code DashboardController}, each section under the
+ * read permission of the module it reports on. The section maths lives in the
  * {@code *Analytics} components; the overview reuses them so each figure has one definition.
  */
 @Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
 
-    private final AuthorizationService authorizationService;
     private final ProjectsRepository projectsRepository;
     private final MilestonesRepository milestonesRepository;
     private final ScheduleAnalytics scheduleAnalytics;
@@ -45,7 +43,6 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardOverviewDto getOverview(UUID projectId) {
-        authorizationService.authorize("READ_DASHBOARD");
         Projects project = findProject(projectId);
         List<Milestones> milestones = milestonesRepository.findAllByProjectId(projectId);
 
@@ -77,40 +74,34 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public ScheduleDashboardDto getSchedule(UUID projectId) {
-        authorizationService.authorize("READ_DASHBOARD");
         return scheduleAnalytics.build(findProject(projectId), milestonesRepository.findAllByProjectId(projectId));
     }
 
     @Override
     public MilestoneDashboardDto getMilestones(UUID projectId, int upcomingDays) {
-        authorizationService.authorize("READ_DASHBOARD");
         findProject(projectId);
         return milestoneAnalytics.build(projectId, milestonesRepository.findAllByProjectId(projectId), upcomingDays);
     }
 
     @Override
     public BudgetDashboardDto getBudget(UUID projectId) {
-        authorizationService.authorize("READ_DASHBOARD");
         findProject(projectId);
         return financeAnalytics.buildBudget(projectId, milestonesRepository.findAllByProjectId(projectId));
     }
 
     @Override
     public PaymentsDashboardDto getPayments(UUID projectId, int months) {
-        authorizationService.authorize("READ_DASHBOARD");
         findProject(projectId);
         return financeAnalytics.buildPayments(projectId, months);
     }
 
     @Override
     public AccountsDashboardDto getAccounts(UUID projectId) {
-        authorizationService.authorize("READ_DASHBOARD");
         return financeAnalytics.buildAccounts(findProject(projectId));
     }
 
     @Override
     public MaterialsDashboardDto getMaterials(UUID projectId) {
-        authorizationService.authorize("READ_DASHBOARD");
         findProject(projectId);
         return materialAnalytics.build(projectId);
     }

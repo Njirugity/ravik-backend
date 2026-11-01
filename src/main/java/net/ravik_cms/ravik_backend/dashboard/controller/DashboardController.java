@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.dashboard.dto.AccountsDashboardDto;
 import net.ravik_cms.ravik_backend.dashboard.dto.BudgetDashboardDto;
@@ -29,16 +30,19 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
     private final UserProjectContext userProjectContext;
+    private final AuthorizationService authorizationService;
 
     @GetMapping
     @Operation(summary = "Dashboard overview", description = "Headline KPI tiles: progress, schedule variance, budget used, cash position, milestone and material risk counts.")
     public ResponseEntity<DashboardOverviewDto> getOverview() {
+        authorizationService.authorize("READ_PROJECT");
         return ResponseEntity.ok(dashboardService.getOverview(userProjectContext.getProjectId()));
     }
 
     @GetMapping("/schedule")
     @Operation(summary = "Schedule analytics", description = "Baseline vs forecast finish, variance in working days, % complete vs time elapsed, and critical/near-critical counts.")
     public ResponseEntity<ScheduleDashboardDto> getSchedule() {
+        authorizationService.authorize("READ_SCHEDULE");
         return ResponseEntity.ok(dashboardService.getSchedule(userProjectContext.getProjectId()));
     }
 
@@ -47,6 +51,7 @@ public class DashboardController {
     public ResponseEntity<MilestoneDashboardDto> getMilestones(
             @Parameter(description = "Window for upcoming milestones, in days (1-90)")
             @RequestParam(defaultValue = "14") int upcomingDays) {
+        authorizationService.authorize("READ_MILESTONE");
         return ResponseEntity.ok(dashboardService.getMilestones(userProjectContext.getProjectId(),
                 Math.clamp(upcomingDays, 1, MAX_UPCOMING_DAYS)));
     }
@@ -54,6 +59,7 @@ public class DashboardController {
     @GetMapping("/budget")
     @Operation(summary = "Budget analytics", description = "Approved vs allocated vs actual per budget category, and the milestones overrunning their budget most.")
     public ResponseEntity<BudgetDashboardDto> getBudget() {
+        authorizationService.authorize("READ_BUDGET");
         return ResponseEntity.ok(dashboardService.getBudget(userProjectContext.getProjectId()));
     }
 
@@ -62,6 +68,7 @@ public class DashboardController {
     public ResponseEntity<PaymentsDashboardDto> getPayments(
             @Parameter(description = "Number of months in the trend, current month included (1-24)")
             @RequestParam(defaultValue = "6") int months) {
+        authorizationService.authorize("READ_PAYMENT");
         return ResponseEntity.ok(dashboardService.getPayments(userProjectContext.getProjectId(),
                 Math.clamp(months, 1, MAX_TREND_MONTHS)));
     }
@@ -69,12 +76,15 @@ public class DashboardController {
     @GetMapping("/accounts")
     @Operation(summary = "Account analytics", description = "Income and payments per account on this project, with each account's overall balance.")
     public ResponseEntity<AccountsDashboardDto> getAccounts() {
+        authorizationService.authorize("READ_ACCOUNT");
         return ResponseEntity.ok(dashboardService.getAccounts(userProjectContext.getProjectId()));
     }
 
     @GetMapping("/materials")
     @Operation(summary = "Material analytics", description = "Planned vs delivered material cost, stock shortfalls against remaining requirements, and materials at risk for milestones due within 7 days.")
     public ResponseEntity<MaterialsDashboardDto> getMaterials() {
+        authorizationService.authorize("READ_MATERIALS_REPORT");
+        authorizationService.authorize("READ_MATERIAL_ALERTS");
         return ResponseEntity.ok(dashboardService.getMaterials(userProjectContext.getProjectId()));
     }
 }

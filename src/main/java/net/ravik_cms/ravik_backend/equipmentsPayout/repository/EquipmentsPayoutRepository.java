@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.equipmentsPayout.repository;
 
+import net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.equipmentsPayout.dtos.EquipmentsPayoutInfoProjection;
@@ -111,4 +112,16 @@ public interface EquipmentsPayoutRepository extends JpaRepository<EquipmentsPayo
                 WHERE ep.project.id = :projectId
             """)
     Double sumActualCostByProjectId(@Param("projectId") UUID projectId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection(
+                            ep.milestone.id,
+                            1.0 * COALESCE(SUM(ep.operatorCost + (CASE WHEN ep.equipmentRequired.equipments.category = net.ravik_cms.ravik_backend.common.enums.EquipmentCategory.OWNED
+                                                     THEN ep.fuelCost
+                                                     ELSE ep.rentalCost END)), 0))
+                FROM EquipmentsPayout ep
+                WHERE ep.project.id = :projectId
+                GROUP BY ep.milestone.id
+            """)
+    List<MilestoneAmountProjection> sumActualCostByProjectGroupByMilestone(@Param("projectId") UUID projectId);
 }

@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestones.repository;
 
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
+import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneStatusCountProjection;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -121,4 +122,12 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("projectId") UUID projectId,
             @Param("currentDate") LocalDate currentDate
     );
+
+    @Query("""
+        SELECT new net.ravik_cms.ravik_backend.milestones.dtos.MilestoneStatusCountProjection(m.status, COUNT(m))
+        FROM Milestones m
+        WHERE m.project.id = :projectId
+        GROUP BY m.status
+    """)
+    List<MilestoneStatusCountProjection> countByProjectGroupByStatus(@Param("projectId") UUID projectId);
 }

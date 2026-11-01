@@ -40,8 +40,6 @@ public class MaterialsReportServiceImpl implements MaterialsReportService {
 
     @Override
     public MaterialsReportDto getProjectReport(UUID projectId) {
-        authorizationService.authorize("READ_MATERIALS_REPORT");
-
         List<MaterialList> materialTypes = materialListRepository.findAllByProjectIdAndStatus(projectId, DeletionStatus.NOT_DELETED);
 
         Map<UUID, MaterialRequiredAggregateProjection> requiredByMaterial = materialRequiredRepository

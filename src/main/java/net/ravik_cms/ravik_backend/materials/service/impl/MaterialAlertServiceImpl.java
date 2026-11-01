@@ -1,7 +1,6 @@
 package net.ravik_cms.ravik_backend.materials.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.materials.dto.MaterialAtRiskDto;
 import net.ravik_cms.ravik_backend.materials.entity.MaterialRequired;
 import net.ravik_cms.ravik_backend.materials.repository.MaterialDeliveredRepository;
@@ -31,12 +30,9 @@ public class MaterialAlertServiceImpl implements MaterialAlertService {
     private final MaterialRequiredRepository materialRequiredRepository;
     private final MaterialDeliveredRepository materialDeliveredRepository;
     private final MaterialUsedRepository materialUsedRepository;
-    private final AuthorizationService authorizationService;
 
     @Override
     public List<MaterialAtRiskDto> getAtRiskMaterials(UUID projectId, int daysThreshold) {
-        authorizationService.authorize("READ_MATERIAL_ALERTS");
-
         LocalDate today = LocalDate.now();
         LocalDate thresholdDate = today.plusDays(daysThreshold);
         List<Milestones> almostDueMilestones = milestonesRepository.findAlmostDueMilestones(projectId, today, thresholdDate);

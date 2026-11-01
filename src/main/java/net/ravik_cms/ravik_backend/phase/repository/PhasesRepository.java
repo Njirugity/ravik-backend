@@ -47,4 +47,6 @@ public interface PhasesRepository extends JpaRepository<Phases, UUID> {
     Optional<LocalDate> findProjectPlannedEndDate(@Param("projectId") UUID projectId);
     @Query("SELECT COUNT(p) FROM Phases p WHERE p.project.id = :projectId")
     Optional<Long> countByProjectId(@Param("projectId") UUID projectId);
+
+    List<Phases> findAllByProjectIdOrderByPlannedStartDateAsc(UUID projectId);
 }

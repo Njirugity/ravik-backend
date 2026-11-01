@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.wages;
 
+import net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -149,4 +150,19 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
             @Param("search") String search,
             Pageable pageable
     );
+
+    @Query("SELECT COALESCE(SUM(w.grossPay), 0) FROM Wages w WHERE w.milestone.id = :milestoneId")
+    Double sumGrossPayByMilestoneId(@Param("milestoneId") UUID milestoneId);
+
+    @Query("SELECT COALESCE(SUM(w.grossPay), 0) FROM Wages w WHERE w.milestone.phase.id = :phaseId")
+    Double sumGrossPayByPhaseId(@Param("phaseId") UUID phaseId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection(
+                            w.milestone.id, COALESCE(SUM(w.grossPay), 0))
+                FROM Wages w
+                WHERE w.milestone.project.id = :projectId
+                GROUP BY w.milestone.id
+            """)
+    List<MilestoneAmountProjection> sumGrossPayByProjectGroupByMilestone(@Param("projectId") UUID projectId);
 }

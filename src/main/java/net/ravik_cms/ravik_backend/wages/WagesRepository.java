@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.wages;
 
 import net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
+import net.ravik_cms.ravik_backend.reports.dto.JobTitleWagesProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -165,4 +166,14 @@ public interface WagesRepository extends JpaRepository<Wages, Long> {
                 GROUP BY w.milestone.id
             """)
     List<MilestoneAmountProjection> sumGrossPayByProjectGroupByMilestone(@Param("projectId") UUID projectId);
+
+    @Query("""
+        SELECT new net.ravik_cms.ravik_backend.reports.dto.JobTitleWagesProjection(
+                    m.jobTitle.id, SUM(w.grossPay))
+        FROM Wages w
+        JOIN w.membership m
+        WHERE m.project.id = :projectId
+        GROUP BY m.jobTitle.id
+    """)
+    List<JobTitleWagesProjection> aggregateGrossPayByJobTitleForProject(@Param("projectId") UUID projectId);
 }

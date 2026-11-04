@@ -6,6 +6,7 @@ import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.equipmentsPayout.dtos.EquipmentsPayoutInfoProjection;
 import net.ravik_cms.ravik_backend.equipmentsPayout.entity.EquipmentsPayout;
 import net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection;
+import net.ravik_cms.ravik_backend.reports.dto.EquipmentActualAggregateProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -124,4 +125,17 @@ public interface EquipmentsPayoutRepository extends JpaRepository<EquipmentsPayo
                 GROUP BY ep.milestone.id
             """)
     List<MilestoneAmountProjection> sumActualCostByProjectGroupByMilestone(@Param("projectId") UUID projectId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.reports.dto.EquipmentActualAggregateProjection(
+                            ep.equipmentRequired.id, SUM(ep.workedDuration),
+                            SUM(1.0 * (ep.operatorCost + (CASE WHEN ep.equipmentRequired.equipments.category = net.ravik_cms.ravik_backend.common.enums.EquipmentCategory.OWNED
+                                                     THEN ep.fuelCost
+                                                     ELSE ep.rentalCost END))),
+                            SUM(ep.paidAmount))
+                FROM EquipmentsPayout ep
+                WHERE ep.project.id = :projectId
+                GROUP BY ep.equipmentRequired.id
+            """)
+    List<EquipmentActualAggregateProjection> aggregateActualsByProjectGroupedByRequirement(@Param("projectId") UUID projectId);
 }

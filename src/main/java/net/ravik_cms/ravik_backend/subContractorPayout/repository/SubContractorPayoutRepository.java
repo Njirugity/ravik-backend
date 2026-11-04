@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.subContractorPayout.repository;
 import net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection;
+import net.ravik_cms.ravik_backend.reports.dto.SubContractorActualAggregateProjection;
 import net.ravik_cms.ravik_backend.subContractorPayout.dtos.SubContractorPayoutInfoProjection;
 import net.ravik_cms.ravik_backend.subContractorPayout.entity.SubContractorPayout;
 import org.springframework.data.domain.Page;
@@ -86,4 +87,13 @@ public interface SubContractorPayoutRepository extends JpaRepository<SubContract
                 GROUP BY sp.milestone.id
             """)
     List<MilestoneAmountProjection> sumActualCostByProjectGroupByMilestone(@Param("projectId") UUID projectId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.reports.dto.SubContractorActualAggregateProjection(
+                            sp.subContractorRequired.id, SUM(sp.actualJobCost), SUM(sp.paidAmount))
+                FROM SubContractorPayout sp
+                WHERE sp.project.id = :projectId
+                GROUP BY sp.subContractorRequired.id
+            """)
+    List<SubContractorActualAggregateProjection> aggregateActualsByProjectGroupedByRequirement(@Param("projectId") UUID projectId);
 }

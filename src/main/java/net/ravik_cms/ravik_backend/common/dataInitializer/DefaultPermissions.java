@@ -34,6 +34,9 @@ public final class DefaultPermissions {
             crud("EXPENSE"),
             crud("ACCOUNT"),
             crud("APPROVAL"),
+            List.of("READ_CASH_SUMMARY", "READ_COST_SUMMARY", "READ_ACCOUNT_INSIGHTS", "READ_APPROVALS_REPORT",
+                    "READ_OUTSTANDING_PAYABLES_REPORT", "READ_LABOUR_ATTENDANCE_REPORT",
+                    "READ_EQUIPMENT_SUBCONTRACTOR_REPORT", "READ_EXECUTIVE_DASHBOARD"),
             List.of("UPLOAD_FILE", "READ_FILE", "DELETE_FILE")
     ).flatMap(List::stream).toList();
 

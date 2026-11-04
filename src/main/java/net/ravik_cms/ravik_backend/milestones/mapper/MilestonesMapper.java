@@ -19,6 +19,8 @@ protected DateEvaluator dateEvaluator; // Injecting your service layer logic
 
 @Mapping(source = "phase.title", target = "phaseTitle")
 @Mapping(target = "dateStatus", expression = "java(callServiceStatus(milestones))")
+@Mapping(source = "forecastES", target = "forecastStart")
+@Mapping(source = "forecastEF", target = "forecastFinish")
 public abstract MilestoneInfoDto toInfoDto(Milestones milestones);
 public abstract List<MilestoneInfoDto> toInfoDtoList(List<Milestones> milestones);
 public abstract Milestones toEntityFromInfoDto(MilestoneInfoDto dto);

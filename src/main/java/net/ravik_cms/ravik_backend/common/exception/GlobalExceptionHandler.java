@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDate;
 import java.util.stream.Collectors;
@@ -62,5 +63,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrors> invalidCredentialsException(InvalidCredentialsException e){
         ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), LocalDate.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errors);
+    }
+    @ExceptionHandler(EmptyResourceException.class)
+    public ResponseEntity<ApiErrors> emptyResourceException(EmptyResourceException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(InvalidFileStructureException.class)
+    public ResponseEntity<ApiErrors> invalidFileStructureException(InvalidFileStructureException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrors> handleFileSizeError(MaxUploadSizeExceededException e){
+        ApiErrors errors =  new ApiErrors("Error: One or more files exceed the maximum allowed size limit.",
+                HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
     }
 }

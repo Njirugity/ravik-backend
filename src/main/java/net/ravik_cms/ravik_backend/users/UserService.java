@@ -4,10 +4,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.attendance.AttendanceService;
 import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
-import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.client.ClientRepository;
-import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.exception.FieldRequiredException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.common.exception.UserAlreadyExistsException;
@@ -18,8 +16,8 @@ import net.ravik_cms.ravik_backend.jobTitles.JobTitlesRepository;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipService;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.roles.RolesRepository;
 import org.springframework.data.domain.Page;
@@ -28,7 +26,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 

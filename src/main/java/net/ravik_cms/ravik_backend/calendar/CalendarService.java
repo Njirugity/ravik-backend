@@ -3,8 +3,8 @@ package net.ravik_cms.ravik_backend.calendar;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -101,5 +101,32 @@ public class CalendarService {
             }
         }
         return current;
+    }
+    public long daysBetween(LocalDate start, LocalDate end, Calendar calendar){
+        if(start.isAfter(end)){
+            return 0L;
+        }
+        long duration = 0L;
+        LocalDate current = start;
+        while(!current.isAfter(end)){
+            if(isWorkingDay(calendar, current)){
+                duration++;
+            }
+            current = current.plusDays(1);
+        }
+        return duration;
+    }
+
+    /**
+     * Signed working-day difference (negative when {@code to} is before {@code from}).
+     * Unlike {@link #daysBetween}, which clamps to 0 when start is after end, this is what
+     * forecast variance needs so "3 days ahead" reads as negative rather than zero.
+     */
+    public long workingDaysBetween(LocalDate from, LocalDate to, Calendar calendar){
+        if(from == null || to == null) return 0L;
+        if(!from.isAfter(to)){
+            return daysBetween(from, to, calendar);
+        }
+        return -daysBetween(to, from, calendar);
     }
 }

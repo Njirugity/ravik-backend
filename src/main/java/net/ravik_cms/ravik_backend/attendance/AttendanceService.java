@@ -11,7 +11,7 @@ import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
 import net.ravik_cms.ravik_backend.milestones.entity.Milestones;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import net.ravik_cms.ravik_backend.milestones.service.MilestonesService;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

@@ -12,8 +12,8 @@ import net.ravik_cms.ravik_backend.materials.entity.MaterialList;
 import net.ravik_cms.ravik_backend.materials.mapper.MaterialListMapper;
 import net.ravik_cms.ravik_backend.materials.repository.MaterialListRepository;
 import net.ravik_cms.ravik_backend.materials.service.MaterialListService;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -3,16 +3,12 @@ package net.ravik_cms.ravik_backend.memberships;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
-import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.enums.StaffStatus;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitles;
-import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.users.Users;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

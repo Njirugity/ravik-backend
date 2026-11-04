@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.dailyLog;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

@@ -28,4 +28,9 @@ public class MilestoneInfoDto {
     private ProgressStatus status;
     private DateStatus dateStatus;
     private String phaseTitle;
+    private LocalDate forecastStart;
+    private LocalDate forecastFinish;
+    private Long forecastFloat;
+    private boolean forecastCritical;
+    private Integer remainingDuration;
 }

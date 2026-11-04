@@ -9,7 +9,7 @@ import net.ravik_cms.ravik_backend.account.entity.Accounts;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
-import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 
 import java.time.LocalDate;
 import java.util.UUID;

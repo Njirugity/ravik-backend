@@ -2,18 +2,14 @@ package net.ravik_cms.ravik_backend.roles;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.common.enums.RoleCategory;
 import net.ravik_cms.ravik_backend.common.enums.RoleType;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
-import net.ravik_cms.ravik_backend.permission.PermissionInfoDto;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.permission.PermissionsRepository;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.stereotype.Service;
 
-import java.security.Permission;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

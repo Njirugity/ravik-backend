@@ -4,8 +4,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
-import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleRepository;
-import net.ravik_cms.ravik_backend.milestoneScheduling.ScheduleService;
+import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
+import net.ravik_cms.ravik_backend.milestoneBudget.entity.MilestoneBudget;
+import net.ravik_cms.ravik_backend.milestoneBudget.mapper.MilestoneBudgetMapper;
+import net.ravik_cms.ravik_backend.milestoneBudget.repository.MilestoneBudgetRepository;
+import net.ravik_cms.ravik_backend.milestoneScheduling.repository.ScheduleRepository;
+import net.ravik_cms.ravik_backend.milestoneScheduling.service.ForecastService;
+import net.ravik_cms.ravik_backend.milestoneScheduling.service.ScheduleService;
 import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneSummaryDto;
@@ -16,8 +21,8 @@ import net.ravik_cms.ravik_backend.milestones.mapper.MilestonesMapper;
 import net.ravik_cms.ravik_backend.milestones.repository.MilestonesRepository;
 import net.ravik_cms.ravik_backend.phase.repository.PhasesRepository;
 import net.ravik_cms.ravik_backend.phase.service.PhasesService;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +40,9 @@ public class MilestonesService {
     private final PhasesService phasesService;
     private final ScheduleRepository scheduleRepository;
     private final ScheduleService scheduleService;
+    private final ForecastService forecastService;
+    private final MilestoneBudgetRepository milestoneBudgetRepository;
+    private final MilestoneBudgetMapper milestoneBudgetMapper;
 //    @Scheduled(cron = "0 0 0 * * *")
 //    public void checkOverdueMilestone(){
 //        LocalDate today = LocalDate.now();
@@ -49,6 +57,17 @@ public class MilestonesService {
 //    }
     @Transactional
     public MilestoneInfoDto createMilestone(UUID projectId, CreateMilestoneDto milestoneDto){
+        return createMilestone(projectId, milestoneDto, null);
+    }
+
+    /**
+     * Creates the milestone and its opening budget lines in one transaction, so a
+     * failure on the budget does not leave a milestone behind without one.
+     * A null or empty list creates the milestone with no budget lines.
+     */
+    @Transactional
+    public MilestoneInfoDto createMilestone(UUID projectId, CreateMilestoneDto milestoneDto,
+                                            List<CreateMilestoneBudgetLineDto> budgetRequest){
         Projects project = projectsRepository.findById(projectId)
                 .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         Milestones newMilestone = milestonesMapper.toEntity(milestoneDto);
@@ -56,7 +75,16 @@ public class MilestonesService {
         newMilestone.setStatus(ProgressStatus.PENDING);
         milestonesRepository.save(newMilestone);
 
-        scheduleService.recalculateIfPossible(projectId);
+        if (budgetRequest != null && !budgetRequest.isEmpty()) {
+            List<MilestoneBudget> lines = budgetRequest.stream()
+                    .map(dto -> {
+                        MilestoneBudget line = milestoneBudgetMapper.toEntity(dto);
+                        line.setMilestone(newMilestone);
+                        return line;
+                    }).toList();
+            milestoneBudgetRepository.saveAll(lines);
+        }
+
         return (milestonesMapper.toInfoDto(newMilestone));
     }
 
@@ -97,20 +125,25 @@ public class MilestonesService {
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
         milestonesMapper.updateMilestone(dto, milestone);
-        phasesService.syncPhaseBudget(milestone.getPhase().getId());
+        if (milestone.getPhase() != null) {
+            phasesService.syncPhaseBudget(milestone.getPhase().getId());
+        }
+        forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
         return milestonesMapper.toInfoDto(milestone);
     }
     @Transactional
     public void deleteMilestone(UUID milestoneId){
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
-        UUID phaseId = milestone.getPhase().getId();
+        UUID phaseId = milestone.getPhase() != null ? milestone.getPhase().getId() : null;
         UUID projectId = milestone.getProject().getId();
 
         scheduleRepository.deleteByMilestoneId(milestoneId);
         scheduleRepository.deleteByPredecessorId(milestoneId);
         milestonesRepository.delete(milestone);
-        phasesService.syncPhaseBudget(phaseId);
+        if (phaseId != null) {
+            phasesService.syncPhaseBudget(phaseId);
+        }
         scheduleService.recalculateIfPossible(projectId);
     }
     public MilestoneInfoDto getActiveMilestone(UUID projectId){
@@ -149,7 +182,10 @@ public class MilestonesService {
             milestone.setStatus(ProgressStatus.IN_PROGRESS);
             milestonesRepository.save(milestone);
 
-            phasesService.setPhaseActualStartDate(milestone.getPhase().getId());
+            if (milestone.getPhase() != null) {
+                phasesService.setPhaseActualStartDate(milestone.getPhase().getId());
+            }
+            forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
         }
     }
     @Transactional

@@ -33,3 +33,9 @@ build/
 .vscode/
 .claude
 grant-report-permissions.sql
+
+### Local File storage ###
+uploads/
+
+### configuration files ###
+application.properties

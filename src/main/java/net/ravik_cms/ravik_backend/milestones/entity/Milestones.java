@@ -8,7 +8,7 @@ import lombok.Setter;
 import net.ravik_cms.ravik_backend.common.baseEntities.BaseEntity;
 import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.phase.entity.Phases;
-import net.ravik_cms.ravik_backend.projects.Projects;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -34,6 +34,13 @@ public class Milestones extends BaseEntity {
     private Long totalFloat;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
+    private LocalDate forecastES;
+    private LocalDate forecastEF;
+    private LocalDate forecastLS;
+    private LocalDate forecastLF;
+    private Long forecastFloat;
+    private boolean forecastCritical;
+    private Integer remainingDuration;
     @Enumerated(EnumType.STRING)
     private ProgressStatus status;
     @ManyToOne

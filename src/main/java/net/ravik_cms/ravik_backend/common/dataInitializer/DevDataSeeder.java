@@ -21,19 +21,20 @@ import net.ravik_cms.ravik_backend.jobTitles.CreateJobTitleDto;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitles;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitlesRepository;
 import net.ravik_cms.ravik_backend.jobTitles.JobTitlesService;
+import net.ravik_cms.ravik_backend.locations.repository.WardRepository;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
 import net.ravik_cms.ravik_backend.milestoneBudget.service.MilestoneBudgetService;
-import net.ravik_cms.ravik_backend.milestoneScheduling.DependencyService;
+import net.ravik_cms.ravik_backend.milestoneScheduling.service.DependencyService;
 import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
 import net.ravik_cms.ravik_backend.milestones.service.MilestonesService;
 import net.ravik_cms.ravik_backend.phase.dtos.CreatePhaseDto;
 import net.ravik_cms.ravik_backend.phase.dtos.PhasesInfoDto;
 import net.ravik_cms.ravik_backend.phase.service.PhasesService;
-import net.ravik_cms.ravik_backend.projects.ProjectDto;
-import net.ravik_cms.ravik_backend.projects.ProjectInfoDto;
-import net.ravik_cms.ravik_backend.projects.ProjectOrchestrationService;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
+import net.ravik_cms.ravik_backend.projects.dtos.ProjectInfoDto;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.service.ProjectOrchestrationService;
 import net.ravik_cms.ravik_backend.resourcesRequired.equipmentRequired.dtos.CreateEquipmentRequiredDto;
 import net.ravik_cms.ravik_backend.resourcesRequired.equipmentRequired.service.EquipmentRequiredService;
 import net.ravik_cms.ravik_backend.resourcesRequired.laborRequired.dtos.CreateLaborRequiredDto;
@@ -53,6 +54,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -71,8 +73,11 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private static final String SEED_USERNAME = "admin";
     private static final String SEED_PASSWORD = "Password123!";
+    // IEBC code for Kileleshwa ward, Dagoretti North, Nairobi
+    private static final String SEED_WARD_CODE = "1374";
 
     private final ProjectsRepository projectsRepository;
+    private final WardRepository wardRepository;
     private final UserService userService;
     private final ProjectOrchestrationService projectOrchestrationService;
     private final JobTitlesService jobTitlesService;
@@ -133,18 +138,29 @@ public class DevDataSeeder implements CommandLineRunner {
     }
 
     private ProjectInfoDto seedProject(ClientDto client) {
+        Long wardId = wardRepository.findByCode(SEED_WARD_CODE)
+                .orElseThrow(() -> new IllegalStateException("Seed ward " + SEED_WARD_CODE + " not found; has LocationSeeder run?"))
+                .getId();
         ProjectDto dto = new ProjectDto(
-                "Riverside Apartments", "Nairobi, Kenya", "LR-2026-001", "Along Riverside Drive",
+                "Riverside Apartments", "LR-2026-001", wardId, "Along Riverside Drive",
                 "Residential", 2500.0, null, LocalDate.now()
         );
-        return projectOrchestrationService.createProject(dto, client.getUserName());
+        List<CreateBudgetDto> budget = new ArrayList<>();
+        CreateBudgetDto labour = new CreateBudgetDto(15000000.0, BudgetCategory.LABOUR);
+        CreateBudgetDto material = new CreateBudgetDto(45000000.0, BudgetCategory.MATERIAL);
+        CreateBudgetDto other = new CreateBudgetDto(5000000.0, BudgetCategory.OTHERS);
+        budget.add(labour);
+        budget.add(material);
+        budget.add(other);
+        return projectOrchestrationService.createProject(dto, client.getUserName(), budget);
     }
 
     private List<Long> seedJobTitles(UUID projectId) {
-        jobTitlesService.addJobTitle(new CreateJobTitleDto("Site Supervisor", 3000.0, PaymentFrequency.MONTHLY), projectId);
+        jobTitlesService.addJobTitle(new CreateJobTitleDto("Site Supervisor", 40000.0, PaymentFrequency.MONTHLY), projectId);
         jobTitlesService.addJobTitle(new CreateJobTitleDto("Mason", 1500.0, PaymentFrequency.DAILY), projectId);
         jobTitlesService.addJobTitle(new CreateJobTitleDto("Laborer", 800.0, PaymentFrequency.DAILY), projectId);
-
+        jobTitlesService.addJobTitle(new CreateJobTitleDto("Carpenter", 1500.0, PaymentFrequency.DAILY), projectId);
+        jobTitlesService.addJobTitle(new CreateJobTitleDto("Foreman", 2500.0, PaymentFrequency.DAILY), projectId);
         return jobTitlesRepository.findAll().stream()
                 .filter(jt -> jt.getProject().getId().equals(projectId))
                 .map(JobTitles::getId)
@@ -160,8 +176,9 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private List<Long> seedEquipment(UUID projectId) {
         equipmentService.addEquipment(new CreateEquipmentDto("Concrete Mixer", EquipmentCategory.OWNED, 500L, "litres"), projectId);
-        equipmentService.addEquipment(new CreateEquipmentDto("Excavator", EquipmentCategory.RENTED, 1L, "unit"), projectId);
-
+        equipmentService.addEquipment(new CreateEquipmentDto("Excavator", EquipmentCategory.RENTED, 22L, "tons"), projectId);
+        equipmentService.addEquipment(new CreateEquipmentDto("Concrete Vibrator", EquipmentCategory.OWNED, 1L, "piece"),projectId);
+        equipmentService.addEquipment(new CreateEquipmentDto("BackHoe", EquipmentCategory.RENTED, 12L, "tons"), projectId);
         return equipmentRepository.findAll().stream()
                 .filter(e -> e.getProject().getId().equals(projectId))
                 .map(Equipments::getId)
@@ -203,23 +220,61 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private List<MilestoneInfoDto> seedMilestones(UUID projectId) {
         MilestoneInfoDto foundation = milestonesService.createMilestone(
-                projectId, new CreateMilestoneDto("Foundation Excavation", "Excavate and cast foundation", 10));
+                projectId, new CreateMilestoneDto("Foundation Excavation", "Excavate and cart away debris", 5));
+        MilestoneInfoDto steel = milestonesService.createMilestone(
+                projectId,new CreateMilestoneDto("Steel fixing","Prepare the steel reinforcement for the pad foundation", 3));
+        MilestoneInfoDto formwork = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Formwork for pad foundation bases", "Install formwork on excavated bases", 2));
+        MilestoneInfoDto columnsPreparation = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Prepare formwork for pad foundation columns", "Prepare formwork for the bases in anticipation of concreting the bases", 2));
+        MilestoneInfoDto blinding = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Pour concrete blinding to pad foundation bases", "Pour concrete blinding to the prepared bases", 1));
+        MilestoneInfoDto installSteel = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Place reinforcement on bases", "Install the steel reinforcement on excavated bases", 3));
+        MilestoneInfoDto concreteBases = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Concrete the foundation bases", "Pour concrete to the desired level to the bases", 2));
+        MilestoneInfoDto columnFormwork = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Formwork for pad foundation columns", "Install formwork on foundation columns", 1));
+        MilestoneInfoDto concreteColumns = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Concrete the foundation columns", "Pour concrete to the desired level to the columns", 1));
+        MilestoneInfoDto backfill = milestonesService.createMilestone(
+                projectId, new CreateMilestoneDto("Backfill the pad foundation", "Backfill the pad foundation pits to the desired level", 4));
         MilestoneInfoDto framing = milestonesService.createMilestone(
                 projectId, new CreateMilestoneDto("Structural Framing", "Cast columns and beams", 20));
         MilestoneInfoDto roofing = milestonesService.createMilestone(
                 projectId, new CreateMilestoneDto("Roofing", "Install roof structure and covering", 15));
-        return List.of(foundation, framing, roofing);
+        return List.of(foundation, framing, roofing, steel, formwork, columnsPreparation, blinding, installSteel, concreteBases, columnFormwork,
+                concreteColumns, backfill);
     }
 
     private void seedDependencies(List<MilestoneInfoDto> milestones) {
-        if (milestones.size() < 3) {
+        if (milestones.size() < 12) {
             return;
         }
         UUID foundationId = UUID.fromString(milestones.get(0).getId());
         UUID framingId = UUID.fromString(milestones.get(1).getId());
         UUID roofingId = UUID.fromString(milestones.get(2).getId());
+        UUID steelId = UUID.fromString(milestones.get(3).getId());
+        UUID formworkId = UUID.fromString(milestones.get(4).getId());
+        UUID columnsPrepId = UUID.fromString(milestones.get(5).getId());
+        UUID blindingId = UUID.fromString(milestones.get(6).getId());
+        UUID installSteelId = UUID.fromString(milestones.get(7).getId());
+        UUID concreteBaseId = UUID.fromString(milestones.get(8).getId());
+        UUID columnFormworkId = UUID.fromString(milestones.get(9).getId());
+        UUID concreteColumnsId = UUID.fromString(milestones.get(10).getId());
+        UUID backFill = UUID.fromString(milestones.get(11).getId());
 
-        dependencyService.addPredecessor(framingId, foundationId);
+        dependencyService.addPredecessor(steelId, foundationId);
+        dependencyService.addPredecessor(formworkId, foundationId);
+        dependencyService.addPredecessor(columnsPrepId, foundationId);
+        dependencyService.addPredecessor(blindingId, formworkId);
+        dependencyService.addPredecessor(installSteelId, steelId);
+        dependencyService.addPredecessor(installSteelId, blindingId);
+        dependencyService.addPredecessor(concreteBaseId, blindingId);
+        dependencyService.addPredecessor(columnFormworkId, concreteBaseId);
+        dependencyService.addPredecessor(concreteColumnsId, columnFormworkId);
+        dependencyService.addPredecessor(backFill, concreteColumnsId);
+        dependencyService.addPredecessor(framingId, backFill);
         dependencyService.addPredecessor(roofingId, framingId);
     }
 

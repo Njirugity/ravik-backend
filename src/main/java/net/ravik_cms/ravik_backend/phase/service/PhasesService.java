@@ -11,8 +11,8 @@ import net.ravik_cms.ravik_backend.phase.dtos.*;
 import net.ravik_cms.ravik_backend.phase.entity.Phases;
 import net.ravik_cms.ravik_backend.phase.mapper.PhasesMapper;
 import net.ravik_cms.ravik_backend.phase.repository.PhasesRepository;
-import net.ravik_cms.ravik_backend.projects.Projects;
-import net.ravik_cms.ravik_backend.projects.ProjectsRepository;
+import net.ravik_cms.ravik_backend.projects.entity.Projects;
+import net.ravik_cms.ravik_backend.projects.repository.ProjectsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -90,9 +91,16 @@ public class PhasesService {
             List<UUID> missing = milestoneIds.stream().filter(id -> !found.contains(id)).toList();
             throw new ResourceNotFoundException("Milestones not found: " + missing);
         }
+        Set<UUID> affectedPhaseIds = new HashSet<>();
+        affectedPhaseIds.add(phaseId);
         for (Milestones m : milestones) {
+            if (m.getPhase() != null) {
+                affectedPhaseIds.add(m.getPhase().getId());
+            }
             m.setPhase(phase);
         }
+        milestonesRepository.flush();
+        affectedPhaseIds.forEach(this::syncPhaseBudget);
     }
     @Transactional
     public void unassignMilestones(List<MilestoneAssignmentDto> request){
@@ -105,9 +113,15 @@ public class PhasesService {
              List<UUID> missing = milestoneIds.stream().filter(id -> !found.contains(id)).toList();
              throw new ResourceNotFoundException("Milestones not found: " + missing);
          }
+         Set<UUID> affectedPhaseIds = new HashSet<>();
          for(Milestones m : milestones){
+             if (m.getPhase() != null) {
+                 affectedPhaseIds.add(m.getPhase().getId());
+             }
              m.setPhase(null);
          }
+         milestonesRepository.flush();
+         affectedPhaseIds.forEach(this::syncPhaseBudget);
     }
     @Transactional
     public void syncPhaseBudget(UUID phaseId){

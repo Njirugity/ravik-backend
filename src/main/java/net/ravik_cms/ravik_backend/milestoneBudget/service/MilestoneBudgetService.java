@@ -93,6 +93,7 @@ public class MilestoneBudgetService {
     }
 
     private void syncMilestoneBudget(Milestones milestone) {
+        if (milestone.getPhase() == null) return;
         phasesService.syncPhaseBudget(milestone.getPhase().getId());
     }
 }

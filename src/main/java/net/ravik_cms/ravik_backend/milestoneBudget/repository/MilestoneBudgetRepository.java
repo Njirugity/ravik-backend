@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestoneBudget.repository;
 
 import net.ravik_cms.ravik_backend.common.dtos.CategoryAmountProjection;
+import net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection;
 import net.ravik_cms.ravik_backend.milestoneBudget.entity.MilestoneBudget;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -48,4 +49,13 @@ public interface MilestoneBudgetRepository extends JpaRepository<MilestoneBudget
                 GROUP BY mb.category
             """)
     List<CategoryAmountProjection> sumByProjectGroupByCategory(@Param("projectId") UUID projectId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection(
+                            mb.milestone.id, COALESCE(SUM(mb.amount), 0))
+                FROM MilestoneBudget mb
+                WHERE mb.milestone.project.id = :projectId
+                GROUP BY mb.milestone.id
+            """)
+    List<MilestoneAmountProjection> sumByProjectGroupByMilestone(@Param("projectId") UUID projectId);
 }

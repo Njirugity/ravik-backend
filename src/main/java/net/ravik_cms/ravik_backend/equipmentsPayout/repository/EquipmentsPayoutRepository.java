@@ -1,11 +1,11 @@
 package net.ravik_cms.ravik_backend.equipmentsPayout.repository;
 
+import net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.equipmentsPayout.dtos.EquipmentsPayoutInfoProjection;
 import net.ravik_cms.ravik_backend.equipmentsPayout.entity.EquipmentsPayout;
 import net.ravik_cms.ravik_backend.payment.dtos.PayoutSummaryProjection;
-import net.ravik_cms.ravik_backend.reports.dto.EquipmentActualAggregateProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -114,15 +114,14 @@ public interface EquipmentsPayoutRepository extends JpaRepository<EquipmentsPayo
     Double sumActualCostByProjectId(@Param("projectId") UUID projectId);
 
     @Query("""
-                SELECT new net.ravik_cms.ravik_backend.reports.dto.EquipmentActualAggregateProjection(
-                            ep.equipmentRequired.id, SUM(ep.workedDuration),
-                            SUM(1.0 * (ep.operatorCost + (CASE WHEN ep.equipmentRequired.equipments.category = net.ravik_cms.ravik_backend.common.enums.EquipmentCategory.OWNED
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.MilestoneAmountProjection(
+                            ep.milestone.id,
+                            1.0 * COALESCE(SUM(ep.operatorCost + (CASE WHEN ep.equipmentRequired.equipments.category = net.ravik_cms.ravik_backend.common.enums.EquipmentCategory.OWNED
                                                      THEN ep.fuelCost
-                                                     ELSE ep.rentalCost END))),
-                            SUM(ep.paidAmount))
+                                                     ELSE ep.rentalCost END)), 0))
                 FROM EquipmentsPayout ep
                 WHERE ep.project.id = :projectId
-                GROUP BY ep.equipmentRequired.id
+                GROUP BY ep.milestone.id
             """)
-    List<EquipmentActualAggregateProjection> aggregateActualsByProjectGroupedByRequirement(@Param("projectId") UUID projectId);
+    List<MilestoneAmountProjection> sumActualCostByProjectGroupByMilestone(@Param("projectId") UUID projectId);
 }

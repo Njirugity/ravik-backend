@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.fileStorage.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.response.ApiMessageResponse;
 import net.ravik_cms.ravik_backend.fileStorage.dtos.FileStorageResponseDto;
 import net.ravik_cms.ravik_backend.fileStorage.entity.FileStorage;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @Tag(name = "Files storage", description = "Upload, download and storage of files")
 public class FileStorageController {
     private final FileMetadataPersistenceService metadataPersistenceService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping(value = "/projects/{projectId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Uploads project scoped files")
@@ -29,6 +31,7 @@ public class FileStorageController {
             @PathVariable UUID projectId,
             @RequestParam("files")List<MultipartFile> file
             ){
+        authorizationService.authorize("UPLOAD_FILE");
         List<FileStorageResponseDto> doc = metadataPersistenceService.uploadToProject(projectId, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(doc);
     }
@@ -38,18 +41,21 @@ public class FileStorageController {
             @PathVariable UUID milestoneId,
             @RequestParam("files")List<MultipartFile> file
     ){
+        authorizationService.authorize("UPLOAD_FILE");
         List<FileStorageResponseDto> doc = metadataPersistenceService.uploadToMilestone(milestoneId, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(doc);
     }
     @GetMapping("/projects/{projectId}")
     @Operation(summary = "List a project's files, including milestones scoped")
     public ResponseEntity<List<FileStorageResponseDto>> listProjectFiles(@PathVariable UUID projectId){
+        authorizationService.authorize("READ_FILE");
         List<FileStorageResponseDto> docs = metadataPersistenceService.listProjectFiles(projectId);
         return ResponseEntity.ok(docs);
     }
     @GetMapping("/milestones/{milestoneId}")
     @Operation(summary = "List milestone scoped projects")
     public ResponseEntity<List<FileStorageResponseDto>> listMilestoneFiles(@PathVariable UUID milestoneId){
+        authorizationService.authorize("READ_FILE");
         List<FileStorageResponseDto> docs = metadataPersistenceService.listMilestoneFiles(milestoneId);
         return ResponseEntity.ok(docs);
     }
@@ -59,6 +65,7 @@ public class FileStorageController {
             @PathVariable UUID fileId,
             @RequestParam(defaultValue = "false") boolean inline
     ){
+        authorizationService.authorize("READ_FILE");
         FileStorage file = metadataPersistenceService.getFile(fileId);
         Resource resource = metadataPersistenceService.load(file);
 
@@ -76,6 +83,7 @@ public class FileStorageController {
     @DeleteMapping("/{fileId}")
     @Operation(summary = "Delete a file")
     public ResponseEntity<ApiMessageResponse> deleteFile(@PathVariable UUID fileId){
+        authorizationService.authorize("DELETE_FILE");
         metadataPersistenceService.delete(fileId);
         return ResponseEntity.ok(ApiMessageResponse.of("File deleted successfully", HttpStatus.OK.value()));
     }

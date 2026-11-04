@@ -2,9 +2,9 @@ package net.ravik_cms.ravik_backend.projects.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.common.dataInitializer.RolesSeeder;
+import net.ravik_cms.ravik_backend.common.exception.FieldRequiredException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.locations.service.LocationService;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
@@ -31,7 +31,6 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
     private final ProjectMembershipRepository projectMembershipRepository;
     private final RolesSeeder rolesSeeder;
-    private final AuthorizationService authorizationService;
     private final LocationService locationService;
 
     @Override
@@ -67,18 +66,21 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectPatchDto patchProject(UUID id, String userName, ProjectPatchDto request){
-        authorizationService.authorize("UPDATE_PROJECT");
         Projects project = findProject(id, userName);
         projectMapper.updateProjectFromDto(request, project);
         if(request.getWardId() != null){
             project.setWard(locationService.getWard(request.getWardId()));
+        }
+        // Checked on the merged entity: a patch may move only one of the two dates.
+        if (project.getPlannedStart() != null && project.getContractFinish() != null
+                && project.getContractFinish().isBefore(project.getPlannedStart())) {
+            throw new FieldRequiredException("Contract finish cannot be before the planned start");
         }
         return projectMapper.toProjectPatchDto(projectsRepository.save(project));
     }
     @Override
     @Transactional
     public void deleteProject(UUID id, String userName){
-        authorizationService.authorize("DELETE_PROJECT");
         Projects project = findProject(id, userName);
         projectsRepository.delete(project);
     }

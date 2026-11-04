@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.wages;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.PaymentFrequency;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
@@ -24,6 +25,7 @@ import java.util.UUID;
 public class WagesController {
     private final WagesService wagesService;
     private final ProjectMembershipRepository membershipRepository;
+    private final AuthorizationService authorizationService;
 
 
     @GetMapping("/daily/{project_id}")
@@ -34,6 +36,7 @@ public class WagesController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20)Pageable pageable){
+        authorizationService.authorize("READ_WAGE");
         Page<WagePreviewDto> body = wagesService.previewDailyWages(project_id, start, end, role, search, pageable);
         return ResponseEntity.ok(body);
     }
@@ -45,6 +48,7 @@ public class WagesController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20)Pageable pageable){
+        authorizationService.authorize("READ_WAGE");
         Page<WagePreviewDto> body = wagesService.previewMonthlyWages(project_id,year,month, role, search, pageable);
         return ResponseEntity.ok(body);
     }
@@ -56,6 +60,7 @@ public class WagesController {
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable
     ){
+        authorizationService.authorize("READ_WAGE");
         Page<WageHistoryProjection> body = wagesService.getWageHistory(project_id, memberId, role, search, pageable);
         return ResponseEntity.ok(body);
     }
@@ -65,6 +70,7 @@ public class WagesController {
             @PathVariable UUID project_id,
             @RequestBody List<CreateWageRecordDto> request
     ){
+        authorizationService.authorize("CREATE_WAGE");
         wagesService.confirmDailyWage(project_id, request);
         return ResponseEntity.ok().build();
     }
@@ -73,11 +79,13 @@ public class WagesController {
             @PathVariable UUID project_id,
             @RequestBody List<CreateWageRecordDto> request
     ){
+        authorizationService.authorize("CREATE_WAGE");
         wagesService.confirmMonthlyWage(project_id, request);
         return ResponseEntity.ok().build();
     }
     @DeleteMapping("/{wage_id}")
     ResponseEntity<?> deleteWageRecord(@PathVariable Long wage_id){
+        authorizationService.authorize("DELETE_WAGE");
         wagesService.deleteWage(wage_id);
         return ResponseEntity.noContent().build();
     }

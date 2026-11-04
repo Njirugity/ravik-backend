@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.equipment.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.equipment.dtos.EquipmentInfoProjection;
 import net.ravik_cms.ravik_backend.equipment.service.EquipmentService;
@@ -19,10 +20,12 @@ import java.util.UUID;
 @RequestMapping("/api/v1/equipment")
 public class EquipmentController {
     private final EquipmentService equipmentService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping("/{project_id}")
     public ResponseEntity<?> addEquipment(@PathVariable UUID project_id,
                                            @RequestBody CreateEquipmentDto request) {
+        authorizationService.authorize("CREATE_EQUIPMENT");
         equipmentService.addEquipment(request, project_id);
         return ResponseEntity.ok().build();
     }
@@ -33,18 +36,21 @@ public class EquipmentController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) EquipmentCategory category,
             @PageableDefault(size = 20) Pageable pageable) {
+        authorizationService.authorize("READ_EQUIPMENT");
         Page<EquipmentInfoProjection> body = equipmentService.getEquipment(project_id, search, category, pageable);
         return ResponseEntity.ok(body);
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateEquipment(@PathVariable Long id, @RequestBody UpdateEquipmentDto request) {
+        authorizationService.authorize("UPDATE_EQUIPMENT");
         equipmentService.updateEquipment(id, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEquipment(@PathVariable Long id) {
+        authorizationService.authorize("DELETE_EQUIPMENT");
         equipmentService.deleteEquipment(id);
         return ResponseEntity.noContent().build();
     }

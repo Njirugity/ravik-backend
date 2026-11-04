@@ -105,7 +105,7 @@ public class ScheduleService {
             List<Milestones> predecessors = data.predecessorsOf(m.getId());
             //2. Mlt with no predecessors(pred) are the ones that kickoff the project
             if(predecessors.isEmpty()){
-                m.setEarliestStart(startDate);
+                m.setEarliestStart(calendarService.nextWorkingDay(startDate, calendar));
             }else{
                 //3. Get the pred's earliest finish date(efd) plus the edge lag; this becomes a
                 //   candidate earliest start date(esd). If a pred has no efd there is an error.
@@ -209,7 +209,7 @@ public class ScheduleService {
             m.setTotalFloat(0L);
 
             if(!isCritical && m.getEarliestFinish() != null && m.getLatestFinish() != null){
-                long totalFloat = calendarService.daysBetween(m.getEarliestStart(), m.getLatestStart(), calender);
+                long totalFloat = calendarService.workingDaysBetween(m.getEarliestStart(), m.getLatestStart(), calender);
                 m.setTotalFloat(totalFloat);
             }
         }

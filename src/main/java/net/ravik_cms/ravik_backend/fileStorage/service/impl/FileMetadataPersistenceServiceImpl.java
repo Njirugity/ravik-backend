@@ -1,7 +1,6 @@
 package net.ravik_cms.ravik_backend.fileStorage.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.exception.EmptyResourceException;
 import net.ravik_cms.ravik_backend.common.exception.InvalidFileStructureException;
@@ -36,7 +35,6 @@ public class FileMetadataPersistenceServiceImpl implements FileMetadataPersisten
     private final FileStorageRepository fileStorageRepository;
     private final MilestonesRepository milestonesRepository;
     private final ProjectsRepository projectsRepository;
-    private final AuthorizationService authorizationService;
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
             "jpg", "jpeg", "png",          // Images
@@ -58,7 +56,6 @@ public class FileMetadataPersistenceServiceImpl implements FileMetadataPersisten
     @Override
     @Transactional
     public List<FileStorageResponseDto> uploadToMilestone(UUID milestoneId, List<MultipartFile> file){
-        authorizationService.authorize("UPLOAD_FILE");
         Milestones milestone = milestonesRepository.findById(milestoneId).
                 orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
         Projects project = milestone.getProject();
@@ -83,7 +80,6 @@ public class FileMetadataPersistenceServiceImpl implements FileMetadataPersisten
     @Override
     @Transactional
     public List<FileStorageResponseDto> uploadToProject(UUID projectId, List<MultipartFile> file){
-        authorizationService.authorize("UPLOAD_FILE");
         Projects project = projectsRepository.findById(projectId).
                 orElseThrow(()-> new ResourceNotFoundException("Project not found"));
         List<FileStorageResponseDto> docs = new ArrayList<>();
@@ -103,7 +99,6 @@ public class FileMetadataPersistenceServiceImpl implements FileMetadataPersisten
 
     @Override
     public List<FileStorageResponseDto> listProjectFiles(UUID projectId){
-        authorizationService.authorize("READ_FILE");
         return fileStorageRepository.findByProjectIdAndDeletionStatusOrderByUploadedAt(projectId,
                         DeletionStatus.NOT_DELETED).stream()
                 .map(fileStorageMapper::toResponse).toList();
@@ -111,7 +106,6 @@ public class FileMetadataPersistenceServiceImpl implements FileMetadataPersisten
 
     @Override
     public List<FileStorageResponseDto> listMilestoneFiles(UUID milestoneId){
-        authorizationService.authorize("READ_FILE");
         return fileStorageRepository.findByMilestoneIdAndDeletionStatusOrderByUploadedAt(milestoneId,
                         DeletionStatus.NOT_DELETED).stream()
                 .map(fileStorageMapper::toResponse).toList();
@@ -119,20 +113,17 @@ public class FileMetadataPersistenceServiceImpl implements FileMetadataPersisten
 
     @Override
     public FileStorage getFile(UUID fileId){
-        authorizationService.authorize("READ_FILE");
         return fileStorageRepository.findByIdAndDeletionStatus(fileId, DeletionStatus.NOT_DELETED).
                 orElseThrow(()-> new ResourceNotFoundException("File not found"));
     }
 
     @Override
     public Resource load(FileStorage file){
-        authorizationService.authorize("READ_FILE");
         return storageService.load(file.getStorageKey());
     }
 
     @Override
     public  void delete( UUID fileId){
-        authorizationService.authorize("DELETE_FILE");
         FileStorage file = getFile(fileId);
         file.setDeletionStatus(DeletionStatus.DELETED);
         fileStorageRepository.save(file);

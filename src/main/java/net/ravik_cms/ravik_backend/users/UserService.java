@@ -3,7 +3,6 @@ package net.ravik_cms.ravik_backend.users;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.attendance.AttendanceService;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.client.ClientRepository;
 import net.ravik_cms.ravik_backend.common.exception.FieldRequiredException;
@@ -40,7 +39,6 @@ public class UserService {
     private final ProjectMembershipService membershipService;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final DailyLogService dailyLogService;
-    private final AuthorizationService authorizationService;
     private final ClientRepository clientRepository;
     private final AttendanceService attendanceService;
     private final JobTitlesRepository jobTitlesRepository;
@@ -170,7 +168,6 @@ public class UserService {
      */
     @Transactional
     public UserDetailDto updateUser(UUID project_id, UUID user_id, UpdateUserDto request){
-        authorizationService.authorize("UPDATE_USER");
         Users user = userRepository.findById(user_id)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found"));
         Projects project = projectsRepository.findById(project_id)
@@ -231,7 +228,6 @@ public class UserService {
      * @param user_id user to delete
      */
     public void deleteUser(UUID project_id, UUID user_id){
-        authorizationService.authorize("DELETE_USER");
         Users user = findUser(project_id, user_id);
         userRepository.delete(user);
     }

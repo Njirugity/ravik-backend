@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.projects.dtos;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -25,4 +26,10 @@ public class ProjectDto {
     private Double sizeSquareMeters;
     private ProgressStatus progress;
     private LocalDate plannedStart;
+    private LocalDate contractFinish;
+
+    @AssertTrue(message = "Contract finish cannot be before the planned start")
+    private boolean isContractFinishAfterStart() {
+        return plannedStart == null || contractFinish == null || !contractFinish.isBefore(plannedStart);
+    }
 }

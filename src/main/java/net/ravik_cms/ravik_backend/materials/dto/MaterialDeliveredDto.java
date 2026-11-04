@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.materials.dto;
 
 import lombok.Builder;
+import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -15,6 +16,9 @@ public record MaterialDeliveredDto(
         Double quantityDelivered,
         Double unitPrice,
         Double totalCost,
+        String referenceCode,
+        Double paidAmount,
+        PaymentStatus paymentStatus,
         LocalDate dateDelivered,
         UUID createdByUserId,
         String createdByUserName,

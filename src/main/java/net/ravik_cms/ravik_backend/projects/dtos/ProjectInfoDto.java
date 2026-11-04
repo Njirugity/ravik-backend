@@ -8,6 +8,7 @@ import net.ravik_cms.ravik_backend.common.enums.ProgressStatus;
 import net.ravik_cms.ravik_backend.locations.dto.ProjectLocationDto;
 import net.ravik_cms.ravik_backend.users.ClientDto;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -24,4 +25,6 @@ public class ProjectInfoDto {
     private Double sizeSquareMeters;
     private ProgressStatus progress;
     private ClientDto client;
+    private LocalDate plannedStart;
+    private LocalDate contractFinish;
 }

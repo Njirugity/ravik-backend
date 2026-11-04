@@ -19,4 +19,5 @@ public interface RolesRepository extends JpaRepository<Roles, UUID> {
     @Query("SELECT m.role.id AS roleId, COUNT(m) AS memberCount FROM ProjectMembership m " +
             "WHERE m.role.project.id = :projectId GROUP BY m.role.id")
     List<RoleMembershipCount> countMembersByRole(@Param("projectId") UUID projectId);
+
 }

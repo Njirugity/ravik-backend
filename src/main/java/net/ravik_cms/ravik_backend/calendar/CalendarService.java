@@ -65,14 +65,22 @@ public class CalendarService {
             case SUNDAY -> calender.isSunday();
         };
     }
-    public LocalDate addWorkingDays(LocalDate start, int duration, Calendar calendar){
-        LocalDate current = start;
-
+    /**
+     * The given date if it is a working day, otherwise the next working day after it.
+     */
+    public LocalDate nextWorkingDay(LocalDate date, Calendar calendar){
+        LocalDate current = date;
         while(!isWorkingDay(calendar, current)){
             current = current.plusDays(1);
         }
+        return current;
+    }
 
-        if(duration <= 1) return start;
+    public LocalDate addWorkingDays(LocalDate start, int duration, Calendar calendar){
+        LocalDate current = nextWorkingDay(start, calendar);
+
+
+        if(duration <= 1) return current;
 
         int workDays = 1;
         while(workDays < duration){
@@ -90,7 +98,7 @@ public class CalendarService {
         while(!isWorkingDay(calendar, current)){
             current = current.minusDays(1);
         }
-        if(duration <= 1) return end;
+        if(duration <= 1) return current;
 
         int workDays = 1;
 

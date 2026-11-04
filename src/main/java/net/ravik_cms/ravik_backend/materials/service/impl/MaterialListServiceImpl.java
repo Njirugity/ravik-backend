@@ -2,7 +2,6 @@ package net.ravik_cms.ravik_backend.materials.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.materials.dto.CreateMaterialListDto;
@@ -32,7 +31,6 @@ public class MaterialListServiceImpl implements MaterialListService {
     private final MaterialListRepository materialListRepository;
     private final ProjectsRepository projectsRepository;
     private final MaterialListMapper materialListMapper;
-    private final AuthorizationService authorizationService;
 
     /**
      * Creates a new material type under the given project.
@@ -45,7 +43,6 @@ public class MaterialListServiceImpl implements MaterialListService {
     @Override
     @Transactional
     public MaterialListDto create(UUID projectId, CreateMaterialListDto dto) {
-        authorizationService.authorize("CREATE_MATERIAL_LIST");
         Projects project = projectsRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         MaterialList materialList = materialListMapper.fromCreateDto(dto);
@@ -60,7 +57,6 @@ public class MaterialListServiceImpl implements MaterialListService {
      */
     @Override
     public MaterialListDto get(UUID projectId, UUID id) {
-        authorizationService.authorize("READ_MATERIAL_LIST");
         return materialListMapper.toDto(findMaterial(projectId, id));
     }
 
@@ -69,7 +65,6 @@ public class MaterialListServiceImpl implements MaterialListService {
      */
     @Override
     public List<MaterialListDto> getAll(UUID projectId) {
-        authorizationService.authorize("READ_MATERIAL_LIST");
         return materialListMapper.toDtoList(materialListRepository.findAllByProjectIdAndStatus(projectId, DeletionStatus.NOT_DELETED));
     }
 
@@ -81,7 +76,6 @@ public class MaterialListServiceImpl implements MaterialListService {
     @Override
     @Transactional
     public MaterialListDto update(UUID projectId, UUID id, UpdateMaterialListDto dto) {
-        authorizationService.authorize("UPDATE_MATERIAL_LIST");
         MaterialList materialList = findMaterial(projectId, id);
         materialListMapper.updateFromDto(dto, materialList);
         return materialListMapper.toDto(materialListRepository.save(materialList));
@@ -98,7 +92,6 @@ public class MaterialListServiceImpl implements MaterialListService {
     @Override
     @Transactional
     public void delete(UUID projectId, UUID id) {
-        authorizationService.authorize("DELETE_MATERIAL_LIST");
         MaterialList materialList = findMaterial(projectId, id);
         materialList.setStatus(DeletionStatus.DELETED);
         materialListRepository.save(materialList);

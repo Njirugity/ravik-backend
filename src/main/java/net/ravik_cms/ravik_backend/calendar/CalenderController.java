@@ -7,32 +7,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 
 @RestController
 @RequestMapping("/api/v1/calender")
 @RequiredArgsConstructor
 public class CalenderController {
     private final CalendarService calendarService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping("/project/{projectId}")
     public ResponseEntity<CalendarInfoDto> createCalender(@PathVariable UUID projectId,
                                                          @Valid @RequestBody CreateCalendarDto request) {
+        authorizationService.authorize("CREATE_SCHEDULE");
        CalendarInfoDto body =  calendarService.createCalender(projectId, request);
        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
     @GetMapping("/project/{projectId}")
     public ResponseEntity<CalendarInfoDto> getCalender(@PathVariable UUID projectId){
+        authorizationService.authorize("READ_SCHEDULE");
         CalendarInfoDto body = calendarService.getCalender(projectId);
         return ResponseEntity.ok(body);
     }
     @PutMapping("/{id}")
     public ResponseEntity<CalendarInfoDto> updateCalender(@PathVariable UUID id,
                                                           @Valid @RequestBody CalendarInfoDto request) {
+        authorizationService.authorize("UPDATE_SCHEDULE");
         CalendarInfoDto body = calendarService.updateCalender(id, request);
         return ResponseEntity.ok(body);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCalender(@PathVariable UUID id){
+        authorizationService.authorize("DELETE_SCHEDULE");
         calendarService.deleteCalender(id);
         return ResponseEntity.noContent().build();
     }

@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.income.repository;
 
+import net.ravik_cms.ravik_backend.common.dtos.MonthAmountProjection;
 import net.ravik_cms.ravik_backend.income.dtos.IncomeInfoProjection;
 import net.ravik_cms.ravik_backend.income.entity.Income;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -43,4 +46,14 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
 
     @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.project.id = :projectId AND i.account.id = :accountId")
     Double sumAmountByProjectIdAndAccountId(@Param("projectId") UUID projectId, @Param("accountId") UUID accountId);
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.common.dtos.MonthAmountProjection(
+                            YEAR(i.date), MONTH(i.date), COALESCE(SUM(i.amount), 0))
+                FROM Income i
+                WHERE i.project.id = :projectId
+                AND i.date >= :from
+                GROUP BY YEAR(i.date), MONTH(i.date)
+            """)
+    List<MonthAmountProjection> sumByProjectGroupByMonth(@Param("projectId") UUID projectId, @Param("from") LocalDate from);
 }

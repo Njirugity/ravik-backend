@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestoneBudget.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.CreateMilestoneBudgetLineDto;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.MilestoneBudgetLineDto;
 import net.ravik_cms.ravik_backend.milestoneBudget.dtos.MilestoneBudgetSummaryDto;
@@ -18,22 +19,26 @@ import java.util.UUID;
 @RequestMapping("/api/v1/milestoneBudgets")
 public class MilestoneBudgetController {
     private final MilestoneBudgetService milestoneBudgetService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping("/{milestone_id}")
     public ResponseEntity<List<MilestoneBudgetLineDto>> createBudgetLines(
             @PathVariable UUID milestone_id,
             @RequestBody List<CreateMilestoneBudgetLineDto> request) {
+        authorizationService.authorize("CREATE_BUDGET");
         List<MilestoneBudgetLineDto> body = milestoneBudgetService.createBudgetLines(milestone_id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @GetMapping("/{milestone_id}")
     public ResponseEntity<List<MilestoneBudgetLineDto>> getBudgetLines(@PathVariable UUID milestone_id) {
+        authorizationService.authorize("READ_BUDGET");
         return ResponseEntity.ok(milestoneBudgetService.getBudgetLines(milestone_id));
     }
 
     @GetMapping("/{milestone_id}/summary")
     public ResponseEntity<MilestoneBudgetSummaryDto> getBudgetSummary(@PathVariable UUID milestone_id) {
+        authorizationService.authorize("READ_BUDGET");
         return ResponseEntity.ok(milestoneBudgetService.getBudgetSummary(milestone_id));
     }
 
@@ -41,11 +46,13 @@ public class MilestoneBudgetController {
     public ResponseEntity<MilestoneBudgetLineDto> updateBudgetLine(
             @PathVariable Long id,
             @RequestBody UpdateMilestoneBudgetLineDto request) {
+        authorizationService.authorize("UPDATE_BUDGET");
         return ResponseEntity.ok(milestoneBudgetService.updateBudgetLine(id, request));
     }
 
     @DeleteMapping("/line/{id}")
     public ResponseEntity<?> deleteBudgetLine(@PathVariable Long id) {
+        authorizationService.authorize("DELETE_BUDGET");
         milestoneBudgetService.deleteBudgetLine(id);
         return ResponseEntity.noContent().build();
     }

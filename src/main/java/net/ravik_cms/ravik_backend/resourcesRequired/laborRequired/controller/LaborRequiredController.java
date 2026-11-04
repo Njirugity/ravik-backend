@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.resourcesRequired.laborRequired.controller;
 
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.resourcesRequired.laborRequired.dtos.CreateLaborRequiredDto;
 import net.ravik_cms.ravik_backend.resourcesRequired.laborRequired.dtos.LaborRequiredInfoProjection;
 import net.ravik_cms.ravik_backend.resourcesRequired.laborRequired.dtos.UpdateLaborRequiredDto;
@@ -17,28 +18,33 @@ import java.util.UUID;
 @RequestMapping("/api/v1/laborRequired")
 public class LaborRequiredController {
     private final LaborRequiredService laborRequiredService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping("/{milestone_id}")
     public ResponseEntity<List<LaborRequiredInfoProjection>> createLaborRequired(
             @PathVariable UUID milestone_id,
             @RequestBody List<CreateLaborRequiredDto> request) {
+        authorizationService.authorize("CREATE_LABOUR");
         List<LaborRequiredInfoProjection> body = laborRequiredService.createLaborRequired(milestone_id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @GetMapping("/{milestone_id}")
     public ResponseEntity<List<LaborRequiredInfoProjection>> getLaborRequired(@PathVariable UUID milestone_id) {
+        authorizationService.authorize("READ_LABOUR");
         return ResponseEntity.ok(laborRequiredService.getLaborRequired(milestone_id));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateLaborRequired(@PathVariable Long id, @RequestBody UpdateLaborRequiredDto request) {
+        authorizationService.authorize("UPDATE_LABOUR");
         laborRequiredService.updateLaborRequired(id, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteLaborRequired(@PathVariable Long id) {
+        authorizationService.authorize("DELETE_LABOUR");
         laborRequiredService.deleteLaborRequired(id);
         return ResponseEntity.noContent().build();
     }

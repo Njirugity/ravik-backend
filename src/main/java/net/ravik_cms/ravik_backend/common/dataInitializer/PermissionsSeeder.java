@@ -1,14 +1,15 @@
 package net.ravik_cms.ravik_backend.common.dataInitializer;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.permission.PermissionsRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+@Slf4j
 @Order(2)
 @Component
 @RequiredArgsConstructor
@@ -16,33 +17,15 @@ public class PermissionsSeeder implements CommandLineRunner {
     private final PermissionsRepository permissionsRepository;
 
     @Override
+    @Transactional
     public void run(String... args){
-        List<String> permissions = List.of(
-                "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_MATERIAL_LIST", "READ_MATERIAL_LIST", "UPDATE_MATERIAL_LIST", "DELETE_MATERIAL_LIST",
-                "CREATE_MATERIAL_REQUIRED", "READ_MATERIAL_REQUIRED", "UPDATE_MATERIAL_REQUIRED", "DELETE_MATERIAL_REQUIRED",
-                "CREATE_MATERIAL_DELIVERED", "READ_MATERIAL_DELIVERED", "UPDATE_MATERIAL_DELIVERED", "DELETE_MATERIAL_DELIVERED",
-                "CREATE_MATERIAL_USED", "READ_MATERIAL_USED", "UPDATE_MATERIAL_USED", "DELETE_MATERIAL_USED",
-                "READ_MATERIALS_REPORT", "READ_MATERIAL_ALERTS","CREATE_MILESTONE",
-                "READ_MILESTONE", "UPDATE_MILESTONE", "DELETE_MILESTONE", "CREATE_SCHEDULE",
-                "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
-                "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
-                "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE",
-                "READ_CASH_SUMMARY", "READ_COST_SUMMARY", "READ_ACCOUNT_INSIGHTS", "READ_APPROVALS_REPORT",
-                "READ_OUTSTANDING_PAYABLES_REPORT", "READ_LABOUR_ATTENDANCE_REPORT",
-                "READ_EQUIPMENT_SUBCONTRACTOR_REPORT", "READ_EXECUTIVE_DASHBOARD",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "UPLOAD_FILE", "READ_FILE", "DELETE_FILE"
-        );
-        for(String pName: permissions){
+        for(String pName: DefaultPermissions.ALL){
             if(!permissionsRepository.existsByName(pName)){
                 Permissions p = new Permissions();
                 p.setName(pName);
                 permissionsRepository.save(p);
             }
         }
-        System.out.println("Permissions seeded successfully");
+        log.info("Permissions seeded successfully");
     }
-
 }

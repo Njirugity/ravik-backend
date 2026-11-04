@@ -2,6 +2,7 @@ package net.ravik_cms.ravik_backend.milestones.controller;
 
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
 import net.ravik_cms.ravik_backend.milestones.dtos.CreateMilestoneAndBudgetDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneInfoDto;
 import net.ravik_cms.ravik_backend.milestones.dtos.MilestoneSummaryDto;
@@ -23,10 +24,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MilestonesController {
     private final MilestonesService milestonesService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping("/{project_id}")
     public ResponseEntity<MilestoneInfoDto> addMilestone(@PathVariable UUID project_id,
                                                          @Valid @RequestBody CreateMilestoneAndBudgetDto request){
+        authorizationService.authorize("CREATE_MILESTONE");
         MilestoneInfoDto body = milestonesService.createMilestone(
                 project_id, request.milestoneDto(), request.budgetDtoList());
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
@@ -34,12 +37,14 @@ public class MilestonesController {
 
     @GetMapping("/{milestone_id}")
     public ResponseEntity<MilestoneInfoDto> getMilestone(@PathVariable UUID milestone_id){
+        authorizationService.authorize("READ_MILESTONE");
         MilestoneInfoDto body = milestonesService.getMilestone(milestone_id);
         return ResponseEntity.ok(body);
     }
 
     @GetMapping("/phase/{phase_id}")
     public ResponseEntity<List<MilestoneInfoDto>> getPhaseMilestones(@PathVariable UUID phase_id){
+        authorizationService.authorize("READ_MILESTONE");
         List<MilestoneInfoDto> body = milestonesService.getPhaseMilestones(phase_id);
         return ResponseEntity.ok(body);
     }
@@ -49,24 +54,28 @@ public class MilestonesController {
             @PathVariable UUID project_id,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable){
+        authorizationService.authorize("READ_MILESTONE");
         Page<MilestoneInfoDto> body = milestonesService.getProjectMilestonesPage(project_id, search, pageable);
         return ResponseEntity.ok(body);
     }
 
     @GetMapping("/summary/{project_id}")
     public ResponseEntity<MilestoneSummaryDto> getMilestoneSummary(@PathVariable UUID project_id){
+        authorizationService.authorize("READ_MILESTONE");
         MilestoneSummaryDto body = milestonesService.getMilestoneSummary(project_id);
         return ResponseEntity.ok(body);
     }
 
     @PostMapping("/update/{milestone_id}")
     public ResponseEntity<MilestoneInfoDto> updateMilestone(@PathVariable UUID milestone_id, @RequestBody UpdateMilestoneDto dto){
+        authorizationService.authorize("UPDATE_MILESTONE");
         MilestoneInfoDto body = milestonesService.updateMilestone(milestone_id, dto);
         return ResponseEntity.ok(body);
     }
 
     @DeleteMapping("/{milestone_id}")
     public ResponseEntity<?> deleteMilestone(@PathVariable UUID milestone_id){
+        authorizationService.authorize("DELETE_MILESTONE");
         milestonesService.deleteMilestone(milestone_id);
         return ResponseEntity.noContent().build();
     }
@@ -78,6 +87,7 @@ public class MilestonesController {
 //    }
     @GetMapping("/eligible/{project_id}")
     public ResponseEntity<List<PossibleActiveMilestonesDto>> getEligibleMilestone(@PathVariable UUID project_id){
+        authorizationService.authorize("READ_MILESTONE");
         List<PossibleActiveMilestonesDto> body = milestonesService.getEligibleMilestones(project_id);
         return ResponseEntity.ok(body);
     }

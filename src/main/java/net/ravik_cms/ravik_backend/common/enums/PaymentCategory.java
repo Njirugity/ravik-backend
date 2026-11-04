@@ -5,5 +5,5 @@ public enum PaymentCategory {
     SUBCONTRACTOR,
     EQUIPMENT,
     EXPENSES,
-
+    MATERIALS
 }

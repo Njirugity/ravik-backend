@@ -9,13 +9,21 @@ import net.ravik_cms.ravik_backend.roles.Roles;
 import net.ravik_cms.ravik_backend.roles.RolesRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static net.ravik_cms.ravik_backend.common.dataInitializer.DefaultPermissions.crud;
 
 @Service
 @RequiredArgsConstructor
 public class RolesSeeder {
     private final RolesRepository rolesRepository;
     private final PermissionsRepository permissionsRepository;
+
+    private static final List<String> WAGES = List.of("CREATE_WAGE", "READ_WAGE", "DELETE_WAGE");
 
     private void createRole(String name, Projects projects,RoleType type, Set<String> permissionsKey){
         Set<Permissions> permissions = permissionsRepository.findByNameIn(permissionsKey);
@@ -27,33 +35,25 @@ public class RolesSeeder {
         rolesRepository.save(roles);
     }
     public void seedDefaultRoles(Projects projects){
-        createRole("OWNER", projects, RoleType.SYSTEM,Set.of(
-                "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_MATERIAL_LIST", "READ_MATERIAL_LIST", "UPDATE_MATERIAL_LIST", "DELETE_MATERIAL_LIST",
-                "CREATE_MATERIAL_REQUIRED", "READ_MATERIAL_REQUIRED", "UPDATE_MATERIAL_REQUIRED", "DELETE_MATERIAL_REQUIRED",
-                "CREATE_MATERIAL_DELIVERED", "READ_MATERIAL_DELIVERED", "UPDATE_MATERIAL_DELIVERED", "DELETE_MATERIAL_DELIVERED",
-                "CREATE_MATERIAL_USED", "READ_MATERIAL_USED", "UPDATE_MATERIAL_USED", "DELETE_MATERIAL_USED",
-                "READ_MATERIALS_REPORT", "READ_MATERIAL_ALERTS","CREATE_MILESTONE",
-                "READ_MILESTONE", "UPDATE_MILESTONE", "DELETE_MILESTONE", "CREATE_SCHEDULE",
-                "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
-                "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
-                "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE", "UPLOAD_FILE", "READ_FILE"
+        createRole("OWNER", projects, RoleType.SYSTEM, permissions(DefaultPermissions.ALL));
+        createRole("DIRECTOR", projects, RoleType.SYSTEM, permissions(
+                DefaultPermissions.ALL_READ,
+                crud("PROJECT"), crud("USER"), WAGES
         ));
-        createRole("DIRECTOR", projects, RoleType.SYSTEM,Set.of(
-                "CREATE_PROJECT", "READ_PROJECT", "UPDATE_PROJECT", "DELETE_PROJECT",
-                "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
+        createRole("ACCOUNTANT", projects, RoleType.SYSTEM, permissions(
+                List.of("READ_PROJECT", "READ_PHASE", "READ_MILESTONE", "READ_SCHEDULE", "READ_MATERIALS_REPORT"),
+                crud("USER"), WAGES,
+                crud("BUDGET"), crud("PAYMENT"), crud("PAYOUT"), crud("INCOME"), crud("EXPENSE"), crud("ACCOUNT")
         ));
-        createRole("ACCOUNTANT", projects,RoleType.SYSTEM, Set.of(
-                "READ_PROJECT", "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
+        createRole("ADMIN", projects, RoleType.SYSTEM, permissions(
+                List.of("READ_PROJECT", "READ_PHASE", "READ_MILESTONE", "UPLOAD_FILE", "READ_FILE"),
+                crud("USER"), WAGES,
+                crud("ATTENDANCE"), crud("LABOUR")
         ));
-        createRole("ADMIN", projects, RoleType.SYSTEM,Set.of(
-                "READ_PROJECT", "CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
-        ));
+    }
 
+    @SafeVarargs
+    private static Set<String> permissions(Collection<String>... groups){
+        return Stream.of(groups).flatMap(Collection::stream).collect(Collectors.toSet());
     }
 }

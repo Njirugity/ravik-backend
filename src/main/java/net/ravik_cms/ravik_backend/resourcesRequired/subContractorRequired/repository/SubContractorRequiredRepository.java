@@ -46,4 +46,12 @@ public interface SubContractorRequiredRepository extends JpaRepository<SubContra
             @Param("jobType") String jobType,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.dtos.SubContractorRequiredInfoProjection(
+                            sr.id, sr.subContractor.id, sr.subContractor.title, sr.milestone.id, sr.dateRequired, sr.jobAmount, sr.jobTitle, sr.description)
+                FROM SubContractorRequired sr
+                WHERE sr.project.id = :projectId
+            """)
+    List<SubContractorRequiredInfoProjection> findAllByProjectId(@Param("projectId") UUID projectId);
 }

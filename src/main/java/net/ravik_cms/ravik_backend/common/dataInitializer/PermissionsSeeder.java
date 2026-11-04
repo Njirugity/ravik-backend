@@ -29,7 +29,10 @@ public class PermissionsSeeder implements CommandLineRunner {
                 "READ_SCHEDULE", "UPDATE_SCHEDULE", "DELETE_SCHEDULE","CREATE_DEPENDENCIES",
                 "READ_DEPENDENCIES", "UPDATE_DEPENDENCIES", "DELETE_DEPENDENCIES",
                 "CREATE_ATTENDANCE", "READ_ATTENDANCE", "UPDATE_ATTENDANCE", "DELETE_ATTENDANCE",
-                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE"
+                "CREATE_WAGE", "READ_WAGE", "DELETE_WAGE",
+                "READ_CASH_SUMMARY", "READ_COST_SUMMARY", "READ_ACCOUNT_INSIGHTS", "READ_APPROVALS_REPORT",
+                "READ_OUTSTANDING_PAYABLES_REPORT", "READ_LABOUR_ATTENDANCE_REPORT",
+                "READ_EQUIPMENT_SUBCONTRACTOR_REPORT", "READ_EXECUTIVE_DASHBOARD"
         );
         for(String pName: permissions){
             if(!permissionsRepository.existsByName(pName)){

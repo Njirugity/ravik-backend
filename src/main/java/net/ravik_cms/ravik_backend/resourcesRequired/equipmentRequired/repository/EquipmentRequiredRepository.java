@@ -50,4 +50,14 @@ public interface EquipmentRequiredRepository extends JpaRepository<EquipmentRequ
             @Param("category") EquipmentCategory category,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT new net.ravik_cms.ravik_backend.resourcesRequired.equipmentRequired.dtos.
+                            EquipmentRequiredInfoProjection(er.id, er.equipments.id, er.equipments.title,
+                                        er.equipments.category, er.milestone.id,
+                                        er.plannedDuration, er.plannedFuelCost, er.notes, er.dateRequired)
+                FROM EquipmentRequired er
+                WHERE er.project.id = :projectId
+            """)
+    List<EquipmentRequiredInfoProjection> findAllByProjectId(@Param("projectId") UUID projectId);
 }

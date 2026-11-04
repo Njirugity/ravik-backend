@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.attendance;
 import jakarta.persistence.LockModeType;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
+import net.ravik_cms.ravik_backend.reports.dto.JobTitleAttendanceProjection;
 import net.ravik_cms.ravik_backend.resourcesUsage.labourUsage.dtos.LabourUsageProjection;
 import net.ravik_cms.ravik_backend.wages.Wages;
 import org.springframework.data.domain.Page;
@@ -186,4 +187,17 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                                 @Param("start") LocalDate start,
                                                 @Param("end") LocalDate end,
                                                 Pageable pageable);
+
+    @Query("""
+        SELECT new net.ravik_cms.ravik_backend.reports.dto.JobTitleAttendanceProjection(
+                    m.jobTitle.id, m.jobTitle.title,
+                    COUNT(DISTINCT m.id),
+                    SUM(CASE WHEN a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.PRESENT THEN 1L ELSE 0L END),
+                    SUM(CASE WHEN a.status = net.ravik_cms.ravik_backend.common.enums.AttendanceStatus.ABSENT THEN 1L ELSE 0L END))
+        FROM Attendance a
+        JOIN a.membership m
+        WHERE m.project.id = :projectId
+        GROUP BY m.jobTitle.id, m.jobTitle.title
+    """)
+    List<JobTitleAttendanceProjection> aggregateAttendanceByJobTitleForProject(@Param("projectId") UUID projectId);
 }

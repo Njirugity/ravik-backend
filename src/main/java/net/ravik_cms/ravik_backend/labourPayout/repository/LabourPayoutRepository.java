@@ -50,4 +50,7 @@ public interface LabourPayoutRepository extends JpaRepository<LabourPayout, UUID
 
     @Query("SELECT COALESCE(SUM(lp.totalAmount), 0) FROM LabourPayout lp WHERE lp.projectId = :projectId")
     Double sumTotalAmountByProjectId(@Param("projectId") UUID projectId);
+
+    @Query("SELECT COALESCE(SUM(lp.paidAmount), 0) FROM LabourPayout lp WHERE lp.projectId = :projectId")
+    Double sumPaidAmountByProjectId(@Param("projectId") UUID projectId);
 }

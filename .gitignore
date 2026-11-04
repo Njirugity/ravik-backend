@@ -32,6 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 .claude
+grant-report-permissions.sql
 
 ### Local File storage ###
 uploads/

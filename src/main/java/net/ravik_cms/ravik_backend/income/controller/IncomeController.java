@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.income.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.income.dtos.CreateIncomeDto;
 import net.ravik_cms.ravik_backend.income.dtos.IncomeInfoProjection;
 import net.ravik_cms.ravik_backend.income.dtos.UpdateIncomeDto;
@@ -19,36 +19,35 @@ import java.util.UUID;
 @RequestMapping("/api/v1/incomes")
 public class IncomeController {
     private final IncomeService incomeService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("CREATE_INCOME")
     @PostMapping("/{project_id}")
     public ResponseEntity<?> addIncome(@PathVariable UUID project_id,
                                         @RequestBody CreateIncomeDto request) {
-        authorizationService.authorize("CREATE_INCOME");
         incomeService.addIncome(request, project_id);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("READ_INCOME")
     @GetMapping("/{project_id}")
     public ResponseEntity<Page<IncomeInfoProjection>> getIncomes(
             @PathVariable UUID project_id,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable) {
-        authorizationService.authorize("READ_INCOME");
         Page<IncomeInfoProjection> body = incomeService.getIncomes(project_id, search, pageable);
         return ResponseEntity.ok(body);
     }
 
+    @RequirePermission("UPDATE_INCOME")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateIncome(@PathVariable UUID id, @RequestBody UpdateIncomeDto request) {
-        authorizationService.authorize("UPDATE_INCOME");
         incomeService.updateIncome(id, request);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("DELETE_INCOME")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteIncome(@PathVariable UUID id) {
-        authorizationService.authorize("DELETE_INCOME");
         incomeService.deleteIncome(id);
         return ResponseEntity.noContent().build();
     }

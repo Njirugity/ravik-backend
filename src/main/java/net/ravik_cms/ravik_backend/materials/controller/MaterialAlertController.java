@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.materials.dto.MaterialAtRiskDto;
 import net.ravik_cms.ravik_backend.materials.service.MaterialAlertService;
@@ -23,15 +23,14 @@ import java.util.List;
 public class MaterialAlertController {
     private final MaterialAlertService materialAlertService;
     private final UserProjectContext userProjectContext;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("READ_MATERIAL_ALERTS")
     @GetMapping("/at-risk")
     @Operation(summary = "List material shortfalls on milestones due soon", description = "For every not-yet-completed milestone whose earliest finish date falls within daysThreshold days, " +
             "checks each required material against project-wide in-store stock (delivered minus used) and returns the ones falling short, with the additional quantity needed.")
     public ResponseEntity<List<MaterialAtRiskDto>> getAtRiskMaterials(
             @Parameter(description = "How many days out from today counts as \"almost due\"") @RequestParam(defaultValue = "7") int daysThreshold
     ) {
-        authorizationService.authorize("READ_MATERIAL_ALERTS");
         List<MaterialAtRiskDto> body = materialAlertService.getAtRiskMaterials(userProjectContext.getProjectId(), daysThreshold);
         return ResponseEntity.ok(body);
     }

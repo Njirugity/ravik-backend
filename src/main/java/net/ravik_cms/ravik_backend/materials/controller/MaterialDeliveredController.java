@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.common.response.ApiMessageResponse;
 import net.ravik_cms.ravik_backend.materials.dto.CreateMaterialDeliveredDto;
@@ -27,61 +27,60 @@ import java.util.UUID;
 public class MaterialDeliveredController {
     private final MaterialDeliveredService materialDeliveredService;
     private final UserProjectContext userProjectContext;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("CREATE_MATERIAL_DELIVERED")
     @PostMapping
     @Operation(summary = "Record a material delivery", description = "Project is resolved from the X-Project-ID header.")
     public ResponseEntity<ApiMessageResponse> create(@Valid @RequestBody CreateMaterialDeliveredDto dto) {
-        authorizationService.authorize("CREATE_MATERIAL_DELIVERED");
         materialDeliveredService.create(userProjectContext.getProjectId(), dto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiMessageResponse.of("Material delivery recorded successfully", HttpStatus.CREATED.value()));
     }
 
+    @RequirePermission("READ_MATERIAL_DELIVERED")
     @GetMapping("/{id}")
     @Operation(summary = "Get a material delivery by id")
     public ResponseEntity<MaterialDeliveredDto> get(@Parameter(description = "Material delivery id") @PathVariable UUID id) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         MaterialDeliveredDto body = materialDeliveredService.get(userProjectContext.getProjectId(), id);
         return ResponseEntity.ok(body);
     }
 
+    @RequirePermission("READ_MATERIAL_DELIVERED")
     @GetMapping
     @Operation(summary = "List all material deliveries for the current project")
     public ResponseEntity<List<MaterialDeliveredDto>> getAllByProject() {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         List<MaterialDeliveredDto> body = materialDeliveredService.getAllByProject(userProjectContext.getProjectId());
         return ResponseEntity.ok(body);
     }
 
+    @RequirePermission("READ_MATERIAL_DELIVERED")
     @GetMapping("/material/{materialListId}")
     @Operation(summary = "List delivery history for a specific material type")
     public ResponseEntity<List<MaterialDeliveredDto>> getAllByMaterial(@Parameter(description = "Material type id") @PathVariable UUID materialListId) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         List<MaterialDeliveredDto> body = materialDeliveredService.getAllByMaterial(userProjectContext.getProjectId(), materialListId);
         return ResponseEntity.ok(body);
     }
 
+    @RequirePermission("READ_MATERIAL_DELIVERED")
     @GetMapping("/material/{materialListId}/total-delivered")
     @Operation(summary = "Total quantity delivered for a material type", description = "Sum of quantity_delivered across the material's (non-deleted) deliveries — the quantity in store before usage is deducted.")
     public ResponseEntity<DeliveredStockDto> getTotalDelivered(@Parameter(description = "Material type id") @PathVariable UUID materialListId) {
-        authorizationService.authorize("READ_MATERIAL_DELIVERED");
         Double total = materialDeliveredService.computeTotalDelivered(userProjectContext.getProjectId(), materialListId);
         return ResponseEntity.ok(DeliveredStockDto.builder().totalDelivered(total).build());
     }
 
+    @RequirePermission("UPDATE_MATERIAL_DELIVERED")
     @PatchMapping("/{id}")
     @Operation(summary = "Partially update a material delivery", description = "Null fields on the request body are left unchanged.")
     public ResponseEntity<ApiMessageResponse> update(@Parameter(description = "Material delivery id") @PathVariable UUID id, @RequestBody UpdateMaterialDeliveredDto dto) {
-        authorizationService.authorize("UPDATE_MATERIAL_DELIVERED");
         materialDeliveredService.update(userProjectContext.getProjectId(), id, dto);
         return ResponseEntity.ok(ApiMessageResponse.of("Material delivery updated successfully", HttpStatus.OK.value()));
     }
 
+    @RequirePermission("DELETE_MATERIAL_DELIVERED")
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a material delivery")
     public ResponseEntity<ApiMessageResponse> delete(@Parameter(description = "Material delivery id") @PathVariable UUID id) {
-        authorizationService.authorize("DELETE_MATERIAL_DELIVERED");
         materialDeliveredService.delete(userProjectContext.getProjectId(), id);
         return ResponseEntity.ok(ApiMessageResponse.of("Material delivery deleted successfully", HttpStatus.OK.value()));
     }

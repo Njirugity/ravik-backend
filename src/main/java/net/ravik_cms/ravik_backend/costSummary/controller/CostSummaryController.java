@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.costSummary.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.costSummary.dtos.CostPaymentSummaryDto;
 import net.ravik_cms.ravik_backend.costSummary.service.CostSummaryService;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +14,10 @@ import java.util.UUID;
 @RequestMapping("/api/v1/costSummary")
 public class CostSummaryController {
     private final CostSummaryService costSummaryService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("READ_PAYMENT")
     @GetMapping("/project/{project_id}")
     public ResponseEntity<CostPaymentSummaryDto> getCostPaymentSummary(@PathVariable UUID project_id) {
-        authorizationService.authorize("READ_PAYMENT");
         return ResponseEntity.ok(costSummaryService.getCostPaymentSummary(project_id));
     }
 }

@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.budgetSummary.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.MilestoneBudgetVsActualDto;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.PhaseBudgetSummaryDto;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.ProjectBudgetSummaryDto;
@@ -16,23 +16,22 @@ import java.util.UUID;
 @RequestMapping("/api/v1/budgetSummary")
 public class BudgetSummaryController {
     private final BudgetSummaryService budgetSummaryService;
-    private final AuthorizationService authorizationService;
 
     @GetMapping("/project/{project_id}")
+    @RequirePermission("READ_BUDGET")
     public ResponseEntity<ProjectBudgetSummaryDto> getProjectBudgetSummary(@PathVariable UUID project_id) {
-        authorizationService.authorize("READ_BUDGET");
         return ResponseEntity.ok(budgetSummaryService.getProjectBudgetSummary(project_id));
     }
 
     @GetMapping("/phase/{phase_id}")
+    @RequirePermission("READ_BUDGET")
     public ResponseEntity<PhaseBudgetSummaryDto> getPhaseBudgetSummary(@PathVariable UUID phase_id) {
-        authorizationService.authorize("READ_BUDGET");
         return ResponseEntity.ok(budgetSummaryService.getPhaseBudgetSummary(phase_id));
     }
 
     @GetMapping("/milestone/{milestone_id}")
+    @RequirePermission("READ_BUDGET")
     public ResponseEntity<MilestoneBudgetVsActualDto> getMilestoneBudgetVsActual(@PathVariable UUID milestone_id) {
-        authorizationService.authorize("READ_BUDGET");
         return ResponseEntity.ok(budgetSummaryService.getMilestoneBudgetVsActual(milestone_id));
     }
 }

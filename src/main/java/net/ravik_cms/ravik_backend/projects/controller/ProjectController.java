@@ -2,7 +2,7 @@ package net.ravik_cms.ravik_backend.projects.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.budget.dtos.CreateBudgetDto;
 import net.ravik_cms.ravik_backend.projects.dtos.CreateProjectAndBudgetDto;
 import net.ravik_cms.ravik_backend.projects.dtos.ProjectDto;
@@ -24,7 +24,6 @@ import java.util.UUID;
 public class ProjectController {
     private final ProjectService projectService;
     private final ProjectOrchestrationService orchestrationService;
-    private final AuthorizationService authorizationService;
 
     @PostMapping
     public ResponseEntity <ProjectInfoDto> createProject(@Valid @RequestBody CreateProjectAndBudgetDto request,
@@ -35,9 +34,9 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
+    @RequirePermission("READ_PROJECT")
     @GetMapping("/{id}")
     public ResponseEntity<ProjectInfoDto> getProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser){
-        authorizationService.authorize("READ_PROJECT");
         ProjectInfoDto project = projectService.getProject(id, currentUser.getUsername());
         return ResponseEntity.ok(project);
     }
@@ -47,17 +46,17 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @RequirePermission("UPDATE_PROJECT")
     @PutMapping("/{id}")
     public ResponseEntity<ProjectPatchDto> patchProject(@PathVariable UUID id, @RequestBody ProjectPatchDto request,
                                                         @AuthenticationPrincipal UserDetails currentUser){
-        authorizationService.authorize("UPDATE_PROJECT");
         ProjectPatchDto patchedProject = projectService.patchProject(id, currentUser.getUsername(),request);
         return ResponseEntity.ok(patchedProject);
     }
 
+    @RequirePermission("DELETE_PROJECT")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser){
-        authorizationService.authorize("DELETE_PROJECT");
         projectService.deleteProject(id, currentUser.getUsername());
         return ResponseEntity.noContent().build();
     }

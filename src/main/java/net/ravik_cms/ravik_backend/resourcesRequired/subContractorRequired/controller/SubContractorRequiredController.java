@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.dtos.CreateSubContractorRequiredDto;
 import net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.dtos.SubContractorRequiredInfoProjection;
 import net.ravik_cms.ravik_backend.resourcesRequired.subContractorRequired.dtos.UpdateSubContractorRequiredDto;
@@ -21,43 +21,42 @@ import java.util.UUID;
 @RequestMapping("/api/v1/subContractorRequired")
 public class SubContractorRequiredController {
     private final SubContractorRequiredService subContractorRequiredService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("CREATE_SUBCONTRACTOR")
     @PostMapping("/{milestone_id}")
     public ResponseEntity<List<SubContractorRequiredInfoProjection>> createSubContractorRequired(
             @PathVariable UUID milestone_id,
             @RequestBody List<CreateSubContractorRequiredDto> request) {
-        authorizationService.authorize("CREATE_SUBCONTRACTOR");
         List<SubContractorRequiredInfoProjection> body = subContractorRequiredService.createSubContractorRequired(milestone_id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
+    @RequirePermission("READ_SUBCONTRACTOR")
     @GetMapping("/{milestone_id}")
     public ResponseEntity<List<SubContractorRequiredInfoProjection>> getSubContractorRequired(@PathVariable UUID milestone_id) {
-        authorizationService.authorize("READ_SUBCONTRACTOR");
         return ResponseEntity.ok(subContractorRequiredService.getSubContractorRequired(milestone_id));
     }
 
+    @RequirePermission("READ_SUBCONTRACTOR")
     @GetMapping("/project/{project_id}")
     public ResponseEntity<Page<SubContractorRequiredInfoProjection>> getSubContractorRequiredByProject(
             @PathVariable UUID project_id,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String jobType,
             @PageableDefault(size = 20) Pageable pageable) {
-        authorizationService.authorize("READ_SUBCONTRACTOR");
         return ResponseEntity.ok(subContractorRequiredService.getSubContractorRequiredByProject(project_id, search, jobType, pageable));
     }
 
+    @RequirePermission("UPDATE_SUBCONTRACTOR")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateSubContractorRequired(@PathVariable Long id, @RequestBody UpdateSubContractorRequiredDto request) {
-        authorizationService.authorize("UPDATE_SUBCONTRACTOR");
         subContractorRequiredService.updateSubContractorRequired(id, request);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("DELETE_SUBCONTRACTOR")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSubContractorRequired(@PathVariable Long id) {
-        authorizationService.authorize("DELETE_SUBCONTRACTOR");
         subContractorRequiredService.deleteSubContractorRequired(id);
         return ResponseEntity.noContent().build();
     }

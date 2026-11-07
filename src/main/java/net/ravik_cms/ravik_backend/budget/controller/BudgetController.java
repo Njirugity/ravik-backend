@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.budget.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.budget.dtos.BudgetInfoProjection;
 import net.ravik_cms.ravik_backend.budget.dtos.CreateBudgetDto;
 import net.ravik_cms.ravik_backend.budget.dtos.UpdateBudgetDto;
@@ -20,36 +20,35 @@ import java.util.UUID;
 @RequestMapping("/api/v1/budgets")
 public class BudgetController {
     private final BudgetService budgetService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("CREATE_BUDGET")
     @PostMapping("/{project_id}")
     public ResponseEntity<?> addBudget(@PathVariable UUID project_id,
                                         @RequestBody CreateBudgetDto request) {
-        authorizationService.authorize("CREATE_BUDGET");
         budgetService.addBudget(request, project_id);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("READ_BUDGET")
     @GetMapping("/{project_id}")
     public ResponseEntity<Page<BudgetInfoProjection>> getBudgets(
             @PathVariable UUID project_id,
             @RequestParam(required = false) BudgetCategory category,
             @PageableDefault(size = 20) Pageable pageable) {
-        authorizationService.authorize("READ_BUDGET");
         Page<BudgetInfoProjection> body = budgetService.getBudgets(project_id, category, pageable);
         return ResponseEntity.ok(body);
     }
 
+    @RequirePermission("UPDATE_BUDGET")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateBudget(@PathVariable UUID id, @RequestBody UpdateBudgetDto request) {
-        authorizationService.authorize("UPDATE_BUDGET");
         budgetService.updateBudget(id, request);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("DELETE_BUDGET")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteBudget(@PathVariable UUID id) {
-        authorizationService.authorize("DELETE_BUDGET");
         budgetService.deleteBudget(id);
         return ResponseEntity.noContent().build();
     }

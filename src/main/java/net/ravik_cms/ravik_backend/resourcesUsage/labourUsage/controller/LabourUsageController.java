@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.resourcesUsage.labourUsage.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.resourcesUsage.labourUsage.dtos.LabourComparisonDto;
 import net.ravik_cms.ravik_backend.resourcesUsage.labourUsage.service.LabourUsageService;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +18,10 @@ import java.util.UUID;
 @RequestMapping("/api/v1/labourUsage")
 public class LabourUsageController {
     private final LabourUsageService labourUsageService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("READ_LABOUR")
     @GetMapping("/{milestone_id}")
     public ResponseEntity<List<LabourComparisonDto>> getLabourComparison(@PathVariable UUID milestone_id) {
-        authorizationService.authorize("READ_LABOUR");
         return ResponseEntity.ok(labourUsageService.getLabourComparison(milestone_id));
     }
 }

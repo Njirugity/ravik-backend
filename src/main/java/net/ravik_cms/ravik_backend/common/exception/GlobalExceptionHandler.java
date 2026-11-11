@@ -80,4 +80,19 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
     }
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ApiErrors> invalidOtpException(InvalidOtpException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(WeakPasswordException.class)
+    public ResponseEntity<ApiErrors> weakPasswordException(WeakPasswordException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<ApiErrors> incorrectPasswordException(IncorrectPasswordException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
+    }
 }

@@ -94,6 +94,24 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 });
     }
 
+    /**
+     * Revokes every still-active refresh token for a user.
+     */
+    @Override
+    @Transactional
+    public void revokeAllForUser(UUID userId) {
+        refreshTokenRepository.revokeAllByUserId(userId, Instant.now());
+    }
+
+    /**
+     * Revokes every still-active refresh token for a user except the one presented.
+     */
+    @Override
+    @Transactional
+    public void revokeAllForUserExcept(UUID userId, String exceptRawToken) {
+        refreshTokenRepository.revokeAllByUserIdExcept(userId, hash(exceptRawToken), Instant.now());
+    }
+
     private static String generateRawToken() {
         byte[] bytes = new byte[32];
         SECURE_RANDOM.nextBytes(bytes);

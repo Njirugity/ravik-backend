@@ -7,10 +7,12 @@ import net.ravik_cms.ravik_backend.authentication.dto.LoginResponse;
 import net.ravik_cms.ravik_backend.authentication.dto.RefreshTokenResult;
 import net.ravik_cms.ravik_backend.authentication.service.AuthService;
 import net.ravik_cms.ravik_backend.authentication.service.RefreshTokenService;
+import net.ravik_cms.ravik_backend.common.exception.IncorrectPasswordException;
 import net.ravik_cms.ravik_backend.common.exception.InvalidCredentialsException;
 import net.ravik_cms.ravik_backend.common.exception.InvalidTokenException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.common.jwt.JwtUtils;
+import net.ravik_cms.ravik_backend.common.password.PasswordPolicy;
 import net.ravik_cms.ravik_backend.common.security.UserPrincipal;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembership;
 import net.ravik_cms.ravik_backend.memberships.ProjectMembershipRepository;
@@ -22,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,6 +46,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+    private final PasswordPolicy passwordPolicy;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Resolves the authenticated user's identity, role, and permission set within a project.
@@ -113,6 +118,35 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(String refreshToken) {
         refreshTokenService.revoke(refreshToken);
+    }
+
+    /**
+     * Verifies the current password, checks the new one against the strength policy, and saves it.
+     *
+     * @throws IncorrectPasswordException if {@code currentPassword} doesn't match
+     * @throws ResourceNotFoundException   if the user no longer exists
+     */
+    @Override
+    public void changePassword(UUID userId, String currentPassword, String newPassword, boolean terminateOtherSessions,
+                                String currentRefreshToken) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IncorrectPasswordException("Current password is incorrect");
+        }
+
+        passwordPolicy.validate(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        if (terminateOtherSessions) {
+            if (currentRefreshToken != null && !currentRefreshToken.isBlank()) {
+                refreshTokenService.revokeAllForUserExcept(userId, currentRefreshToken);
+            } else {
+                refreshTokenService.revokeAllForUser(userId);
+            }
+        }
     }
 
     private LoginResponse buildLoginResponse(String accessToken, String refreshToken) {

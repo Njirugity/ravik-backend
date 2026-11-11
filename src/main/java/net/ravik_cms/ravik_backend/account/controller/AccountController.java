@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.account.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.account.dtos.AccountInfoProjection;
 import net.ravik_cms.ravik_backend.account.dtos.CreateAccountDto;
 import net.ravik_cms.ravik_backend.account.dtos.UpdateAccountDto;
@@ -19,36 +19,35 @@ import java.util.UUID;
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
     private final AccountService accountService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("CREATE_ACCOUNT")
     @PostMapping("/{client_id}")
     public ResponseEntity<?> addAccount(@PathVariable UUID client_id,
                                          @RequestBody CreateAccountDto request) {
-        authorizationService.authorize("CREATE_ACCOUNT");
         accountService.addAccount(request, client_id);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("READ_ACCOUNT")
     @GetMapping("/{client_id}")
     public ResponseEntity<Page<AccountInfoProjection>> getAccounts(
             @PathVariable UUID client_id,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable) {
-        authorizationService.authorize("READ_ACCOUNT");
         Page<AccountInfoProjection> body = accountService.getAccounts(client_id, search, pageable);
         return ResponseEntity.ok(body);
     }
 
+    @RequirePermission("UPDATE_ACCOUNT")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateAccount(@PathVariable UUID id, @RequestBody UpdateAccountDto request) {
-        authorizationService.authorize("UPDATE_ACCOUNT");
         accountService.updateAccount(id, request);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("DELETE_ACCOUNT")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAccount(@PathVariable UUID id) {
-        authorizationService.authorize("DELETE_ACCOUNT");
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
     }

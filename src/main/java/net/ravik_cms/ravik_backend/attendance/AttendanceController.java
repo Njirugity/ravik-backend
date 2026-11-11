@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.attendance;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.common.enums.AttendanceStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +19,8 @@ import java.util.UUID;
 @RequestMapping("/api/v1/attendances")
 public class AttendanceController {
     private final AttendanceService attendanceService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("READ_ATTENDANCE")
     @GetMapping("/{project_id}")
     public ResponseEntity<Page<AttendanceSingleDayInfoDto>>display(
             @PathVariable UUID project_id,
@@ -29,21 +29,21 @@ public class AttendanceController {
             @RequestParam(required = false) AttendanceStatus status,
             @RequestParam(required = false) String search,
             @PageableDefault(size =20) Pageable pageable){
-        authorizationService.authorize("READ_ATTENDANCE");
         Page<AttendanceSingleDayInfoDto> body = attendanceService.displayRecords(project_id, date, jobTitle, status,
         search, pageable);
         return ResponseEntity.ok(body);
     }
+    @RequirePermission("READ_ATTENDANCE")
     @GetMapping("/member/{member_id}")
     public ResponseEntity<Page<AttendanceSingleDayInfoDto>> memberHistory(
             @PathVariable Long member_id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             @PageableDefault(size = 20) Pageable pageable){
-        authorizationService.authorize("READ_ATTENDANCE");
         Page<AttendanceSingleDayInfoDto> body = attendanceService.getMemberAttendanceHistory(member_id, start, end, pageable);
         return ResponseEntity.ok(body);
     }
+    @RequirePermission("READ_ATTENDANCE")
     @GetMapping("/mark/{project_id}")
     public ResponseEntity<Page<AttendanceSelectionDto>> displayForMarking(
             @PathVariable UUID project_id,
@@ -52,11 +52,11 @@ public class AttendanceController {
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable
     ){
-        authorizationService.authorize("READ_ATTENDANCE");
         Page<AttendanceSelectionDto> body = attendanceService.displayRecordsForMarking(project_id, date, jobTitle,
                 search, pageable);
         return ResponseEntity.ok(body);
     }
+    @RequirePermission("READ_ATTENDANCE")
     @GetMapping("/summary/{project_id}")
     public ResponseEntity<Page<AttendanceSummaryDto>> summary(
             @PathVariable UUID project_id,
@@ -64,25 +64,24 @@ public class AttendanceController {
             @RequestParam(required = false) String jobTitle,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable){
-        authorizationService.authorize("READ_ATTENDANCE");
         Page<AttendanceSummaryDto> body = attendanceService.summary(project_id, date, jobTitle, search, pageable);
         return ResponseEntity.ok(body);
     }
+    @RequirePermission("CREATE_ATTENDANCE")
     @PostMapping
     public ResponseEntity<?> saveAttendance(@RequestBody List<CreateAttendanceRecordDto> request){
-        authorizationService.authorize("CREATE_ATTENDANCE");
         attendanceService.createAttendanceRecord(request);
         return ResponseEntity.ok().build();
     }
+    @RequirePermission("UPDATE_ATTENDANCE")
     @PutMapping
     public ResponseEntity<?> updateRecord(@RequestBody UpdateAttendanceDto request){
-        authorizationService.authorize("UPDATE_ATTENDANCE");
         attendanceService.updateAttendance(request);
         return ResponseEntity.noContent().build();
     }
+    @RequirePermission("DELETE_ATTENDANCE")
     @DeleteMapping("/{attendance_id}")
     public ResponseEntity<?> deleteRecord(@PathVariable Long attendance_id){
-        authorizationService.authorize("DELETE_ATTENDANCE");
         attendanceService.deleteAttendance(attendance_id);
         return ResponseEntity.noContent().build();
     }

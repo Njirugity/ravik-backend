@@ -6,7 +6,7 @@ import net.ravik_cms.ravik_backend.accountInsights.service.AccountInsightsServic
 import net.ravik_cms.ravik_backend.approvals.Approval;
 import net.ravik_cms.ravik_backend.approvals.ApprovalRepository;
 import net.ravik_cms.ravik_backend.attendance.AttendanceRepository;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.BudgetCategoryLineDto;
 import net.ravik_cms.ravik_backend.budgetSummary.service.BudgetSummaryService;
 import net.ravik_cms.ravik_backend.cashSummary.dtos.CashSummaryDto;
@@ -88,7 +88,6 @@ public class ReportServiceImpl implements ReportService {
     private final BudgetSummaryService budgetSummaryService;
     private final MilestonesService milestonesService;
     private final ScheduleService scheduleService;
-    private final AuthorizationService authorizationService;
 
     /**
      * Returns the project's cash position: income vs payments, net cash, outstanding cost, and
@@ -98,8 +97,8 @@ public class ReportServiceImpl implements ReportService {
      * @return the project's cash summary
      */
     @Override
+    @RequirePermission("READ_CASH_SUMMARY")
     public CashSummaryDto getCashSummary(UUID projectId) {
-        authorizationService.authorize("READ_CASH_SUMMARY");
         return cashSummaryService.getCashSummary(projectId);
     }
 
@@ -111,8 +110,8 @@ public class ReportServiceImpl implements ReportService {
      * @return the project's cost/payment summary, one line per budget category plus a totals line
      */
     @Override
+    @RequirePermission("READ_COST_SUMMARY")
     public CostPaymentSummaryDto getCostSummary(UUID projectId) {
-        authorizationService.authorize("READ_COST_SUMMARY");
         return costSummaryService.getCostPaymentSummary(projectId);
     }
 
@@ -123,8 +122,8 @@ public class ReportServiceImpl implements ReportService {
      * @return one entry per account used on this project, with its income/payment flows
      */
     @Override
+    @RequirePermission("READ_ACCOUNT_INSIGHTS")
     public List<ProjectAccountInsightDto> getAccountInsights(UUID projectId) {
-        authorizationService.authorize("READ_ACCOUNT_INSIGHTS");
         return accountInsightsService.getProjectAccountFlows(projectId);
     }
 
@@ -141,8 +140,8 @@ public class ReportServiceImpl implements ReportService {
      * @return every approval on the project plus status roll-up counts and total approval amount
      */
     @Override
+    @RequirePermission("READ_APPROVALS_REPORT")
     public ApprovalComplianceReportDto getApprovalsReport(UUID projectId) {
-        authorizationService.authorize("READ_APPROVALS_REPORT");
         return buildApprovalsReport(projectId);
     }
 
@@ -227,8 +226,8 @@ public class ReportServiceImpl implements ReportService {
      *         per-{@link PaymentCategory} roll-up
      */
     @Override
+    @RequirePermission("READ_OUTSTANDING_PAYABLES_REPORT")
     public OutstandingPayablesReportDto getOutstandingPayablesReport(UUID projectId) {
-        authorizationService.authorize("READ_OUTSTANDING_PAYABLES_REPORT");
         return buildOutstandingPayablesReport(projectId);
     }
 
@@ -316,8 +315,8 @@ public class ReportServiceImpl implements ReportService {
      * @return the per-job-title labour rollup plus project-wide labour payout totals
      */
     @Override
+    @RequirePermission("READ_LABOUR_ATTENDANCE_REPORT")
     public LabourAttendanceCostReportDto getLabourAttendanceCostReport(UUID projectId) {
-        authorizationService.authorize("READ_LABOUR_ATTENDANCE_REPORT");
         return buildLabourAttendanceCostReport(projectId);
     }
 
@@ -404,9 +403,8 @@ public class ReportServiceImpl implements ReportService {
      *         for each
      */
     @Override
+    @RequirePermission("READ_EQUIPMENT_SUBCONTRACTOR_REPORT")
     public EquipmentSubContractorPayoutReportDto getEquipmentSubContractorPayoutReport(UUID projectId) {
-        authorizationService.authorize("READ_EQUIPMENT_SUBCONTRACTOR_REPORT");
-
         List<EquipmentPayoutComparisonLineDto> equipmentLines = buildEquipmentComparison(projectId);
         List<SubContractorPayoutComparisonLineDto> subContractorLines = buildSubContractorComparison(projectId);
 
@@ -553,9 +551,8 @@ public class ReportServiceImpl implements ReportService {
      *         outstanding-risk figures
      */
     @Override
+    @RequirePermission("READ_EXECUTIVE_DASHBOARD")
     public ExecutiveDashboardDto getExecutiveDashboard(UUID projectId) {
-        authorizationService.authorize("READ_EXECUTIVE_DASHBOARD");
-
         BudgetCategoryLineDto budgetTotals = budgetSummaryService.getProjectBudgetSummary(projectId).getTotals();
         CashSummaryDto cash = cashSummaryService.getCashSummary(projectId);
         MilestoneSummaryDto milestoneSummary = milestonesService.getMilestoneSummary(projectId);

@@ -1,7 +1,7 @@
 package net.ravik_cms.ravik_backend.equipmentsPayout.controller;
 
 import lombok.RequiredArgsConstructor;
-import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.authorization.RequirePermission;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.equipmentsPayout.dtos.CreateEquipmentsPayoutDto;
 import net.ravik_cms.ravik_backend.equipmentsPayout.dtos.EquipmentsPayoutInfoProjection;
@@ -22,22 +22,22 @@ import java.util.UUID;
 @RequestMapping("/api/v1/equipmentsPayout")
 public class EquipmentsPayoutController {
     private final EquipmentsPayoutService equipmentsPayoutService;
-    private final AuthorizationService authorizationService;
 
+    @RequirePermission("CREATE_PAYOUT")
     @PostMapping("/{milestone_id}")
     public ResponseEntity<?> addEquipmentsPayout(@PathVariable UUID milestone_id,
                                                   @RequestBody CreateEquipmentsPayoutDto request) {
-        authorizationService.authorize("CREATE_PAYOUT");
         equipmentsPayoutService.addEquipmentsPayout(milestone_id, request);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("READ_PAYOUT")
     @GetMapping("/{milestone_id}")
     public ResponseEntity<List<EquipmentsPayoutInfoProjection>> getEquipmentsPayout(@PathVariable UUID milestone_id) {
-        authorizationService.authorize("READ_PAYOUT");
         return ResponseEntity.ok(equipmentsPayoutService.getEquipmentsPayout(milestone_id));
     }
 
+    @RequirePermission("READ_PAYOUT")
     @GetMapping("/project/{project_id}")
     public ResponseEntity<Page<EquipmentsPayoutInfoProjection>> getByProject(
             @PathVariable UUID project_id,
@@ -45,20 +45,19 @@ public class EquipmentsPayoutController {
             @RequestParam(required = false) EquipmentCategory category,
             @RequestParam(required = false) LocalDate dateUsed,
             @PageableDefault(size = 20) Pageable pageable) {
-        authorizationService.authorize("READ_PAYOUT");
         return ResponseEntity.ok(equipmentsPayoutService.getByProject(project_id, search, category, dateUsed, pageable));
     }
 
+    @RequirePermission("UPDATE_PAYOUT")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateEquipmentsPayout(@PathVariable UUID id, @RequestBody UpdateEquipmentsPayoutDto request) {
-        authorizationService.authorize("UPDATE_PAYOUT");
         equipmentsPayoutService.updateEquipmentsPayout(id, request);
         return ResponseEntity.ok().build();
     }
 
+    @RequirePermission("DELETE_PAYOUT")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEquipmentsPayout(@PathVariable UUID id) {
-        authorizationService.authorize("DELETE_PAYOUT");
         equipmentsPayoutService.deleteEquipmentsPayout(id);
         return ResponseEntity.noContent().build();
     }

@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.milestones.dtos;
 
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,8 @@ import java.time.LocalDate;
 public class UpdateMilestoneDto {
     private String title;
     private String description;
+    @Min(value = 1, message = "Duration must be at least 1 day")
+    private Integer duration;
     private LocalDate actualStartDate;
     private LocalDate actualEndDate;
-    private ProgressStatus status;
 }

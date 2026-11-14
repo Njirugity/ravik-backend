@@ -124,11 +124,18 @@ public class MilestonesService {
     public MilestoneInfoDto updateMilestone(UUID milestoneId, UpdateMilestoneDto dto){
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
+        boolean durationChanged = dto.getDuration() != null && dto.getDuration() != milestone.getDuration();
         milestonesMapper.updateMilestone(dto, milestone);
         if (milestone.getPhase() != null) {
             phasesService.syncPhaseBudget(milestone.getPhase().getId());
         }
-        forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
+        // A new duration moves the planned dates, so the baseline has to be worked out
+        // again; that recalculation refreshes the forecast as well.
+        if (durationChanged) {
+            scheduleService.recalculateIfPossible(milestone.getProject().getId());
+        } else {
+            forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
+        }
         return milestonesMapper.toInfoDto(milestone);
     }
     @Transactional

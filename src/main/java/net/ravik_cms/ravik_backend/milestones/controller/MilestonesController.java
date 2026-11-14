@@ -67,7 +67,7 @@ public class MilestonesController {
 
     @RequirePermission("UPDATE_MILESTONE")
     @PostMapping("/update/{milestone_id}")
-    public ResponseEntity<MilestoneInfoDto> updateMilestone(@PathVariable UUID milestone_id, @RequestBody UpdateMilestoneDto dto){
+    public ResponseEntity<MilestoneInfoDto> updateMilestone(@PathVariable UUID milestone_id, @Valid @RequestBody UpdateMilestoneDto dto){
         MilestoneInfoDto body = milestonesService.updateMilestone(milestone_id, dto);
         return ResponseEntity.ok(body);
     }

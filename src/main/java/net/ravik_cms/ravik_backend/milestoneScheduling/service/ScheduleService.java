@@ -209,7 +209,7 @@ public class ScheduleService {
             m.setTotalFloat(0L);
 
             if(!isCritical && m.getEarliestFinish() != null && m.getLatestFinish() != null){
-                long totalFloat = calendarService.workingDaysBetween(m.getEarliestStart(), m.getLatestStart(), calender);
+                long totalFloat = calendarService.workingDayDifference(m.getEarliestStart(), m.getLatestStart(), calender);
                 m.setTotalFloat(totalFloat);
             }
         }

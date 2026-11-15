@@ -45,14 +45,16 @@ public class DependencyController {
     }
     @RequirePermission("READ_DEPENDENCIES")
     @GetMapping("/{projectId}/milestones")
-    public ResponseEntity<List<DependenciesDto>> getMilestonesDependents(@PathVariable UUID projectId){
-        List<DependenciesDto> body =  dependencyService.getMilestoneDependents(projectId);
+    public ResponseEntity<List<DependenciesDto>> getMilestonesDependents(@PathVariable UUID projectId,
+                                                                         @RequestParam(required = false) String search){
+        List<DependenciesDto> body =  dependencyService.getMilestoneDependents(projectId, search);
         return ResponseEntity.ok(body);
     }
     @RequirePermission("READ_DEPENDENCIES")
     @GetMapping("{projectId}/project")
-    public ResponseEntity<ProjectDependenciesDto> getProjectDependencies(@PathVariable UUID projectId){
-        ProjectDependenciesDto body = dependencyService.getProjectDependencies(projectId);
+    public ResponseEntity<ProjectDependenciesDto> getProjectDependencies(@PathVariable UUID projectId,
+                                                                         @RequestParam(required = false) String search){
+        ProjectDependenciesDto body = dependencyService.getProjectDependencies(projectId, search);
         return ResponseEntity.ok(body);
     }
     @RequirePermission("UPDATE_DEPENDENCIES")

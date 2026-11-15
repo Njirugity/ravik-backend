@@ -37,6 +37,16 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("search") String search,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT m FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    List<Milestones> searchMilestonesByProject(
+            @Param("projectId") UUID projectId,
+            @Param("search") String search
+    );
     List<Milestones> findAllByPhaseId(UUID phaseId);
     boolean existsByPhaseIdAndStatusNotAndEarliestFinishBefore(
             UUID phaseId, ProgressStatus status, LocalDate currentDate);

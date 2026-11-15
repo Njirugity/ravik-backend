@@ -137,4 +137,20 @@ public class CalendarService {
         }
         return -daysBetween(to, from, calendar);
     }
+
+    public long workingDayDifference(
+            LocalDate from,
+            LocalDate to,
+            Calendar calendar) {
+
+        if (from == null || to == null || from.equals(to)) {
+            return 0L;
+        }
+
+        if (from.isAfter(to)) {
+            return -workingDayDifference(to, from, calendar);
+        }
+
+        return daysBetween(from.plusDays(1), to, calendar);
+    }
 }

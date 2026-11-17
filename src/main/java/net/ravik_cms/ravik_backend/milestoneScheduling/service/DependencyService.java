@@ -1,6 +1,7 @@
 package net.ravik_cms.ravik_backend.milestoneScheduling.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.ravik_cms.ravik_backend.common.exception.CircularDependencyException;
 import net.ravik_cms.ravik_backend.common.exception.InvalidDependencyException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DependencyService {
@@ -54,7 +56,7 @@ public class DependencyService {
         dependencies.setProject(milestoneProject);
         scheduleRepository.save(dependencies);
 
-        scheduleService.recalculateIfPossible(milestoneProject.getId());
+        recalculate(milestoneProject.getId());
     }
 
     // The new edge is predecessor -> milestone, so it closes a loop only if
@@ -86,7 +88,15 @@ public class DependencyService {
         }
         scheduleRepository.deleteByMilestoneIdAndPredecessorId(milestoneId, predecessorId);
 
-        scheduleService.recalculateIfPossible(milestone.getProject().getId());
+        recalculate(milestone.getProject().getId());
+    }
+    
+    private void recalculate(UUID projectId) {
+        try {
+            scheduleService.recalculateIfPossible(projectId);
+        } catch (RuntimeException e) {
+            log.warn("Schedule recalculation failed for project {}", projectId, e);
+        }
     }
 
     public List<DependencyDto> getPredecessors(UUID milestoneId){

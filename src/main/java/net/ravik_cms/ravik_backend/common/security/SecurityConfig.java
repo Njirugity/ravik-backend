@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.common.security;
 
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.common.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
@@ -45,7 +46,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth->auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(
+                                "/error",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/refresh",

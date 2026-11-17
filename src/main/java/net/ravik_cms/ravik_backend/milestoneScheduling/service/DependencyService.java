@@ -90,7 +90,7 @@ public class DependencyService {
 
         recalculate(milestone.getProject().getId());
     }
-    
+
     private void recalculate(UUID projectId) {
         try {
             scheduleService.recalculateIfPossible(projectId);

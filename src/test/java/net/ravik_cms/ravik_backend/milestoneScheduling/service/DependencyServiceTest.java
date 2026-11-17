@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 class DependencyServiceTest {
 
     private ScheduleRepository scheduleRepository;
+    private ScheduleService scheduleService;
     private DependencyService dependencyService;
 
     /** predecessorId -> successors, i.e. the edges already saved. */
@@ -31,7 +32,8 @@ class DependencyServiceTest {
     void setUp() {
         scheduleRepository = mock(ScheduleRepository.class);
         MilestonesRepository milestonesRepository = mock(MilestonesRepository.class);
-        dependencyService = new DependencyService(scheduleRepository, milestonesRepository, mock(ScheduleService.class));
+        scheduleService = mock(ScheduleService.class);
+        dependencyService = new DependencyService(scheduleRepository, milestonesRepository, scheduleService);
 
         project.setId(UUID.randomUUID());
         a = milestone("A");
@@ -90,5 +92,13 @@ class DependencyServiceTest {
                 () -> dependencyService.addPredecessor(b.getId(), a.getId()));
         assertThrows(InvalidDependencyException.class,
                 () -> dependencyService.addPredecessor(a.getId(), a.getId()));
+    }
+
+    @Test
+    void savesEvenWhenRecalculationFails() {
+        doThrow(new NullPointerException("no planned start"))
+                .when(scheduleService).recalculateIfPossible(project.getId());
+        assertDoesNotThrow(() -> dependencyService.addPredecessor(b.getId(), a.getId()));
+        verify(scheduleRepository).save(any(MilestoneDependency.class));
     }
 }

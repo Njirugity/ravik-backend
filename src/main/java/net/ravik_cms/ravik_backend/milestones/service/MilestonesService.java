@@ -125,7 +125,12 @@ public class MilestonesService {
         Milestones milestone = milestonesRepository.findById(milestoneId)
                 .orElseThrow(()-> new ResourceNotFoundException("Milestone not found"));
         boolean durationChanged = dto.getDuration() != null && dto.getDuration() != milestone.getDuration();
+        boolean hadStarted = milestone.getActualStartDate() != null;
         milestonesMapper.updateMilestone(dto, milestone);
+        applyStatusFromDates(milestone);
+        if (!hadStarted && milestone.getActualStartDate() != null && milestone.getPhase() != null) {
+            phasesService.setPhaseActualStartDate(milestone.getPhase().getId());
+        }
         if (milestone.getPhase() != null) {
             phasesService.syncPhaseBudget(milestone.getPhase().getId());
         }
@@ -137,6 +142,15 @@ public class MilestonesService {
             forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
         }
         return milestonesMapper.toInfoDto(milestone);
+    }
+    // Actual dates are the source of truth for progress: a start means work is under
+    // way, a start and an end mean it is done. With neither, the status is left alone.
+    private void applyStatusFromDates(Milestones milestone) {
+        if (milestone.getActualStartDate() != null && milestone.getActualEndDate() != null) {
+            milestone.setStatus(ProgressStatus.COMPLETED);
+        } else if (milestone.getActualStartDate() != null) {
+            milestone.setStatus(ProgressStatus.IN_PROGRESS);
+        }
     }
     @Transactional
     public void deleteMilestone(UUID milestoneId){

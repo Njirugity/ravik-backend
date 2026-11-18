@@ -15,6 +15,7 @@ public interface RolesRepository extends JpaRepository<Roles, UUID> {
     Optional<Roles> findByNameAndProject(String name, Projects project);
     Optional<Roles> findByIdAndProject(UUID id, Projects project);
     List<Roles> findAllByProject(Projects project);
+    List<Roles> findAllByName(String name);
 
     @Query("SELECT m.role.id AS roleId, COUNT(m) AS memberCount FROM ProjectMembership m " +
             "WHERE m.role.project.id = :projectId GROUP BY m.role.id")

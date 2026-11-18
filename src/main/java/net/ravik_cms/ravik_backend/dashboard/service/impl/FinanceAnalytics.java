@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.accountInsights.dtos.ClientAccountInsightDto;
 import net.ravik_cms.ravik_backend.accountInsights.dtos.ProjectAccountInsightDto;
 import net.ravik_cms.ravik_backend.accountInsights.service.AccountInsightsService;
+import net.ravik_cms.ravik_backend.authorization.AuthorizationService;
+import net.ravik_cms.ravik_backend.common.dataInitializer.DefaultPermissions;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.BudgetCategoryLineDto;
 import net.ravik_cms.ravik_backend.budgetSummary.dtos.ProjectBudgetSummaryDto;
 import net.ravik_cms.ravik_backend.budgetSummary.service.BudgetSummaryService;
@@ -61,6 +63,7 @@ class FinanceAnalytics {
     private final BudgetSummaryService budgetSummaryService;
     private final CostSummaryService costSummaryService;
     private final AccountInsightsService accountInsightsService;
+    private final AuthorizationService authorizationService;
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
     private final IncomeRepository incomeRepository;
@@ -119,7 +122,9 @@ class FinanceAnalytics {
     }
 
     AccountsDashboardDto buildAccounts(Projects project) {
-        Map<UUID, ClientAccountInsightDto> clientAccounts = project.getClient() == null
+        // Client-wide balances span every project, so they need the permission the client grants.
+        boolean canSeeClientBalances = authorizationService.hasPermission(DefaultPermissions.VIEW_CLIENT_ACCOUNT_SUMMARY);
+        Map<UUID, ClientAccountInsightDto> clientAccounts = project.getClient() == null || !canSeeClientBalances
                 ? Map.of()
                 : accountInsightsService.getClientDashboard(project.getClient().getId()).stream()
                         .collect(Collectors.toMap(ClientAccountInsightDto::getAccountId, Function.identity()));

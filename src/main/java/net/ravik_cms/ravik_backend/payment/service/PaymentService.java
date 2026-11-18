@@ -2,7 +2,7 @@ package net.ravik_cms.ravik_backend.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.account.entity.Accounts;
-import net.ravik_cms.ravik_backend.account.repository.AccountRepository;
+import net.ravik_cms.ravik_backend.account.service.AccountAccessGuard;
 import net.ravik_cms.ravik_backend.common.enums.DeletionStatus;
 import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
@@ -49,7 +49,7 @@ public class PaymentService {
     private final SubContractorPayoutRepository subContractorPayoutRepository;
     private final LabourPayoutRepository labourPayoutRepository;
     private final ProjectsRepository projectsRepository;
-    private final AccountRepository accountRepository;
+    private final AccountAccessGuard accountAccessGuard;
     private final ExpenseRepository expenseRepository;
     private final MaterialDeliveredRepository materialDeliveredRepository;
 
@@ -60,8 +60,7 @@ public class PaymentService {
         Payment payment = paymentMapper.toEntity(request);
         payment.setProject(project);
         if (request.getAccountId() != null) {
-            Accounts account = accountRepository.findById(request.getAccountId()).orElseThrow(() ->
-                    new ResourceNotFoundException("Account not found"));
+            Accounts account = accountAccessGuard.requireAccount(request.getAccountId(), projectId);
             payment.setAccount(account);
         }
         if (request.getPaymentCategory() == PaymentCategory.MATERIALS) {
@@ -158,8 +157,7 @@ public class PaymentService {
         double previousAmount = payment.getAmount();
         paymentMapper.updatePayment(request, payment);
         if (request.getAccountId() != null) {
-            Accounts account = accountRepository.findById(request.getAccountId()).orElseThrow(() ->
-                    new ResourceNotFoundException("Account not found"));
+            Accounts account = accountAccessGuard.requireAccount(request.getAccountId(), payment.getProject().getId());
             payment.setAccount(account);
         }
         double delta = payment.getAmount() - previousAmount;

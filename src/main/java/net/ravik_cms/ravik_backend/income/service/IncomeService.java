@@ -2,7 +2,7 @@ package net.ravik_cms.ravik_backend.income.service;
 
 import lombok.RequiredArgsConstructor;
 import net.ravik_cms.ravik_backend.account.entity.Accounts;
-import net.ravik_cms.ravik_backend.account.repository.AccountRepository;
+import net.ravik_cms.ravik_backend.account.service.AccountAccessGuard;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.income.dtos.CreateIncomeDto;
 import net.ravik_cms.ravik_backend.income.dtos.IncomeInfoProjection;
@@ -23,14 +23,13 @@ import java.util.UUID;
 public class IncomeService {
     private final IncomeRepository incomeRepository;
     private final ProjectsRepository projectsRepository;
-    private final AccountRepository accountRepository;
+    private final AccountAccessGuard accountAccessGuard;
     private final IncomeMapper incomeMapper;
 
     public void addIncome(CreateIncomeDto request, UUID projectId) {
         Projects project = projectsRepository.findById(projectId).orElseThrow(() ->
                 new ResourceNotFoundException("Project not found"));
-        Accounts account = accountRepository.findById(request.getAccountId()).orElseThrow(() ->
-                new ResourceNotFoundException("Account not found"));
+        Accounts account = accountAccessGuard.requireAccount(request.getAccountId(), projectId);
         Income income = incomeMapper.toEntity(request);
         income.setProject(project);
         income.setAccount(account);
@@ -46,8 +45,7 @@ public class IncomeService {
                 new ResourceNotFoundException("Income not found"));
         incomeMapper.updateIncome(request, income);
         if (request.getAccountId() != null) {
-            Accounts account = accountRepository.findById(request.getAccountId()).orElseThrow(() ->
-                    new ResourceNotFoundException("Account not found"));
+            Accounts account = accountAccessGuard.requireAccount(request.getAccountId(), income.getProject().getId());
             income.setAccount(account);
         }
         incomeRepository.save(income);

@@ -30,6 +30,14 @@ public class AuthorizationService {
         }
     }
 
+    /** Like {@link #authorize} but answers instead of throwing, for optional figures. */
+    public boolean hasPermission(String permission){
+        return membershipRepository.findByUserIdAndProjectId(context.getProjectId(), context.getUserId())
+                .map(membership -> membership.getRole().getPermissions().stream()
+                        .anyMatch(p -> p.getName().equals(permission)))
+                .orElse(false);
+    }
+
     public void authorizeByRole(String roleName){
         UUID userId = context.getUserId();
         ProjectMembership membership = membershipRepository.findByUserIdAndRoleName(roleName, userId)

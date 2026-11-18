@@ -2,7 +2,11 @@ package net.ravik_cms.ravik_backend.roles;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.ravik_cms.ravik_backend.account.service.AccountAccessGuard;
+import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
+import net.ravik_cms.ravik_backend.common.dataInitializer.DefaultPermissions;
 import net.ravik_cms.ravik_backend.common.enums.RoleType;
+import net.ravik_cms.ravik_backend.common.exception.AccessDeniedException;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.permission.Permissions;
 import net.ravik_cms.ravik_backend.permission.PermissionsRepository;
@@ -23,11 +27,20 @@ public class RolesService {
     private final PermissionsRepository permissionsRepository;
     private final RolesMapper rolesMapper;
     private final ProjectsRepository projectsRepository;
+    private final UserProjectContext context;
+    private final AccountAccessGuard accountAccessGuard;
 
     @Transactional
     public void setPermissions(UUID roleId, Set<String> permissionsKey) {
-        Roles role = rolesRepository.findById(roleId).
-                orElseThrow(()-> new ResourceNotFoundException("Role not found"));
+        Roles role = findRole(roleId, context.getProjectId());
+        boolean hadSummary = role.getPermissions().stream()
+                .anyMatch(p -> p.getName().equals(DefaultPermissions.VIEW_CLIENT_ACCOUNT_SUMMARY));
+        boolean wantsSummary = permissionsKey.contains(DefaultPermissions.VIEW_CLIENT_ACCOUNT_SUMMARY);
+        // Client-wide balances span every project, so only the client decides who sees them.
+        if (hadSummary != wantsSummary && !accountAccessGuard.isCurrentClient(context.getUserId())) {
+            throw new AccessDeniedException("Only the project's client can grant or revoke "
+                    + DefaultPermissions.VIEW_CLIENT_ACCOUNT_SUMMARY);
+        }
         Set<Permissions> permissions = permissionsRepository.findByNameIn(permissionsKey);
         role.setPermissions(permissions);
         rolesRepository.save(role);

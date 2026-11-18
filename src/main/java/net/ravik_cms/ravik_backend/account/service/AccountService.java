@@ -7,6 +7,7 @@ import net.ravik_cms.ravik_backend.account.dtos.UpdateAccountDto;
 import net.ravik_cms.ravik_backend.account.entity.Accounts;
 import net.ravik_cms.ravik_backend.account.mapper.AccountMapper;
 import net.ravik_cms.ravik_backend.account.repository.AccountRepository;
+import net.ravik_cms.ravik_backend.authorization.UserProjectContext;
 import net.ravik_cms.ravik_backend.client.Client;
 import net.ravik_cms.ravik_backend.client.ClientRepository;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
@@ -22,8 +23,11 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final ClientRepository clientRepository;
     private final AccountMapper accountMapper;
+    private final AccountAccessGuard accountAccessGuard;
+    private final UserProjectContext context;
 
     public void addAccount(CreateAccountDto request, UUID clientId) {
+        accountAccessGuard.requireCurrentClient(clientId);
         Client client = clientRepository.findById(clientId).orElseThrow(() ->
                 new ResourceNotFoundException("Client not found"));
         Accounts account = accountMapper.toEntity(request);
@@ -32,19 +36,18 @@ public class AccountService {
     }
 
     public Page<AccountInfoProjection> getAccounts(UUID clientId, String search, Pageable pageable) {
+        accountAccessGuard.requireCurrentClient(clientId);
         return accountRepository.findAllByClient(clientId, search, pageable);
     }
 
     public void updateAccount(UUID id, UpdateAccountDto request) {
-        Accounts account = accountRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Account not found"));
+        Accounts account = accountAccessGuard.requireAccount(id, context.getProjectId());
         accountMapper.updateAccount(request, account);
         accountRepository.save(account);
     }
 
     public void deleteAccount(UUID id) {
-        Accounts account = accountRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Account not found"));
+        Accounts account = accountAccessGuard.requireAccount(id, context.getProjectId());
         accountRepository.delete(account);
     }
 }

@@ -21,7 +21,7 @@ import java.util.UUID;
 public interface SubContractorPayoutRepository extends JpaRepository<SubContractorPayout, UUID> {
     @Query("""
                 SELECT new net.ravik_cms.ravik_backend.subContractorPayout.dtos.SubContractorPayoutInfoProjection(
-                            sp.id, sp.subContractorRequired.id, sp.subContractorRequired.subContractor.id, sp.subContractorRequired.subContractor.title,
+                            sp.id, sp.subContractorRequired.id, sp.subContractorRequired.subContractor.id, sp.subContractorRequired.subContractor.title, sp.subContractorRequired.jobTitle,
                             sp.actualJobCost, sp.referenceCode, sp.paidAmount, sp.jobDate, sp.milestone.title, sp.paymentStatus)
                 FROM SubContractorPayout sp
                 WHERE sp.milestone.id = :milestoneId
@@ -31,7 +31,7 @@ public interface SubContractorPayoutRepository extends JpaRepository<SubContract
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.subContractorPayout.dtos.SubContractorPayoutInfoProjection(
-                            sp.id, sp.subContractorRequired.id, sc.id, sc.title,
+                            sp.id, sp.subContractorRequired.id, sc.id, sc.title, sr.jobTitle,
                             sp.actualJobCost, sp.referenceCode, sp.paidAmount, sp.jobDate, sp.milestone.title, sp.paymentStatus)
                 FROM SubContractorPayout sp
                 JOIN sp.subContractorRequired sr

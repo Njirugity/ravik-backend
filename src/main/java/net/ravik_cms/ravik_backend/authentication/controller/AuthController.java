@@ -35,7 +35,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Log in", description = "Authenticates credentials and returns an access token, a refresh token, and the access token's lifetime in seconds.")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request){
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
         return ResponseEntity.ok(authService.login(request));
     }
 
@@ -74,9 +74,9 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    @Operation(summary = "Request a password reset code", description = "Emails a one-time code to the account's registered email. Always returns success, whether or not the username exists, to avoid revealing which usernames are registered.")
+    @Operation(summary = "Request a password reset code", description = "Emails a one-time code to the account's registered email. Always returns success, whether or not the email exists, to avoid revealing which emails are registered.")
     public ResponseEntity<ApiMessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request){
-        passwordResetService.forgotPassword(request.userName());
+        passwordResetService.forgotPassword(request.email());
         return ResponseEntity.ok(ApiMessageResponse.of(
                 "If that account exists, a reset code has been sent to its registered email", HttpStatus.OK.value()));
     }
@@ -84,14 +84,14 @@ public class AuthController {
     @PostMapping("/validate-otp")
     @Operation(summary = "Validate a password reset code", description = "Checks the code emailed by /forgot-password. Must succeed before /reset-password will accept a new password.")
     public ResponseEntity<ApiMessageResponse> validateOtp(@Valid @RequestBody ValidateOtpRequest request){
-        passwordResetService.validateOtp(request.userName(), request.otp());
+        passwordResetService.validateOtp(request.email(), request.otp());
         return ResponseEntity.ok(ApiMessageResponse.of("Code verified", HttpStatus.OK.value()));
     }
 
     @PostMapping("/reset-password")
     @Operation(summary = "Reset password after OTP verification", description = "Sets a new password for a user whose code was already confirmed via /validate-otp. Optionally revokes every refresh token the user holds.")
     public ResponseEntity<ApiMessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request){
-        passwordResetService.resetPassword(request.userName(), request.newPassword(), request.terminateOtherSessions());
+        passwordResetService.resetPassword(request.email(), request.newPassword(), request.terminateOtherSessions());
         return ResponseEntity.ok(ApiMessageResponse.of("Password reset successfully", HttpStatus.OK.value()));
     }
 }

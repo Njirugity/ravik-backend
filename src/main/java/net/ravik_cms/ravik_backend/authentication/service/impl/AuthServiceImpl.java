@@ -78,14 +78,19 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Authenticates the given credentials and issues a fresh access/refresh token pair.
      *
-     * @throws InvalidCredentialsException if the username/password combination is wrong
+     * The account is looked up by email; authentication itself still runs against the username,
+     * which remains the principal identity carried in the JWT subject.
+     *
+     * @throws InvalidCredentialsException if the email/password combination is wrong
      */
     @Override
     public LoginResponse login(LoginRequest request) {
+        Users user = userRepository.findByEmailIgnoreCase(request.email().trim())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.userName(), request.password())
+                    new UsernamePasswordAuthenticationToken(user.getUserName(), request.password())
             );
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException("Invalid credentials");

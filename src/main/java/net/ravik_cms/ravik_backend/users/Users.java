@@ -21,6 +21,7 @@ public class Users extends BaseEntity {
     private UUID id;
     @Column(unique = true)
     private String userName;
+    @Column(unique = true)
     private String email;
     private String password;
     private String phoneNumber;

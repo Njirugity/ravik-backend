@@ -19,6 +19,7 @@ import java.util.Set;
 public class CreateClientDto {
     @NotBlank(message = "User name required")
     private String userName;
+    @NotBlank(message = "Email is required")
     @Email(message = "Email is not valid")
     private String email;
     @NotBlank(message = "Password is required")

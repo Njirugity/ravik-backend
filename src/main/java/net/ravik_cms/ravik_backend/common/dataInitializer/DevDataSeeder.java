@@ -301,7 +301,7 @@ public class DevDataSeeder implements CommandLineRunner {
             return;
         }
         equipmentRequiredService.createEquipmentRequired(milestoneId, List.of(
-                new CreateEquipmentRequiredDto(equipmentIds.get(0), 5, 200, "Foundation concrete works", LocalDate.now())
+                new CreateEquipmentRequiredDto(equipmentIds.get(0), 5, 200, 0, 150, "Foundation concrete works", LocalDate.now())
         ));
     }
 

@@ -19,7 +19,8 @@ public interface EquipmentRequiredRepository extends JpaRepository<EquipmentRequ
                 SELECT new net.ravik_cms.ravik_backend.resourcesRequired.equipmentRequired.dtos.
                             EquipmentRequiredInfoProjection(er.id, er.equipments.id, er.equipments.title,
                                         er.equipments.category, er.milestone.id,
-                                        er.plannedDuration, er.plannedFuelCost, er.notes, er.dateRequired)
+                                        er.plannedDuration, er.plannedFuelCost, er.plannedRentalCost,
+                                        er.plannedOperatorCost, er.notes, er.dateRequired)
                 FROM EquipmentRequired er
                 WHERE er.milestone.id = :milestoneId
             """)
@@ -29,7 +30,8 @@ public interface EquipmentRequiredRepository extends JpaRepository<EquipmentRequ
                 SELECT new net.ravik_cms.ravik_backend.resourcesRequired.equipmentRequired.dtos.
                             EquipmentRequiredInfoProjection(er.id, er.equipments.id, er.equipments.title,
                                         e.category, er.milestone.id,
-                                        er.plannedDuration, er.plannedFuelCost, er.notes, er.dateRequired)
+                                        er.plannedDuration, er.plannedFuelCost, er.plannedRentalCost,
+                                        er.plannedOperatorCost, er.notes, er.dateRequired)
                 FROM EquipmentRequired er
                 JOIN er.equipments e
                 WHERE er.project.id = :projectId
@@ -55,7 +57,8 @@ public interface EquipmentRequiredRepository extends JpaRepository<EquipmentRequ
                 SELECT new net.ravik_cms.ravik_backend.resourcesRequired.equipmentRequired.dtos.
                             EquipmentRequiredInfoProjection(er.id, er.equipments.id, er.equipments.title,
                                         er.equipments.category, er.milestone.id,
-                                        er.plannedDuration, er.plannedFuelCost, er.notes, er.dateRequired)
+                                        er.plannedDuration, er.plannedFuelCost, er.plannedRentalCost,
+                                        er.plannedOperatorCost, er.notes, er.dateRequired)
                 FROM EquipmentRequired er
                 WHERE er.project.id = :projectId
             """)

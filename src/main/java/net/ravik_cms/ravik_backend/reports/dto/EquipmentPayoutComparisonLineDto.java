@@ -11,6 +11,7 @@ public record EquipmentPayoutComparisonLineDto(
         EquipmentCategory equipmentCategory,
         long plannedDuration,
         double plannedFuelCost,
+        double plannedCost,
         long actualDuration,
         double actualCost,
         double paidAmount,

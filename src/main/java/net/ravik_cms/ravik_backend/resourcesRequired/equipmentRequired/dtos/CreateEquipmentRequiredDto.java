@@ -13,6 +13,8 @@ public class CreateEquipmentRequiredDto {
     private Long equipmentId;
     private long plannedDuration;
     private long plannedFuelCost;
+    private long plannedRentalCost;
+    private long plannedOperatorCost;
     private String notes;
     private LocalDate dateRequired;
 }

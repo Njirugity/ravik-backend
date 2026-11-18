@@ -29,7 +29,6 @@ public class CreateClientDto {
     @Pattern(regexp = "^\\+[1-9][0-9\\s\\-]{7,17}$", message = "Use international format with country code," +
             "e.g. +254712345678")
     private String phoneNumber;
-    @NotBlank(message = "Identification required")
     private String idNumber;
     private Set<RoleInfoDto> roles;
 }

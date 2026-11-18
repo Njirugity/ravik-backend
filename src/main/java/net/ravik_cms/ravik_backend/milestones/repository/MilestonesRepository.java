@@ -90,35 +90,6 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("currentDate") LocalDate currentDate,
             @Param("thresholdDate") LocalDate thresholdDate
     );
-    @Query("""
-        SELECT m FROM Milestones m
-        WHERE m.project.id = :projectId
-        AND m.actualStartDate IS NULL
-        AND :date BETWEEN m.earliestStart AND m.latestFinish
-    """)
-    List<Milestones> findByActualStartDateIsNullAndDateBetweenESAnsLF(
-            @Param("date") LocalDate date,
-            @Param("projectId") UUID projectId
-    );
-    @Query("""
-        SELECT m FROM Milestones m
-        WHERE m.project.id = :projectId
-        AND :date BETWEEN m.earliestStart AND m.latestFinish
-    """)
-    List<Milestones> findByDateBetweenESAndLF(
-            @Param("date") LocalDate date,
-            @Param("projectId") UUID projectId
-    );
-    @Query("""
-        SELECT m FROM Milestones m
-        WHERE m.project.id = :projectId
-        AND m.actualStartDate IS NULL
-        AND NOT EXISTS(SELECT md FROM MilestoneDependency md
-            WHERE md.milestone = m)
-    """)
-    List<Milestones> findWithNoPredecessorsAndNoActualStart(
-            @Param("projectId") UUID projectId
-    );
 
     long countByProjectId(UUID projectId);
     long countByProjectIdAndStatus(UUID projectId, ProgressStatus status);

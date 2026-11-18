@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import net.ravik_cms.ravik_backend.milestoneScheduling.entity.MilestoneDependency;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -209,70 +210,72 @@ public class MilestonesService {
             forecastService.recalculateForecastIfPossible(milestone.getProject().getId());
         }
     }
+    /**
+     * Milestones that attendance on {@code date} can be booked against. Everything except a
+     * milestone already finished before that date is offered; the ones that look active on
+     * the date are flagged as suggested and listed first.
+     */
     @Transactional
-    public List<PossibleActiveMilestonesDto> getEligibleMilestones(UUID projectId){
-        LocalDate today = LocalDate.now();
+    public List<PossibleActiveMilestonesDto> getEligibleMilestones(UUID projectId, LocalDate date){
         Projects project = projectsRepository.findById(projectId)
                 .orElseThrow(()->new ResourceNotFoundException("Project not found"));
-        List<Milestones> condition1 = milestonesRepository.findByActualStartDateIsNullAndDateBetweenESAnsLF(today, project.getId());
-        List<Milestones> condition2 = milestonesRepository.findByDateBetweenESAndLF(today, project.getId());
-        List<Milestones> condition3 = milestonesRepository.findWithNoPredecessorsAndNoActualStart(project.getId());
 
-        Map<UUID, Milestones> uniqueMilestones = new LinkedHashMap<>();
-
-        condition1.forEach(m -> uniqueMilestones.put(m.getId(), m));
-        condition2.forEach(m -> uniqueMilestones.put(m.getId(), m));
-        condition3.forEach(m -> uniqueMilestones.put(m.getId(), m));
-
-        return processMilestonesMatches(new ArrayList<>(uniqueMilestones.values()));
-    }
-    private boolean checkActivePredecessors(Milestones milestone){
-        List<Milestones> predecessors = scheduleRepository.findPredecessorByMilestoneId(milestone.getId());
-        for(Milestones pred: predecessors){
-            if(pred.getStatus() != ProgressStatus.COMPLETED){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String determineMatchReason(Milestones milestone){
-        LocalDate today = LocalDate.now();
-        if (milestone.getActualStartDate() != null &&
-                milestone.getActualEndDate() == null) {
-            return "Started but not completed";
+        Map<UUID, List<Milestones>> predecessorsByMilestone = new HashMap<>();
+        for (MilestoneDependency dependency : scheduleRepository.findByProjectId(project.getId())) {
+            predecessorsByMilestone
+                    .computeIfAbsent(dependency.getMilestone().getId(), id -> new ArrayList<>())
+                    .add(dependency.getPredecessor());
         }
 
-        if (milestone.getActualStartDate() == null &&
-                today.isAfter(milestone.getEarliestStart()) &&
-                today.isBefore(milestone.getLatestFinish())) {
-            return "Not started but within date range";
-        }
-
-        if (today.isAfter(milestone.getEarliestStart()) &&
-                today.isBefore(milestone.getLatestFinish())) {
-            return "Within date range";
-        }
-        return "other";
-    }
-    private List<PossibleActiveMilestonesDto> processMilestonesMatches(List<Milestones>milestones){
         List<PossibleActiveMilestonesDto> result = new ArrayList<>();
+        Map<UUID, LocalDate> earliestStarts = new HashMap<>();
+        for (Milestones m : milestonesRepository.findAllByProjectId(project.getId())) {
+            if (m.getActualEndDate() != null && m.getActualEndDate().isBefore(date)) {
+                continue;
+            }
+            List<Milestones> predecessors = predecessorsByMilestone.getOrDefault(m.getId(), List.of());
+            boolean hasActivePredecessor = predecessors.stream()
+                    .anyMatch(pred -> pred.getStatus() != ProgressStatus.COMPLETED);
 
-        for (Milestones m : milestones){
             PossibleActiveMilestonesDto dto = new PossibleActiveMilestonesDto();
             dto.setId(m.getId());
             dto.setTitle(m.getTitle());
-
-            boolean hasActivePredecessor = checkActivePredecessors(m);
-            if(hasActivePredecessor){
-                dto.setWarningMessage("The milestone has active predecessors. Are you sure you want to select it" +
+            dto.setPhaseTitle(m.getPhase() != null ? m.getPhase().getTitle() : null);
+            String reason = determineMatchReason(m, date, hasActivePredecessor);
+            dto.setMatchReason(reason);
+            dto.setSuggested(reason != null);
+            if (m.getActualStartDate() == null && hasActivePredecessor) {
+                dto.setWarningMessage("The milestone has active predecessors. Are you sure you want to select it " +
                         "before completing the predecessor?");
             }
-            String reason = determineMatchReason(m);
-            dto.setMatchReason(reason);
-
+            earliestStarts.put(m.getId(), m.getEarliestStart());
             result.add(dto);
         }
+
+        result.sort(Comparator
+                .comparing(PossibleActiveMilestonesDto::isSuggested).reversed()
+                .thenComparing(dto -> earliestStarts.get(dto.getId()), Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(PossibleActiveMilestonesDto::getTitle, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
         return result;
+    }
+
+    /** Why a milestone looks active on {@code date}, or null when it does not. First match wins. */
+    private String determineMatchReason(Milestones milestone, LocalDate date, boolean hasActivePredecessor){
+        if (milestone.getActualStartDate() != null && milestone.getActualEndDate() == null) {
+            return "In progress";
+        }
+        if (milestone.getActualEndDate() != null) {
+            // Finished on or after the date, or it would have been excluded.
+            return "Active on this date";
+        }
+        LocalDate start = milestone.getEarliestStart();
+        LocalDate finish = milestone.getLatestFinish();
+        if (start != null && finish != null && !date.isBefore(start) && !date.isAfter(finish)) {
+            return "Scheduled for this date";
+        }
+        if (milestone.getActualStartDate() == null && !hasActivePredecessor) {
+            return "Ready to start";
+        }
+        return null;
     }
 }

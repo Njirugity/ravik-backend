@@ -12,6 +12,9 @@ import java.util.UUID;
 public class PossibleActiveMilestonesDto {
     private UUID id;
     private String title;
+    private String phaseTitle;
     private String warningMessage;
+    /** Why the milestone is suggested for the date; null when it is offered but not suggested. */
     private String matchReason;
+    private boolean suggested;
 }

@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-ravikdb}
+      MYSQL_USER: ${DB_USERNAME:-ravikuser}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-ravikdb}
+      DB_USERNAME: ${DB_USERNAME:-ravikuser}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DDL_AUTO: ${DDL_AUTO:-update}
+      SHOW_SQL: ${SHOW_SQL:-false}
+      WEB_LOG_LEVEL: ${WEB_LOG_LEVEL:-INFO}
+      SEED_DEV_DATA: ${SEED_DEV_DATA:-true}
+      JWT_SECRET: ${JWT_SECRET}
+      STORAGE_LOCAL_ROOT: /app/uploads
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@ravik.app}
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  mysql_data:
+  uploads_data:

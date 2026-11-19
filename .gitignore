@@ -39,3 +39,6 @@ uploads/
 
 ### configuration files ###
 application.properties
+
+# Local env overrides (real secrets) — never commit
+.env

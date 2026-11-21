@@ -1,7 +1,10 @@
 services:
+  # Opt-in throwaway DB, not started by default. Run with `docker compose --profile localdb up`
+  # when you want a fresh containerized MySQL instead of pointing DB_URL at an existing one.
   mysql:
     image: mysql:8.0
     restart: unless-stopped
+    profiles: ["localdb"]
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME:-ravikdb}
@@ -21,11 +24,15 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: test
-      DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-ravikdb}
+      # Points at the original/external DB by default. Override to
+      # jdbc:mysql://mysql:3306/${DB_NAME:-ravikdb} in .env only when also running
+      # `--profile localdb` (the bundled throwaway MySQL container).
+      DB_URL: ${DB_URL}
       DB_USERNAME: ${DB_USERNAME:-ravikuser}
       DB_PASSWORD: ${DB_PASSWORD}
       DDL_AUTO: ${DDL_AUTO:-update}

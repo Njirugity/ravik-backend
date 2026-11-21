@@ -6,6 +6,7 @@ import net.ravik_cms.ravik_backend.common.enums.PaymentCategory;
 import net.ravik_cms.ravik_backend.common.enums.PaymentStatus;
 import net.ravik_cms.ravik_backend.payment.dtos.PaymentInfoProjection;
 import net.ravik_cms.ravik_backend.payment.entity.Payment;
+import net.ravik_cms.ravik_backend.accountInsights.dtos.AccountProjectSum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,6 +61,15 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.project.id = :projectId AND p.account.id = :accountId")
     Double sumAmountByProjectIdAndAccountId(@Param("projectId") UUID projectId, @Param("accountId") UUID accountId);
+
+    @Query("""
+            SELECT new net.ravik_cms.ravik_backend.accountInsights.dtos.AccountProjectSum(
+                        p.project.id, p.project.title, COALESCE(SUM(p.amount), 0))
+            FROM Payment p
+            WHERE p.account.id = :accountId
+            GROUP BY p.project.id, p.project.title
+            """)
+    List<AccountProjectSum> sumAmountByAccountIdGroupedByProject(@Param("accountId") UUID accountId);
 
     /**
      * Expense payments re-bucketed into the budget category of the expense they settle.

@@ -47,6 +47,9 @@ public class ScheduleService {
         if (milestones.isEmpty()) {
             throw new ResourceNotFoundException("Project has no milestones to schedule");
         }
+        if (project.getPlannedStart() == null) {
+            throw new ResourceNotFoundException("Project has no planned start date");
+        }
         Calendar calender = calendarService.getCalenderEntity(projectId);
         //Build the data required for traversal. this is the milestone with its predecessors
         //successors
@@ -209,7 +212,7 @@ public class ScheduleService {
             m.setTotalFloat(0L);
 
             if(!isCritical && m.getEarliestFinish() != null && m.getLatestFinish() != null){
-                long totalFloat = calendarService.workingDaysBetween(m.getEarliestStart(), m.getLatestStart(), calender);
+                long totalFloat = calendarService.workingDayDifference(m.getEarliestStart(), m.getLatestStart(), calender);
                 m.setTotalFloat(totalFloat);
             }
         }
@@ -244,7 +247,7 @@ public class ScheduleService {
                 .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
 
         if (!project.isScheduled()){
-            throw new ResourceNotFoundException("Project has not been scheduled yet");
+            throw new ResourceNotFoundException("Project has not been scheduled yet, provide a project start date");
         }
         List<Milestones> milestones = milestonesRepository.findAllByProjectId(projectId);
 

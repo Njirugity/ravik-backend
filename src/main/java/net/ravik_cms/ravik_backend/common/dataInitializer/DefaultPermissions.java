@@ -9,6 +9,12 @@ import java.util.stream.Stream;
  */
 public final class DefaultPermissions {
 
+    /**
+     * Opening balance and figures across all of a client's projects for each shared account.
+     * Not prefixed READ_, so it stays out of {@link #ALL_READ}: only the client can grant it.
+     */
+    public static final String VIEW_CLIENT_ACCOUNT_SUMMARY = "VIEW_CLIENT_ACCOUNT_SUMMARY";
+
     public static final List<String> ALL = Stream.of(
             crud("PROJECT"),
             crud("USER"),
@@ -33,6 +39,7 @@ public final class DefaultPermissions {
             crud("INCOME"),
             crud("EXPENSE"),
             crud("ACCOUNT"),
+            List.of(VIEW_CLIENT_ACCOUNT_SUMMARY),
             crud("APPROVAL"),
             List.of("READ_CASH_SUMMARY", "READ_COST_SUMMARY", "READ_ACCOUNT_INSIGHTS", "READ_APPROVALS_REPORT",
                     "READ_OUTSTANDING_PAYABLES_REPORT", "READ_LABOUR_ATTENDANCE_REPORT",

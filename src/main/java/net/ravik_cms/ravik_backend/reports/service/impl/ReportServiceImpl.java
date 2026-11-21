@@ -12,6 +12,7 @@ import net.ravik_cms.ravik_backend.budgetSummary.service.BudgetSummaryService;
 import net.ravik_cms.ravik_backend.cashSummary.dtos.CashSummaryDto;
 import net.ravik_cms.ravik_backend.cashSummary.service.CashSummaryService;
 import net.ravik_cms.ravik_backend.common.enums.ApprovalStatus;
+import net.ravik_cms.ravik_backend.common.enums.EquipmentCategory;
 import net.ravik_cms.ravik_backend.common.exception.ResourceNotFoundException;
 import net.ravik_cms.ravik_backend.costSummary.dtos.CostPaymentSummaryDto;
 import net.ravik_cms.ravik_backend.costSummary.service.CostSummaryService;
@@ -393,10 +394,8 @@ public class ReportServiceImpl implements ReportService {
      * Returns planned-vs-actual cost for every equipment and subcontractor requirement on the
      * project, matched by their respective requirement id.
      * <p>
-     * Equipment's "planned cost" is only {@code plannedFuelCost} — {@code EquipmentRequired} has
-     * no planned figure for operator or rental cost, so the variance there is a partial estimate,
-     * not a full planned-vs-actual comparison the way subcontractor's {@code jobAmount} vs
-     * {@code actualJobCost} is.
+     * Equipment's "planned cost" mirrors how actual cost is computed: planned operator cost plus
+     * planned fuel cost (owned) or planned rental cost (rented). See {@link #plannedCost}.
      *
      * @param projectId the project to report on
      * @return planned-vs-actual comparison lines for equipment and subcontractors, plus totals
@@ -408,7 +407,7 @@ public class ReportServiceImpl implements ReportService {
         List<EquipmentPayoutComparisonLineDto> equipmentLines = buildEquipmentComparison(projectId);
         List<SubContractorPayoutComparisonLineDto> subContractorLines = buildSubContractorComparison(projectId);
 
-        double totalPlannedEquipmentFuelCost = equipmentLines.stream().mapToDouble(EquipmentPayoutComparisonLineDto::plannedFuelCost).sum();
+        double totalPlannedEquipmentCost = equipmentLines.stream().mapToDouble(EquipmentPayoutComparisonLineDto::plannedCost).sum();
         double totalActualEquipmentCost = equipmentLines.stream().mapToDouble(EquipmentPayoutComparisonLineDto::actualCost).sum();
         double totalEquipmentPaid = equipmentLines.stream().mapToDouble(EquipmentPayoutComparisonLineDto::paidAmount).sum();
 
@@ -419,13 +418,25 @@ public class ReportServiceImpl implements ReportService {
         return EquipmentSubContractorPayoutReportDto.builder()
                 .equipment(equipmentLines)
                 .subContractors(subContractorLines)
-                .totalPlannedEquipmentFuelCost(totalPlannedEquipmentFuelCost)
+                .totalPlannedEquipmentCost(totalPlannedEquipmentCost)
                 .totalActualEquipmentCost(totalActualEquipmentCost)
                 .totalEquipmentPaid(totalEquipmentPaid)
                 .totalPlannedSubContractorAmount(totalPlannedSubContractorAmount)
                 .totalActualSubContractorCost(totalActualSubContractorCost)
                 .totalSubContractorPaid(totalSubContractorPaid)
                 .build();
+    }
+
+    /**
+     * Planned cost of an equipment requirement, computed the same way as a payout's actual cost:
+     * operator cost plus fuel cost for owned equipment, or rental cost for rented equipment.
+     *
+     * @param r the equipment requirement
+     * @return the planned cost
+     */
+    private long plannedCost(EquipmentRequiredInfoProjection r) {
+        long usageCost = r.category() == EquipmentCategory.OWNED ? r.plannedFuelCost() : r.plannedRentalCost();
+        return r.plannedOperatorCost() + usageCost;
     }
 
     /**
@@ -451,6 +462,7 @@ public class ReportServiceImpl implements ReportService {
         for (EquipmentRequiredInfoProjection r : required) {
             EquipmentActualAggregateProjection actual = actualsByRequirementId.get(r.id());
             double actualCost = actual != null ? nz(actual.totalActualCost()) : 0;
+            long plannedCost = plannedCost(r);
             lines.add(EquipmentPayoutComparisonLineDto.builder()
                     .equipmentRequiredId(r.id())
                     .equipmentId(r.equipmentId())
@@ -458,10 +470,11 @@ public class ReportServiceImpl implements ReportService {
                     .equipmentCategory(r.category())
                     .plannedDuration(r.plannedDuration())
                     .plannedFuelCost(r.plannedFuelCost())
+                    .plannedCost(plannedCost)
                     .actualDuration(actual != null && actual.totalWorkedDuration() != null ? actual.totalWorkedDuration() : 0)
                     .actualCost(actualCost)
                     .paidAmount(actual != null ? nz(actual.totalPaidAmount()) : 0)
-                    .costVariance(actualCost - r.plannedFuelCost())
+                    .costVariance(actualCost - plannedCost)
                     .build());
             seenRequirementIds.add(r.id());
         }
@@ -473,6 +486,7 @@ public class ReportServiceImpl implements ReportService {
                         .equipmentRequiredId(a.equipmentRequiredId())
                         .plannedDuration(0)
                         .plannedFuelCost(0)
+                        .plannedCost(0)
                         .actualDuration(a.totalWorkedDuration() != null ? a.totalWorkedDuration() : 0)
                         .actualCost(actualCost)
                         .paidAmount(nz(a.totalPaidAmount()))

@@ -1,5 +1,6 @@
 package net.ravik_cms.ravik_backend.authentication.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -10,8 +11,9 @@ import jakarta.validation.constraints.NotBlank;
  * @param terminateOtherSessions when true, revokes every refresh token the user currently holds
  */
 public record ResetPasswordRequest(
-        @NotBlank(message = "Username is required")
-        String userName,
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be valid")
+        String email,
         @NotBlank(message = "New password is required")
         String newPassword,
         boolean terminateOtherSessions

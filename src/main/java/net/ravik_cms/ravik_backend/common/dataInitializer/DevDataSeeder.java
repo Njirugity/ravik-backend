@@ -73,6 +73,7 @@ public class DevDataSeeder implements CommandLineRunner {
 
     private static final String SEED_USERNAME = "admin";
     private static final String SEED_PASSWORD = "Password123!";
+    private static final String SEED_EMAIL = "admin@ravik.local";
     // IEBC code for Kileleshwa ward, Dagoretti North, Nairobi
     private static final String SEED_WARD_CODE = "1374";
 
@@ -126,13 +127,13 @@ public class DevDataSeeder implements CommandLineRunner {
         seedEquipmentRequired(firstMilestoneId, equipmentIds);
         seedSubContractorRequired(firstMilestoneId, subContractorIds);
 
-        log.info("Dev data seeded. Log in with username '{}' / password '{}'. Project '{}' ({})",
-                SEED_USERNAME, SEED_PASSWORD, project.getTitle(), projectId);
+        log.info("Dev data seeded. Log in with email '{}' / password '{}'. Project '{}' ({})",
+                SEED_EMAIL, SEED_PASSWORD, project.getTitle(), projectId);
     }
 
     private ClientDto seedClient() {
         CreateClientDto dto = new CreateClientDto(
-                SEED_USERNAME, "admin@ravik.local", SEED_PASSWORD, "+254712345678", "ID00000001", null
+                SEED_USERNAME, SEED_EMAIL, SEED_PASSWORD, "+254712345678", "ID00000001", null
         );
         return userService.addClient(dto);
     }
@@ -301,7 +302,7 @@ public class DevDataSeeder implements CommandLineRunner {
             return;
         }
         equipmentRequiredService.createEquipmentRequired(milestoneId, List.of(
-                new CreateEquipmentRequiredDto(equipmentIds.get(0), 5, 200, "Foundation concrete works", LocalDate.now())
+                new CreateEquipmentRequiredDto(equipmentIds.get(0), 5, 200, 0, 150, "Foundation concrete works", LocalDate.now())
         ));
     }
 

@@ -19,6 +19,7 @@ import java.util.Set;
 public class CreateClientDto {
     @NotBlank(message = "User name required")
     private String userName;
+    @NotBlank(message = "Email is required")
     @Email(message = "Email is not valid")
     private String email;
     @NotBlank(message = "Password is required")
@@ -28,7 +29,6 @@ public class CreateClientDto {
     @Pattern(regexp = "^\\+[1-9][0-9\\s\\-]{7,17}$", message = "Use international format with country code," +
             "e.g. +254712345678")
     private String phoneNumber;
-    @NotBlank(message = "Identification required")
     private String idNumber;
     private Set<RoleInfoDto> roles;
 }

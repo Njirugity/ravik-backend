@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -17,4 +18,6 @@ public class ClientAccountInsightDto {
     private Double totalIncome;
     private Double totalPayments;
     private Double currentBalance;
+    /** This account's income and payments in each of the client's projects that used it. */
+    private List<AccountProjectFlowDto> projects;
 }

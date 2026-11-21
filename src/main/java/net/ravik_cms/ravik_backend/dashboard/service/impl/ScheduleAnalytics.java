@@ -96,7 +96,7 @@ class ScheduleAnalytics {
         if (from == null || to == null) {
             return null;
         }
-        return calendar != null ? calendarService.workingDaysBetween(from, to, calendar) : ChronoUnit.DAYS.between(from, to);
+        return calendar != null ? calendarService.workingDayDifference(from, to, calendar) : ChronoUnit.DAYS.between(from, to);
     }
 
     private Double percentTimeElapsed(LocalDate start, LocalDate end, LocalDate today) {

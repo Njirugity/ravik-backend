@@ -69,7 +69,12 @@ public class UserService {
         if (userRepository.findByUserName(clientToAdd.getUserName()).isPresent()) {
             throw new UserAlreadyExistsException("Username already taken");
         }
+        String email = normalizeEmail(clientToAdd.getEmail());
+        if (email != null && userRepository.existsByEmailIgnoreCase(email)) {
+            throw new UserAlreadyExistsException("Email already in use");
+        }
         Users newUser = userMapper.fromCreateClient(clientToAdd);
+        newUser.setEmail(email);
         newUser.setPassword(encoder.encode(newUser.getPassword()));
         newUser = userRepository.save(newUser);
 
@@ -83,7 +88,15 @@ public class UserService {
     public void addUser(UUID projectId, CreateUserDto request){
         Projects project = projectsRepository.findById(projectId)
                 .orElseThrow(()-> new ResourceNotFoundException("Project not found"));
+        String email = normalizeEmail(request.getEmail());
+        if (request.isHasSystemAccess() && email == null) {
+            throw new FieldRequiredException("Email is required when system access is enabled");
+        }
+        if (email != null && userRepository.existsByEmailIgnoreCase(email)) {
+            throw new UserAlreadyExistsException("Email already in use");
+        }
         Users user = userMapper.fromCreateUsers(request);
+        user.setEmail(email);
         DailyLog log = dailyLogService.createOrFetchDailyLog(project, LocalDate.now());
         Roles role = null;
         JobTitles jobTitle = null;
@@ -175,8 +188,15 @@ public class UserService {
         ProjectMembership membership = projectMembershipRepository.findByUserAndProject(user, project)
                 .orElseThrow(()-> new ResourceNotFoundException("Membership does not exist"));
 
+        String email = normalizeEmail(request.getEmail());
+        if (request.isHasSystemAccess() && email == null) {
+            throw new FieldRequiredException("Email is required when system access is enabled");
+        }
+        if (email != null && userRepository.existsByEmailIgnoreCaseAndIdNot(email, user_id)) {
+            throw new UserAlreadyExistsException("Email already in use");
+        }
         user.setUserName(request.getUserName());
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setPhoneNumber(request.getPhoneNumber());
         user.setIdNumber(request.getIdNumber());
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
@@ -244,5 +264,16 @@ public class UserService {
     public Page<UserDetailsProjection> getAllUsers(UUID project_id, String role, String jobTitle,
                                                     String search, Pageable pageable){
         return userRepository.findAllUsers(project_id, role, jobTitle, search, pageable);
+    }
+
+    /**
+     * Email is the login identifier, so it is stored trimmed and lower-cased; blank becomes null
+     * so users without system access don't collide on the unique constraint.
+     */
+    private static String normalizeEmail(String email){
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return email.trim().toLowerCase();
     }
 }

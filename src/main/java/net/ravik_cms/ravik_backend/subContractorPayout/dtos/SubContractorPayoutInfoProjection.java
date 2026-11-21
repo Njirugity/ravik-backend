@@ -10,6 +10,7 @@ public record SubContractorPayoutInfoProjection(
         Long subContractorRequiredId,
         Long subContractorId,
         String subContractorTitle,
+        String jobTitle,
         Double actualJobCost,
         String referenceCode,
         Double paidAmount,

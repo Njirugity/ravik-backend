@@ -3,6 +3,7 @@ package net.ravik_cms.ravik_backend.income.repository;
 import net.ravik_cms.ravik_backend.common.dtos.MonthAmountProjection;
 import net.ravik_cms.ravik_backend.income.dtos.IncomeInfoProjection;
 import net.ravik_cms.ravik_backend.income.entity.Income;
+import net.ravik_cms.ravik_backend.accountInsights.dtos.AccountProjectSum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,6 +47,15 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
 
     @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.project.id = :projectId AND i.account.id = :accountId")
     Double sumAmountByProjectIdAndAccountId(@Param("projectId") UUID projectId, @Param("accountId") UUID accountId);
+
+    @Query("""
+            SELECT new net.ravik_cms.ravik_backend.accountInsights.dtos.AccountProjectSum(
+                        i.project.id, i.project.title, COALESCE(SUM(i.amount), 0))
+            FROM Income i
+            WHERE i.account.id = :accountId
+            GROUP BY i.project.id, i.project.title
+            """)
+    List<AccountProjectSum> sumAmountByAccountIdGroupedByProject(@Param("accountId") UUID accountId);
 
     @Query("""
                 SELECT new net.ravik_cms.ravik_backend.common.dtos.MonthAmountProjection(

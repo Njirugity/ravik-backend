@@ -12,10 +12,12 @@ import net.ravik_cms.ravik_backend.milestones.service.MilestonesService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -86,8 +88,11 @@ public class MilestonesController {
 //    }
     @RequirePermission("READ_MILESTONE")
     @GetMapping("/eligible/{project_id}")
-    public ResponseEntity<List<PossibleActiveMilestonesDto>> getEligibleMilestone(@PathVariable UUID project_id){
-        List<PossibleActiveMilestonesDto> body = milestonesService.getEligibleMilestones(project_id);
+    public ResponseEntity<List<PossibleActiveMilestonesDto>> getEligibleMilestone(
+            @PathVariable UUID project_id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        List<PossibleActiveMilestonesDto> body = milestonesService.getEligibleMilestones(
+                project_id, date != null ? date : LocalDate.now());
         return ResponseEntity.ok(body);
     }
 

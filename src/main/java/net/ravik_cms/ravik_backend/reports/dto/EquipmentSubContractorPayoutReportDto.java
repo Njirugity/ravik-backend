@@ -8,7 +8,7 @@ import java.util.List;
 public record EquipmentSubContractorPayoutReportDto(
         List<EquipmentPayoutComparisonLineDto> equipment,
         List<SubContractorPayoutComparisonLineDto> subContractors,
-        double totalPlannedEquipmentFuelCost,
+        double totalPlannedEquipmentCost,
         double totalActualEquipmentCost,
         double totalEquipmentPaid,
         double totalPlannedSubContractorAmount,

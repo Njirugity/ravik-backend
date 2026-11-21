@@ -1,8 +1,10 @@
 package net.ravik_cms.ravik_backend.common.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,6 +13,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -43,6 +46,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrors> circularDependencyException(CircularDependencyException e){
         ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.CONFLICT.value(), LocalDate.now());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
+    }
+    @ExceptionHandler(InvalidDependencyException.class)
+    public ResponseEntity<ApiErrors> invalidDependencyException(InvalidDependencyException e){
+        ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
+        return ResponseEntity.badRequest().body(errors);
     }
     @ExceptionHandler(UnsupportedPaymentCategoryException.class)
     public ResponseEntity<ApiErrors> unsupportedPaymentCategoryException(UnsupportedPaymentCategoryException e){
@@ -94,5 +102,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrors> incorrectPasswordException(IncorrectPasswordException e){
         ApiErrors errors = new ApiErrors(e.getMessage(), HttpStatus.BAD_REQUEST.value(), LocalDate.now());
         return ResponseEntity.badRequest().body(errors);
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrors> unexpectedException(Exception e){
+        // Spring's own exceptions (unknown route, unreadable body, wrong method) carry their status.
+        if (e instanceof ErrorResponse errorResponse) {
+            int status = errorResponse.getStatusCode().value();
+            return ResponseEntity.status(status).body(new ApiErrors(e.getMessage(), status, LocalDate.now()));
+        }
+        log.error("Unhandled exception", e);
+        ApiErrors errors = new ApiErrors("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value(), LocalDate.now());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errors);
     }
 }

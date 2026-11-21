@@ -5,28 +5,28 @@ package net.ravik_cms.ravik_backend.authentication.service;
  */
 public interface PasswordResetService {
     /**
-     * Issues a fresh OTP for the given username and emails it, if the username exists and has an
-     * email on file. Always completes without signaling whether the username was found, to avoid
+     * Issues a fresh OTP for the account with the given email and emails it, if such an account
+     * exists. Always completes without signaling whether the email was found, to avoid
      * account enumeration.
      *
-     * @param userName the account to send a reset code to
+     * @param email the account to send a reset code to
      */
-    void forgotPassword(String userName);
+    void forgotPassword(String email);
 
     /**
      * Validates a presented OTP against the user's live (unused) code.
      *
-     * @param userName the account the code was issued to
+     * @param email the account the code was issued to
      * @param otp      the code the user entered
      */
-    void validateOtp(String userName, String otp);
+    void validateOtp(String email, String otp);
 
     /**
      * Sets a new password for a user whose OTP has already been validated.
      *
-     * @param userName               the account to reset
+     * @param email                  the account to reset
      * @param newPassword            the new password, checked against the strength policy
      * @param terminateOtherSessions when true, revokes every refresh token the user currently holds
      */
-    void resetPassword(String userName, String newPassword, boolean terminateOtherSessions);
+    void resetPassword(String email, String newPassword, boolean terminateOtherSessions);
 }

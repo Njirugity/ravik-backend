@@ -26,6 +26,8 @@ public class EquipmentRequired extends BaseEntity {
     private Equipments equipments;
     private long plannedDuration;
     private long plannedFuelCost;
+    private long plannedRentalCost;
+    private long plannedOperatorCost;
     private String notes;
     private LocalDate dateRequired;
     @ManyToOne

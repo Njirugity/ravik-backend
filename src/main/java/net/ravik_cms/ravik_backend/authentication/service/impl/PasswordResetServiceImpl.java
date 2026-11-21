@@ -67,23 +67,19 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     /**
      * Issues and emails a fresh OTP, replacing any still-unused one for the same user. Silently
-     * no-ops if the username doesn't exist or has no email on file, and swallows email-send
+     * no-ops if no account has that email, and swallows email-send
      * failures (logging them instead) — the OTP is still persisted either way, so it can be read
      * directly from the database if delivery fails. In every case, the caller sees the same
-     * generic success response, to avoid revealing whether a username exists.
+     * generic success response, to avoid revealing whether an email is registered.
      */
     @Override
     @Transactional
-    public void forgotPassword(String userName) {
-        Optional<Users> userOpt = userRepository.findByUserName(userName);
+    public void forgotPassword(String email) {
+        Optional<Users> userOpt = userRepository.findByEmailIgnoreCase(email.trim());
         if (userOpt.isEmpty()) {
             return;
         }
         Users user = userOpt.get();
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            log.warn("Forgot-password requested for user {} with no email on file", user.getId());
-            return;
-        }
 
         otpRepository.deleteAllUnusedForUser(user.getId());
 
@@ -114,8 +110,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     // otpRepository.save(record) even though the method then throws — a surrounding transaction
     // would roll that save back along with the exception, silently losing the attempt count.
     @Override
-    public void validateOtp(String userName, String otp) {
-        Users user = userRepository.findByUserName(userName)
+    public void validateOtp(String email, String otp) {
+        Users user = userRepository.findByEmailIgnoreCase(email.trim())
                 .orElseThrow(() -> new InvalidOtpException("Invalid or expired code."));
         PasswordResetOtp record = findLiveOtp(user);
 
@@ -145,8 +141,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
      */
     @Override
     @Transactional
-    public void resetPassword(String userName, String newPassword, boolean terminateOtherSessions) {
-        Users user = userRepository.findByUserName(userName)
+    public void resetPassword(String email, String newPassword, boolean terminateOtherSessions) {
+        Users user = userRepository.findByEmailIgnoreCase(email.trim())
                 .orElseThrow(() -> new InvalidOtpException("Verify your code first."));
         PasswordResetOtp record = findLiveOtp(user);
 

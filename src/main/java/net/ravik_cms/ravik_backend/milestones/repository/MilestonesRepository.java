@@ -37,6 +37,16 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("search") String search,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT m FROM Milestones m
+        WHERE m.project.id = :projectId
+        AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    List<Milestones> searchMilestonesByProject(
+            @Param("projectId") UUID projectId,
+            @Param("search") String search
+    );
     List<Milestones> findAllByPhaseId(UUID phaseId);
     boolean existsByPhaseIdAndStatusNotAndEarliestFinishBefore(
             UUID phaseId, ProgressStatus status, LocalDate currentDate);
@@ -79,35 +89,6 @@ public interface MilestonesRepository extends JpaRepository<Milestones, UUID> {
             @Param("projectId") UUID projectId,
             @Param("currentDate") LocalDate currentDate,
             @Param("thresholdDate") LocalDate thresholdDate
-    );
-    @Query("""
-        SELECT m FROM Milestones m
-        WHERE m.project.id = :projectId
-        AND m.actualStartDate IS NULL
-        AND :date BETWEEN m.earliestStart AND m.latestFinish
-    """)
-    List<Milestones> findByActualStartDateIsNullAndDateBetweenESAnsLF(
-            @Param("date") LocalDate date,
-            @Param("projectId") UUID projectId
-    );
-    @Query("""
-        SELECT m FROM Milestones m
-        WHERE m.project.id = :projectId
-        AND :date BETWEEN m.earliestStart AND m.latestFinish
-    """)
-    List<Milestones> findByDateBetweenESAndLF(
-            @Param("date") LocalDate date,
-            @Param("projectId") UUID projectId
-    );
-    @Query("""
-        SELECT m FROM Milestones m
-        WHERE m.project.id = :projectId
-        AND m.actualStartDate IS NULL
-        AND NOT EXISTS(SELECT md FROM MilestoneDependency md
-            WHERE md.milestone = m)
-    """)
-    List<Milestones> findWithNoPredecessorsAndNoActualStart(
-            @Param("projectId") UUID projectId
     );
 
     long countByProjectId(UUID projectId);

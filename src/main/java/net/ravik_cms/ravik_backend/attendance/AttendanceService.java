@@ -142,7 +142,10 @@ public class AttendanceService {
                     a.setMembership(membership);
                     Milestones milestone = milestoneMap.get(r.getMilestoneId());
                     a.setMilestone(milestone);
-                    milestonesService.setMilestoneActualStartDate(milestone);
+                    // Milestone is optional on attendance; only a named one is started.
+                    if (milestone != null) {
+                        milestonesService.setMilestoneActualStartDate(milestone);
+                    }
                     return a;
                 }).collect(Collectors.toList());
         attendanceRepository.saveAll(records);

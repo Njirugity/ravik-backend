@@ -13,6 +13,8 @@ public record EquipmentRequiredInfoProjection(
         UUID milestoneId,
         long plannedDuration,
         long plannedFuelCost,
+        long plannedRentalCost,
+        long plannedOperatorCost,
         String notes,
         LocalDate dateRequired) {
 }

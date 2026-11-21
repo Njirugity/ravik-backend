@@ -14,6 +14,12 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<Users, UUID> {
     Optional<Users> findByUserName(String userName);
 
+    Optional<Users> findByEmailIgnoreCase(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
+
     @Query(
             value = """
                 SELECT new net.ravik_cms.ravik_backend.users.UserDetailsProjection(
